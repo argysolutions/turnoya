@@ -4,16 +4,18 @@ import cookie from '@fastify/cookie'
 import { ENV } from './config/env.js'
 import { connectDB } from './config/db.js'
 import { authRoutes } from './routes/auth.routes.js'
+import { servicesRoutes } from './routes/services.routes.js'
+import { availabilityRoutes } from './routes/availability.routes.js'
 
 const app = Fastify({ logger: true })
 
 await app.register(cors, { origin: true, credentials: true })
 await app.register(cookie)
 
-// Rutas
 app.register(authRoutes, { prefix: '/api' })
+app.register(servicesRoutes, { prefix: '/api' })
+app.register(availabilityRoutes, { prefix: '/api' })
 
-// Health check
 app.get('/health', async () => ({ status: 'ok', app: 'TurnoYa' }))
 
 const start = async () => {
