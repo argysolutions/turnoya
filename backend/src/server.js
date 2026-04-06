@@ -6,6 +6,8 @@ import { connectDB } from './config/db.js'
 import { authRoutes } from './routes/auth.routes.js'
 import { servicesRoutes } from './routes/services.routes.js'
 import { availabilityRoutes } from './routes/availability.routes.js'
+import { publicRoutes } from './routes/public.routes.js'
+import { appointmentsRoutes } from './routes/appointments.routes.js'
 
 const app = Fastify({ logger: true })
 
@@ -15,6 +17,8 @@ await app.register(cookie)
 app.register(authRoutes, { prefix: '/api' })
 app.register(servicesRoutes, { prefix: '/api' })
 app.register(availabilityRoutes, { prefix: '/api' })
+app.register(publicRoutes, { prefix: '/api' })
+app.register(appointmentsRoutes, { prefix: '/api' })
 
 app.get('/health', async () => ({ status: 'ok', app: 'TurnoYa' }))
 
