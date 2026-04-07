@@ -11,7 +11,11 @@ import { appointmentsRoutes } from './routes/appointments.routes.js'
 
 const app = Fastify({ logger: true })
 
-await app.register(cors, { origin: true, credentials: true })
+await app.register(cors, {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+})
 await app.register(cookie)
 
 app.register(authRoutes, { prefix: '/api' })
