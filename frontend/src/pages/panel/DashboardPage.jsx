@@ -5,17 +5,24 @@ import Layout from '@/components/shared/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Copy, MoreVertical } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
 
 const STATUS_LABEL = {
   pending: 'pendiente',
   confirmed: 'confirmado',
   cancelled: 'cancelado',
+  cancelled_occupied: 'OCUPADO',
 }
 
 const STATUS_VARIANT = {
   pending: 'secondary',
   confirmed: 'default',
   cancelled: 'outline',
+  cancelled_occupied: 'destructive',
 }
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -29,6 +36,18 @@ export default function DashboardPage() {
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [date, setDate] = useState(today())
+  
+  const [cancelModal, setCancelModal] = useState(null)
+  const [liberateModal, setLiberateModal] = useState(null)
+  const [cancelStrategy, setCancelStrategy] = useState('liberate')
+
+  const business = JSON.parse(localStorage.getItem('business') || '{}')
+  const publicLink = `${window.location.origin}/p/${business.slug}`
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(publicLink)
+    toast.success('¡Link público copiado al portapapeles!')
+  }
 
   const fetchAppointments = async () => {
     setLoading(true)
@@ -54,9 +73,34 @@ export default function DashboardPage() {
     }
   }
 
+  const handleCancelSubmit = async () => {
+    if (!cancelModal) return
+    const statusPayload = cancelStrategy === 'keep_occupied' ? 'cancelled_occupied' : 'liberate'
+    try {
+      await updateStatus(cancelModal.id, statusPayload)
+      toast.success(statusPayload === 'liberate' ? 'Turno liberado' : 'Turno ocupado en agenda')
+      setCancelModal(null)
+      fetchAppointments()
+    } catch {
+      toast.error('Error al cancelar el turno')
+    }
+  }
+
+  const handleLiberateSubmit = async () => {
+    if (!liberateModal) return
+    try {
+      await updateStatus(liberateModal.id, 'liberate')
+      toast.success('Horario liberado exitosamente')
+      setLiberateModal(null)
+      fetchAppointments()
+    } catch {
+      toast.error('Error al habilitar horario')
+    }
+  }
+
   const confirmed = appointments.filter(a => a.status === 'confirmed').length
   const pending = appointments.filter(a => a.status === 'pending').length
-  const cancelled = appointments.filter(a => a.status === 'cancelled').length
+  const cancelled = appointments.filter(a => a.status === 'cancelled' || a.status === 'cancelled_occupied').length
 
   return (
     <Layout>
@@ -65,6 +109,19 @@ export default function DashboardPage() {
           <h1 className="text-xl font-semibold text-slate-900">Agenda</h1>
           <p className="text-sm text-slate-500 mt-0.5 capitalize">{formatDate(date)}</p>
         </div>
+
+        {business.slug && (
+          <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm ml-4 mr-auto max-w-sm">
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Link público</span>
+              <span className="text-xs text-slate-700 truncate w-32 sm:w-56">{publicLink}</span>
+            </div>
+            <Button size="icon" variant="secondary" className="h-7 w-7 flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-600" onClick={copyLink}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
+
         <input
           type="date"
           value={date}
@@ -111,9 +168,12 @@ export default function DashboardPage() {
               {appointments.map((a, i) => (
                 <div
                   key={a.id}
+                  onDoubleClick={() => {
+                    if (a.status === 'cancelled_occupied') setLiberateModal(a)
+                  }}
                   className={`flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-slate-50 ${
-                    a.status === 'cancelled' ? 'opacity-40' : ''
-                  }`}
+                    a.status === 'cancelled' || a.status === 'cancelled_occupied' ? 'opacity-40' : ''
+                  } ${a.status === 'cancelled_occupied' ? 'cursor-pointer' : ''}`}
                   style={{ animationDelay: `${i * 0.05}s` }}
                 >
                   <div
@@ -127,7 +187,9 @@ export default function DashboardPage() {
                     {a.start_time.slice(0, 5)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">{a.client_name}</p>
+                    <p className={`text-sm font-medium ${a.status === 'cancelled_occupied' ? 'text-red-700 font-bold' : 'text-slate-900'}`}>
+                      {a.status === 'cancelled_occupied' ? 'Turno Cancelado' : a.client_name}
+                    </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                         {a.service_name}
@@ -149,12 +211,72 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   )}
+                  {a.status === 'confirmed' && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-900">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem className="text-red-600 focus:text-red-700 cursor-pointer" onClick={() => setCancelModal(a)}>
+                          Cancelar turno
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!cancelModal} onOpenChange={(o) => (!o ? setCancelModal(null) : null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar Turno Confirmado</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <RadioGroup value={cancelStrategy} onValueChange={setCancelStrategy} className="space-y-4">
+              <div className="flex items-start space-x-3 space-y-0 p-3 border rounded-lg hover:bg-slate-50 transition-colors">
+                <RadioGroupItem value="liberate" id="r-liberate" className="mt-1" />
+                <Label htmlFor="r-liberate" className="cursor-pointer flex-1">
+                  <div className="font-semibold text-slate-900">Habilitar disponibilidad para otro turno</div>
+                  <div className="text-sm text-slate-500 font-normal">Libera el horario para recibir una reserva nueva (demora 2 mins).</div>
+                </Label>
+              </div>
+              <div className="flex items-start space-x-3 space-y-0 p-3 border rounded-lg hover:bg-slate-50 transition-colors">
+                <RadioGroupItem value="keep_occupied" id="r-keep" className="mt-1" />
+                <Label htmlFor="r-keep" className="cursor-pointer flex-1">
+                  <div className="font-semibold text-slate-900">Permanecer ocupado</div>
+                  <div className="text-sm text-slate-500 font-normal">Mantiene el horario bloqueado en la agenda pública.</div>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setCancelModal(null)}>Volver</Button>
+            <Button variant="destructive" onClick={handleCancelSubmit}>Confirmar cancelación</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!liberateModal} onOpenChange={(o) => (!o ? setLiberateModal(null) : null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Liberar horario bloqueado</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-slate-500 mb-4">
+            Este horario figura ocupado artificialmente debido a una cancelación previa. ¿Deseás habilitarlo nuevamente en tu agenda pública?
+            Se eliminará visualmente del dashboard y estará disponible en el calendario público en 2 minutos.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setLiberateModal(null)}>Cancelar</Button>
+            <Button variant="default" onClick={handleLiberateSubmit}>Sí, habilitar horario</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   )
 }

@@ -70,3 +70,11 @@ export const updateAppointmentStatus = async (id, businessId, status) => {
   )
   return result.rows[0]
 }
+
+export const deleteAppointment = async (id, businessId) => {
+  const result = await pool.query(
+    `DELETE FROM appointments WHERE id = $1 AND business_id = $2 RETURNING *`,
+    [id, businessId]
+  )
+  return result.rows[0]
+}

@@ -1,6 +1,7 @@
-import { findOrCreateClient, createAppointment, getAppointmentById, getAppointmentsByBusiness, updateAppointmentStatus } from '../db/appointments.queries.js'
+import { findOrCreateClient, createAppointment, getAppointmentById, getAppointmentsByBusiness, updateAppointmentStatus, deleteAppointment } from '../db/appointments.queries.js'
 import { getBusinessBySlug, getAvailabilityByDay, getOccupiedSlots } from '../db/public.queries.js'
 import { getServiceById } from '../db/services.queries.js'
+import { sendConfirmation } from '../services/whatsapp.service.js'
 
 const timeToMinutes = (time) => {
   const [h, m] = time.toString().split(':').map(Number)
@@ -52,6 +53,15 @@ export const bookAppointment = async (req, reply) => {
   })
 
   const full = await getAppointmentById(appointment.id)
+  
+  // Enviamos la notificación por WhatsApp en segundo plano (para no blockear al front)
+  sendConfirmation(client_phone, {
+    businessName: business.name,
+    serviceName: service.name,
+    date,
+    startTime: start_time
+  }).catch(e => console.error('Fallo el trigger de WP:', e.message))
+
   reply.status(201).send(full)
 }
 
@@ -72,10 +82,29 @@ export const updateStatus = async (req, reply) => {
   const { id } = req.params
   const { status } = req.body
 
-  if (!['confirmed', 'cancelled'].includes(status)) {
+  if (!['confirmed', 'cancelled', 'cancelled_occupied', 'liberate'].includes(status)) {
     return reply.status(400).send({ error: 'Estado inválido' })
   }
 
+  // Lógica A: Liberar (con retraso de 2 minutos)
+  if (status === 'liberate') {
+    // Lo fijamos como occupied para que nadie lo pueda usar en estos 2 minutos
+    await updateAppointmentStatus(id, req.business.id, 'cancelled_occupied')
+    
+    // Disparamos timer no bloqueante
+    setTimeout(async () => {
+      try {
+        await deleteAppointment(id, req.business.id)
+        console.log(`⏱️ Turno ${id} liberado y eliminado permanentemente luego de 2 minutos.`)
+      } catch (err) {
+        console.error('Error liberando turno:', err.message)
+      }
+    }, 120000) // 120,000 ms = 2 minutos
+
+    return reply.send({ success: true, action: 'liberating' })
+  }
+
+  // Lógicas estándar
   const updated = await updateAppointmentStatus(id, req.business.id, status)
   if (!updated) return reply.status(404).send({ error: 'Turno no encontrado' })
 

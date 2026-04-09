@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   date        DATE NOT NULL,
   start_time  TIME NOT NULL,
   end_time    TIME NOT NULL,
-  status      VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
+  status      VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled', 'cancelled_occupied')),
   notes       TEXT,
   created_at  TIMESTAMP DEFAULT NOW()
 );
