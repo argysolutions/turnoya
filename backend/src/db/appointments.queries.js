@@ -78,3 +78,11 @@ export const deleteAppointment = async (id, businessId) => {
   )
   return result.rows[0]
 }
+
+export const setAppointmentLiberationTime = async (id, businessId, liberatesAt) => {
+  const result = await pool.query(
+    `UPDATE appointments SET liberates_at = $1 WHERE id = $2 AND business_id = $3 RETURNING *`,
+    [liberatesAt, id, businessId]
+  )
+  return result.rows[0]
+}

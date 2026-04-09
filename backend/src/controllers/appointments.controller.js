@@ -1,4 +1,4 @@
-import { findOrCreateClient, createAppointment, getAppointmentById, getAppointmentsByBusiness, updateAppointmentStatus, deleteAppointment } from '../db/appointments.queries.js'
+import { findOrCreateClient, createAppointment, getAppointmentById, getAppointmentsByBusiness, updateAppointmentStatus, deleteAppointment, setAppointmentLiberationTime } from '../db/appointments.queries.js'
 import { getBusinessBySlug, getAvailabilityByDay, getOccupiedSlots } from '../db/public.queries.js'
 import { getServiceById } from '../db/services.queries.js'
 import { sendConfirmation } from '../services/whatsapp.service.js'
@@ -88,8 +88,14 @@ export const updateStatus = async (req, reply) => {
 
   // Lógica A: Liberar (con retraso de 2 minutos)
   if (status === 'liberate') {
+    // Calculamos el timestamp actual + 2 minutos
+    const liberatesAt = new Date(Date.now() + 120000)
+
     // Lo fijamos como occupied para que nadie lo pueda usar en estos 2 minutos
     await updateAppointmentStatus(id, req.business.id, 'cancelled_occupied')
+    
+    // Le seteamos el countdown
+    await setAppointmentLiberationTime(id, req.business.id, liberatesAt)
     
     // Disparamos timer no bloqueante
     setTimeout(async () => {

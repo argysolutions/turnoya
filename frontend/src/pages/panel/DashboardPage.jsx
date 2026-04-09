@@ -32,6 +32,31 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
+const Countdown = ({ targetTime, onFinished }) => {
+  const [timeLeft, setTimeLeft] = useState('')
+
+  useEffect(() => {
+    if (!targetTime) return
+    const update = () => {
+      const diff = new Date(targetTime).getTime() - Date.now()
+      if (diff <= 0) {
+        setTimeLeft('00:00')
+        onFinished()
+      } else {
+        const m = Math.floor(diff / 60000).toString().padStart(2, '0')
+        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0')
+        setTimeLeft(`${m}:${s}`)
+      }
+    }
+    update()
+    const timer = setInterval(update, 1000)
+    return () => clearInterval(timer)
+  }, [targetTime, onFinished])
+
+  if (!timeLeft) return null
+  return <span className="font-mono font-bold ml-1 text-amber-700">{timeLeft}</span>
+}
+
 export default function DashboardPage() {
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -165,15 +190,19 @@ export default function DashboardPage() {
             <p className="text-sm text-slate-400 py-8 text-center">No hay turnos para este día</p>
           ) : (
             <div className="space-y-1">
-              {appointments.map((a, i) => (
-                <div
+              {appointments.map((a, i) => {
+                const isLiberating = a.status === 'cancelled_occupied' && a.liberates_at != null
+                const opacityClass = a.status === 'cancelled' || (a.status === 'cancelled_occupied' && !isLiberating) ? 'opacity-40' : ''
+                const pointerClass = a.status === 'cancelled_occupied' && !isLiberating ? 'cursor-pointer' : ''
+                const highlightClass = isLiberating ? 'bg-amber-50 border border-amber-200 shadow-sm' : ''
+
+                return (
+                  <div
                   key={a.id}
                   onDoubleClick={() => {
-                    if (a.status === 'cancelled_occupied') setLiberateModal(a)
+                    if (a.status === 'cancelled_occupied' && !isLiberating) setLiberateModal(a)
                   }}
-                  className={`flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-slate-50 ${
-                    a.status === 'cancelled' || a.status === 'cancelled_occupied' ? 'opacity-40' : ''
-                  } ${a.status === 'cancelled_occupied' ? 'cursor-pointer' : ''}`}
+                  className={`flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-slate-50 ${opacityClass} ${pointerClass} ${highlightClass}`}
                   style={{ animationDelay: `${i * 0.05}s` }}
                 >
                   <div
@@ -187,16 +216,26 @@ export default function DashboardPage() {
                     {a.start_time.slice(0, 5)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${a.status === 'cancelled_occupied' ? 'text-red-700 font-bold' : 'text-slate-900'}`}>
+                    <p className={`text-sm font-medium ${a.status === 'cancelled_occupied' ? (isLiberating ? 'text-amber-800 font-bold' : 'text-red-700 font-bold') : 'text-slate-900'}`}>
                       {a.status === 'cancelled_occupied' ? 'Turno Cancelado' : a.client_name}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                        {a.service_name}
-                      </span>
-                      <span className="text-xs text-slate-400">{a.duration} min</span>
-                      <span className="text-xs text-slate-400">{a.client_phone}</span>
-                    </div>
+                    
+                    {isLiberating ? (
+                      <div className="mt-1">
+                        <span className="text-xs font-semibold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full inline-flex items-center">
+                          Volverá a figurar disponible en:
+                          <Countdown targetTime={a.liberates_at} onFinished={fetchAppointments} />
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                          {a.service_name}
+                        </span>
+                        <span className="text-xs text-slate-400">{a.duration} min</span>
+                        <span className="text-xs text-slate-400">{a.client_phone}</span>
+                      </div>
+                    )}
                   </div>
                   <Badge variant={STATUS_VARIANT[a.status]}>
                     {STATUS_LABEL[a.status]}
