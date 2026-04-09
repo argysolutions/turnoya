@@ -130,15 +130,18 @@ export const updateStatus = async (req, reply) => {
 }
 
 export const blockTime = async (req, reply) => {
-  const { date, start_time, duration } = req.body
+  const { date, start_time, duration, isEvent, notes } = req.body
   const businessId = req.business.id
   try {
     const { rows } = await pool.query('SELECT id FROM services WHERE business_id=$1 LIMIT 1', [businessId])
     const serviceId = rows[0]?.id
     if (!serviceId) throw new Error('No hay servicios creados para enlazar el bloqueo')
     
-    // Crear cliente fantasma de sistema
-    const cl = await pool.query(`INSERT INTO clients (name, phone) VALUES ('🛠️ Receso / Bloqueo', '0000000000') RETURNING id`)
+    // Si es evento, no bloquea turnos (cancelled nativo), si es Receso se vuelve cancelled_occupied
+    const clientName = isEvent ? '🌟 Evento Destacado' : '🛠️ Receso / Bloqueo'
+    const status = isEvent ? 'cancelled' : 'cancelled_occupied'
+
+    const cl = await pool.query(`INSERT INTO clients (name, phone) VALUES ($1, '0000000000') RETURNING id`, [clientName])
     
     // Soporta end_time provisto, o lo calcula del duration (retrocompatibilidad)
     let end = req.body.end_time;
@@ -149,9 +152,9 @@ export const blockTime = async (req, reply) => {
     }
     
     await pool.query(
-      `INSERT INTO appointments (business_id, service_id, client_id, date, start_time, end_time, status) 
-       VALUES ($1, $2, $3, $4, $5, $6, 'cancelled_occupied')`, 
-      [businessId, serviceId, cl.rows[0].id, date, start_time, end]
+      `INSERT INTO appointments (business_id, service_id, client_id, date, start_time, end_time, status, notes) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, 
+      [businessId, serviceId, cl.rows[0].id, date, start_time, end, status, notes || '']
     )
     reply.send({ success: true })
   } catch (err) {

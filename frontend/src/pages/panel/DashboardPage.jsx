@@ -89,7 +89,11 @@ export default function DashboardPage() {
   const [pendingCancelModal, setPendingCancelModal] = useState(null)
   const [liberateModal, setLiberateModal] = useState(null)
   const [blockModal, setBlockModal] = useState(false)
+  const [confirmBlockModal, setConfirmBlockModal] = useState(false)
+  const [activeBlocksListModal, setActiveBlocksListModal] = useState(false)
+  const [eventModal, setEventModal] = useState(false)
   const [blockForm, setBlockForm] = useState({ date: today(), start_time: '14:00', end_time: '15:00', fullDay: false })
+  const [eventForm, setEventForm] = useState({ date: today(), start_time: '09:00', end_time: '18:00', notes: '' })
   const [cancelStrategy, setCancelStrategy] = useState('liberate')
 
   const business = JSON.parse(localStorage.getItem('business') || '{}')
@@ -168,8 +172,12 @@ export default function DashboardPage() {
     setDate(d.toISOString().split('T')[0])
   }
 
-  const handleBlockTime = async (e) => {
+  const handleBlockTimeRequest = (e) => {
     e.preventDefault()
+    setConfirmBlockModal(true)
+  }
+
+  const submitBlockPayload = async () => {
     try {
       const payload = { ...blockForm }
       if (payload.fullDay) {
@@ -177,7 +185,6 @@ export default function DashboardPage() {
         payload.end_time = '23:59'
       }
       
-      // Fallback para tu servidor Render actual (calculamos la duración para que la acepte el código viejo)
       const [sh, sm] = payload.start_time.split(':').map(Number)
       const [eh, em] = payload.end_time.split(':').map(Number)
       let durationMins = (eh * 60 + em) - (sh * 60 + sm)
@@ -185,11 +192,31 @@ export default function DashboardPage() {
       payload.duration = durationMins
 
       await createBlock(payload)
+      setConfirmBlockModal(false)
       setBlockModal(false)
       fetchAppointments()
       toast.success(payload.fullDay ? 'Día bloqueado con éxito' : 'Bache horario bloqueado con éxito')
     } catch (error) {
       toast.error('Error insertando el bloqueo manual')
+    }
+  }
+
+  const submitEventPayload = async (e) => {
+    e.preventDefault()
+    try {
+      const payload = { ...eventForm, isEvent: true }
+      const [sh, sm] = payload.start_time.split(':').map(Number)
+      const [eh, em] = payload.end_time.split(':').map(Number)
+      let durationMins = (eh * 60 + em) - (sh * 60 + sm)
+      if (durationMins <= 0) durationMins = 60 // Fallback
+      payload.duration = durationMins
+
+      await createBlock(payload)
+      setEventModal(false)
+      fetchAppointments()
+      toast.success('Fecha destacada en el calendario')
+    } catch (error) {
+      toast.error('Error insertando evento destacado')
     }
   }
 
@@ -202,7 +229,11 @@ export default function DashboardPage() {
   const allPending = appointments.filter(a => a.status === 'pending')
   const confirmedForDate = appointments.filter(a => a.status === 'confirmed' && safeDate(a.date) === date)
   const completedForDate = appointments.filter(a => a.status === 'completed' && safeDate(a.date) === date)
-  const cancelledForDate = appointments.filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status) && safeDate(a.date) === date)
+  const cancelledForDate = appointments.filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status) && safeDate(a.date) === date && !a.client_name?.includes('Evento'))
+
+  const activeBlocksArray = appointments.filter(a => a.status === 'cancelled_occupied' && a.client_name?.includes('Bloqueo'))
+  const allEventsArray = appointments.filter(a => a.status === 'cancelled' && a.client_name?.includes('Evento'))
+  const eventDatesArray = allEventsArray.map(e => new Date(safeDate(e.date) + 'T00:00:00'))
 
   const boxOfficeToday = completedForDate.reduce((acc, a) => acc + parseFloat(a.price || 0), 0)
 
@@ -320,9 +351,6 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-slate-900">{business.name || 'Agenda de Turnos'}</h1>
-            <Button size="sm" className="h-8 text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm flex items-center gap-1.5 px-3 rounded-full" onClick={() => setBlockModal(true)}>
-              + Bloquear Horario
-            </Button>
           </div>
           <p className="text-sm text-slate-500 mt-1">Navegá entre fechas, bloqueos o revisá turnos pendientes.</p>
         </div>
@@ -345,14 +373,26 @@ export default function DashboardPage() {
         
         {/* === LADO SECUNDARIO (Derecha): CALENDARIO Y COUNTERS === */}
         <div className="w-full lg:w-[260px] shrink-0 space-y-3">
+          <div className="flex gap-2 w-full">
+            <Button size="sm" className="flex-1 h-9 text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-lg font-medium" onClick={() => setBlockModal(true)}>
+              + Bloquear
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1 h-9 text-xs text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-lg font-medium" onClick={() => setEventModal(true)}>
+              ⭐ Destacar
+            </Button>
+          </div>
+
           <Card className="border border-slate-100 shadow-sm bg-white overflow-hidden rounded-2xl">
             <CardContent className="p-1">
               <Calendar
                 mode="single"
                 selected={calendarDate}
                 onSelect={handleCalendarSelect}
-                modifiers={{ cancelled: cancelledDatesArray }}
-                modifiersClassNames={{ cancelled: "text-red-500 font-bold bg-red-50 ring-1 ring-inset ring-red-200 rounded-full" }}
+                modifiers={{ cancelled: cancelledDatesArray, event: eventDatesArray }}
+                modifiersClassNames={{ 
+                  cancelled: "text-red-500 font-bold bg-red-50 ring-1 ring-inset ring-red-200 rounded-full",
+                  event: "text-blue-500 font-bold bg-blue-50 ring-1 ring-inset ring-blue-200 rounded-full" 
+                }}
                 className="mx-auto text-sm scale-90 origin-top -mb-6"
               />
               
@@ -557,11 +597,11 @@ export default function DashboardPage() {
 
       {/* BLOCK TIME MODAL */}
       <Dialog open={blockModal} onOpenChange={setBlockModal}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Bloquear Horario Rápido</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleBlockTime}>
+          <form onSubmit={handleBlockTimeRequest}>
             <div className="space-y-4 py-4">
               <p className="text-sm text-slate-500 leading-relaxed">Cerrás la agenda impidiendo turnos públicos, opcionalmente el día entero o por un lapso exacto.</p>
               
@@ -597,9 +637,104 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setBlockModal(false)}>Cancelar</Button>
-              <Button type="submit" variant="destructive">Establecer Bloqueo</Button>
+            <DialogFooter className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <Button type="button" variant="link" className="text-emerald-700 font-semibold px-0" onClick={() => setActiveBlocksListModal(true)}>
+                Ver bloqueos activos ({activeBlocksArray.length})
+              </Button>
+              <div className="flex gap-2 w-full sm:w-auto justify-end">
+                <Button type="button" variant="ghost" onClick={() => setBlockModal(false)}>Cancelar</Button>
+                <Button type="submit" className="bg-slate-900 text-white hover:bg-slate-800">Continuar</Button>
+              </div>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* CONFIRM BLOCK MODAL */}
+      <Dialog open={confirmBlockModal} onOpenChange={setConfirmBlockModal}>
+         <DialogContent className="sm:max-w-sm">
+           <DialogHeader>
+             <DialogTitle className="text-slate-900">¿Estás seguro de continuar?</DialogTitle>
+           </DialogHeader>
+           <div className="py-4 text-center">
+             <p className="text-slate-600 leading-relaxed">
+               Estás a punto de deshabilitar la disponibilidad de tu agenda pública para {blockForm.fullDay ? "todo el día de forma completa" : "el lapso seleccionado"}. En este tiempo nadie podrá reservar.
+             </p>
+           </div>
+           <DialogFooter className="gap-2 sm:gap-0">
+             <Button variant="ghost" onClick={() => setConfirmBlockModal(false)}>Volver atrás</Button>
+             <Button variant="destructive" onClick={submitBlockPayload}>Sí, Bloquear Espacio</Button>
+           </DialogFooter>
+         </DialogContent>
+      </Dialog>
+
+      {/* ACTIVE BLOCKS LIST MODAL */}
+      <Dialog open={activeBlocksListModal} onOpenChange={setActiveBlocksListModal}>
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="mb-2">
+             <DialogTitle>Tus Bloqueos / Recesos Activos</DialogTitle>
+             <p className="text-sm text-slate-500">Al deshabilitarlos, la agenda pública vuelve a permitir reservas en esos horarios inmediatamente.</p>
+          </DialogHeader>
+          <div className="space-y-3">
+             {activeBlocksArray.length === 0 ? (
+               <div className="bg-slate-50 border border-slate-100 rounded-lg p-6 text-center text-slate-500 text-sm">
+                 Actualmente no tienes cierres forzados bloqueando la disponibilidad online.
+               </div>
+             ) : activeBlocksArray.map(b => (
+               <div key={b.id} className="flex justify-between items-center p-3 border border-slate-200 shadow-sm rounded-lg hover:border-slate-300 transition-colors bg-white">
+                  <div>
+                     <p className="font-semibold text-sm text-slate-900">{formatDate(safeDate(b.date))}</p>
+                     <p className="text-xs text-slate-500 font-medium mt-0.5">{b.start_time.slice(0,5)} hs - {b.end_time ? b.end_time.slice(0,5) : 'NaN'} hs</p>
+                  </div>
+                  <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleStatus(b.id, 'cancelled')}>
+                    Deshabilitar
+                  </Button>
+               </div>
+             ))}
+          </div>
+          <DialogFooter className="mt-4">
+             <Button variant="outline" className="w-full" onClick={() => setActiveBlocksListModal(false)}>Cerrar Listado</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* EVENT HIGHLIGHT MODAL */}
+      <Dialog open={eventModal} onOpenChange={setEventModal}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-blue-600">Destacar Día / Evento</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submitEventPayload}>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-slate-500 leading-relaxed">Coloreá de celeste una fecha especial en tu calendario sin bloquear ni afectar la agenda pública.</p>
+              
+              <div className="grid gap-2">
+                <Label>Fecha del Evento</Label>
+                <div className="relative">
+                  <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <input type="date" required value={eventForm.date} onChange={e => setEventForm({...eventForm, date: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background pl-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Nombre del Asunto</Label>
+                <input type="text" placeholder="Ej: Día de la Primavera 20% OFF" required value={eventForm.notes} onChange={e => setEventForm({...eventForm, notes: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Hora inicio</Label>
+                  <input type="time" required value={eventForm.start_time} onChange={e => setEventForm({...eventForm, start_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Hora fin</Label>
+                  <input type="time" required value={eventForm.end_time} onChange={e => setEventForm({...eventForm, end_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setEventModal(false)}>Cancelar</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Destacar Fecha</Button>
             </DialogFooter>
           </form>
         </DialogContent>
