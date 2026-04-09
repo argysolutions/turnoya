@@ -3,7 +3,12 @@ import { ENV } from './env.js'
 
 const { Pool } = pg
 
-export const pool = new Pool(ENV.DB)
+export const pool = new Pool({
+  ...ENV.DB,
+  ...(process.env.NODE_ENV === 'production' && {
+    ssl: { rejectUnauthorized: false },
+  }),
+})
 
 export const connectDB = async () => {
   try {

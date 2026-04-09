@@ -1,0 +1,16 @@
+# TurnoYa - Reglas de Desarrollo
+
+## Contexto del Proyecto
+- Producto: SaaS de gestión de turnos (Market: Argentina).
+- Arquitectura: Monorepo (Backend Fastify / Frontend React Vite).
+- Base de Datos: PostgreSQL puro (sin ORM).
+
+## Reglas de Codificación
+1. Backend: Usar 'reply.send()' de Fastify 5. Mantener la lógica en controladores.
+2. Frontend: Estética limpia con shadcn/ui y Tailwind v4. Responsive absoluto.
+3. Fechas: Usar siempre 'America/Argentina/Cordoba' para el manejo de turnos.
+4. Base de Datos: Cualquier cambio en la DB debe reflejarse en 'database/schema.sql'.
+
+## Reglas de Comunicación
+- Antes de escribir código complejo, propone un plan en el chat.
+- El objetivo final es la comercialización: código limpio y escalable.

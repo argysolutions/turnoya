@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: turnoya-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: turnoya-db
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+
+  - type: web
+    name: turnoya-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://turnoya-backend.onrender.com/api # <-- Ajustar esto al dominio final del backend si es diferente a este patrón
+
+databases:
+  - name: turnoya-db
+    databaseName: turnoya
+    user: admin

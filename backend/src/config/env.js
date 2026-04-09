@@ -3,12 +3,18 @@ dotenv.config()
 
 export const ENV = {
   PORT: process.env.PORT || 3000,
-  DB: {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-  },
+  DB: process.env.DATABASE_URL 
+    ? { connectionString: process.env.DATABASE_URL }
+    : {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        database: process.env.DB_NAME,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+      },
   JWT_SECRET: process.env.JWT_SECRET,
+  GREEN_API: {
+    INSTANCE_ID: process.env.GREEN_API_INSTANCE_ID,
+    TOKEN: process.env.GREEN_API_TOKEN,
+  },
 }
