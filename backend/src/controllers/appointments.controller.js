@@ -97,17 +97,28 @@ export const updateStatus = async (req, reply) => {
     // Le seteamos el countdown
     await setAppointmentLiberationTime(id, req.business.id, liberatesAt)
     
-    // Disparamos timer no bloqueante
+    // Disparamos timer no bloqueante blindado con validación de estado real
     setTimeout(async () => {
       try {
-        await deleteAppointment(id, req.business.id)
-        console.log(`⏱️ Turno ${id} liberado y eliminado permanentemente luego de 2 minutos.`)
+        const current = await getAppointmentById(id)
+        // Solo eliminamos si el usuario no canceló la orden durante estos 2 minutos (es decir, el timer sigue activo en DB)
+        if (current && current.liberates_at !== null) {
+          await deleteAppointment(id, req.business.id)
+          console.log(`⏱️ Turno ${id} liberado y eliminado permanentemente luego de 2 minutos.`)
+        } else {
+          console.log(`🛑 Liberación de turno ${id} cancelada. El administrador presionó deshacer.`)
+        }
       } catch (err) {
         console.error('Error liberando turno:', err.message)
       }
     }, 120000) // 120,000 ms = 2 minutos
 
     return reply.send({ success: true, action: 'liberating' })
+  }
+
+  // Si envuelve manualmente a keep_occupied o apretó "Deshacer" restaurandolo a confirmado, le quitamos toda fecha límite
+  if (status === 'cancelled_occupied' || status === 'confirmed') {
+    await setAppointmentLiberationTime(id, req.business.id, null)
   }
 
   // Lógicas estándar

@@ -88,8 +88,8 @@ export default function DashboardPage() {
 
   const handleUndoLiberation = async (id) => {
     try {
-      await updateStatus(id, 'cancelled_occupied')
-      toast.success('Liberación cancelada. El turno volverá a figurar OCUPADO permanentemente.')
+      await updateStatus(id, 'confirmed')
+      toast.success('Acción deshecha. El turno volvió a estar Confirmado.')
       fetchAppointments()
     } catch {
       toast.error('Error al deshacer la acción')
