@@ -4,3 +4,4 @@ export const bookAppointment = (slug, data) => client.post(`/p/${slug}/book`, da
 export const getAppointment = (id) => client.get(`/appointments/${id}`)
 export const getAppointments = (date) => client.get(`/appointments${date ? `?date=${date}` : ''}`)
 export const updateStatus = (id, status) => client.patch(`/appointments/${id}/status`, { status })
+export const createBlock = (data) => client.post(`/appointments/block`, data)

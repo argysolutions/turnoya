@@ -126,5 +126,18 @@
     }
   html {
     @apply font-sans;
-    }
+  }
+}
+
+.PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+}
+
+.PhoneInputCountry {
+  margin-right: 0.5rem;
 }

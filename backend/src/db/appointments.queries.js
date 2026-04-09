@@ -42,7 +42,7 @@ export const getAppointmentById = async (id) => {
 
 export const getAppointmentsByBusiness = async (businessId, date) => {
   let query = `SELECT a.*,
-                      s.name as service_name, s.duration,
+                      s.name as service_name, s.duration, s.price,
                       c.name as client_name, c.phone as client_phone
                FROM appointments a
                JOIN services s ON a.service_id = s.id

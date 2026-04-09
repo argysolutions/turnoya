@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
 import { getAvailableSlots } from '@/api/services'
 import { bookAppointment } from '@/api/appointments'
 import { Card, CardContent } from '@/components/ui/card'
@@ -48,12 +50,47 @@ export default function BookingPage() {
   }, [date, service])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const handlePhoneChange = (value) => setForm({ ...form, client_phone: value || '' })
+
+  const validateForm = () => {
+    // 1. Nombre completo mínimo 2 palabras
+    const nameWords = form.client_name.trim().split(/\s+/)
+    if (nameWords.length < 2) {
+      toast.error('Por favor ingresá tanto tu nombre como tu apellido.')
+      return false
+    }
+
+    // 2. Teléfono con Prefijo
+    if (!form.client_phone || !isValidPhoneNumber(form.client_phone)) {
+      toast.error('Número de celular WhatsApp inválido o incompleto.')
+      return false
+    }
+
+    // 3. Email con Validacion de dominios (Obligatorio)
+    const emailStr = form.client_email.trim().toLowerCase()
+    if (!emailStr) {
+      toast.error('El email es obligatorio.')
+      return false
+    }
+    
+    const allowedDomains = ['gmail.com', 'hotmail.com', 'yahoo.com', 'yahoo.com.ar', 'outlook.com', 'live.com']
+    if (!emailStr.includes('@')) {
+      toast.error('Formato de email inválido.')
+      return false
+    }
+    
+    const domain = emailStr.split('@')[1]
+    if (!allowedDomains.includes(domain)) {
+      toast.error('Por favor usá un email real de gmail, hotmail, yahoo u outlook.')
+      return false
+    }
+
+    return true
+  }
 
   const handleBook = async () => {
-    if (!form.client_name || !form.client_phone) {
-      toast.error('Nombre y teléfono son obligatorios')
-      return
-    }
+    if (!validateForm()) return
+    
     setLoading(true)
     try {
       const { data } = await bookAppointment(slug, {
@@ -178,16 +215,25 @@ export default function BookingPage() {
               <CardContent className="pt-4 space-y-3">
                 <p className="text-sm font-medium text-slate-900 mb-1">Tus datos</p>
                 <div className="space-y-1.5">
-                  <Label htmlFor="client_name">Nombre completo *</Label>
-                  <Input id="client_name" name="client_name" placeholder="Juan Pérez" value={form.client_name} onChange={handleChange} />
+                  <Label htmlFor="client_name">Nombre y Apellido *</Label>
+                  <Input id="client_name" name="client_name" placeholder="Ej: Juan Pérez" value={form.client_name} onChange={handleChange} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="client_phone">Teléfono *</Label>
-                  <Input id="client_phone" name="client_phone" placeholder="3491234567" value={form.client_phone} onChange={handleChange} />
+                  <Label htmlFor="client_phone">WhatsApp *</Label>
+                  <PhoneInput
+                    id="client_phone"
+                    international
+                    withCountryCallingCode
+                    defaultCountry="AR"
+                    placeholder="+54 11 2345 6789"
+                    value={form.client_phone}
+                    onChange={handlePhoneChange}
+                    className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-within:outline-none focus-within:ring-2 focus-within:ring-slate-950 focus-within:ring-offset-2"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="client_email">Email</Label>
-                  <Input id="client_email" name="client_email" type="email" placeholder="juan@gmail.com" value={form.client_email} onChange={handleChange} />
+                  <Label htmlFor="client_email">Email *</Label>
+                  <Input id="client_email" name="client_email" type="email" placeholder="Ej: juan@gmail.com" value={form.client_email} onChange={handleChange} />
                 </div>
               </CardContent>
             </Card>
