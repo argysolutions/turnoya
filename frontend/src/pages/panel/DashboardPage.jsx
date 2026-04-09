@@ -54,7 +54,7 @@ const Countdown = ({ targetTime, onFinished }) => {
   }, [targetTime, onFinished])
 
   if (!timeLeft) return null
-  return <span className="font-mono font-bold ml-1 text-amber-700">{timeLeft}</span>
+  return <span className="font-mono font-bold ml-1 text-yellow-700">{timeLeft}</span>
 }
 
 export default function DashboardPage() {
@@ -83,6 +83,16 @@ export default function DashboardPage() {
       toast.error('Error al cargar los turnos')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleUndoLiberation = async (id) => {
+    try {
+      await updateStatus(id, 'cancelled_occupied')
+      toast.success('Liberación cancelada. El turno volverá a figurar OCUPADO permanentemente.')
+      fetchAppointments()
+    } catch {
+      toast.error('Error al deshacer la acción')
     }
   }
 
@@ -194,7 +204,7 @@ export default function DashboardPage() {
                 const isLiberating = a.status === 'cancelled_occupied' && a.liberates_at != null
                 const opacityClass = a.status === 'cancelled' || (a.status === 'cancelled_occupied' && !isLiberating) ? 'opacity-40' : ''
                 const pointerClass = a.status === 'cancelled_occupied' && !isLiberating ? 'cursor-pointer' : ''
-                const highlightClass = isLiberating ? 'bg-amber-50 border border-amber-200 shadow-sm' : ''
+                const highlightClass = isLiberating ? 'bg-yellow-50/80 border border-yellow-200 shadow-sm' : ''
 
                 return (
                   <div
@@ -216,16 +226,24 @@ export default function DashboardPage() {
                     {a.start_time.slice(0, 5)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${a.status === 'cancelled_occupied' ? (isLiberating ? 'text-amber-800 font-bold' : 'text-red-700 font-bold') : 'text-slate-900'}`}>
+                    <p className={`text-sm font-medium ${a.status === 'cancelled_occupied' ? (isLiberating ? 'text-yellow-800 font-bold' : 'text-red-700 font-bold') : 'text-slate-900'}`}>
                       {a.status === 'cancelled_occupied' ? 'Turno Cancelado' : a.client_name}
                     </p>
                     
                     {isLiberating ? (
-                      <div className="mt-1">
-                        <span className="text-xs font-semibold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full inline-flex items-center">
+                      <div className="mt-1 flex items-center gap-3">
+                        <span className="text-xs font-semibold text-yellow-700 bg-yellow-100/70 px-2 py-0.5 rounded-full inline-flex items-center">
                           Volverá a figurar disponible en:
                           <Countdown targetTime={a.liberates_at} onFinished={fetchAppointments} />
                         </span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 text-xs text-yellow-800 bg-yellow-200/50 hover:bg-yellow-200 hover:text-yellow-900 border border-yellow-300/50 px-2"
+                          onClick={() => handleUndoLiberation(a.id)}
+                        >
+                          Deshacer
+                        </Button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 mt-0.5">
@@ -265,7 +283,8 @@ export default function DashboardPage() {
                     </DropdownMenu>
                   )}
                 </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </CardContent>
