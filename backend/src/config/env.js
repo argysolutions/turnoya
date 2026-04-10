@@ -17,4 +17,9 @@ export const ENV = {
     INSTANCE_ID: process.env.GREEN_API_INSTANCE_ID,
     TOKEN: process.env.GREEN_API_TOKEN,
   },
+  GOOGLE: {
+    CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/admin/auth/google/callback',
+  }
 }

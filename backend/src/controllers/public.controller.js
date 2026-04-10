@@ -5,39 +5,7 @@ import {
   getOccupiedSlots
 } from '../db/public.queries.js'
 
-const timeToMinutes = (time) => {
-  const [h, m] = time.toString().split(':').map(Number)
-  return h * 60 + m
-}
-
-const minutesToTime = (minutes) => {
-  const h = Math.floor(minutes / 60).toString().padStart(2, '0')
-  const m = (minutes % 60).toString().padStart(2, '0')
-  return `${h}:${m}`
-}
-
-const generateSlots = (startTime, endTime, duration, occupiedSlots) => {
-  const start = timeToMinutes(startTime)
-  const end = timeToMinutes(endTime)
-  const slots = []
-
-  for (let time = start; time + duration <= end; time += duration) {
-    const slotStart = minutesToTime(time)
-    const slotEnd = minutesToTime(time + duration)
-
-    const isOccupied = occupiedSlots.some(occupied => {
-      const occStart = timeToMinutes(occupied.start_time)
-      const occEnd = timeToMinutes(occupied.end_time)
-      return time < occEnd && time + duration > occStart
-    })
-
-    if (!isOccupied) {
-      slots.push({ start: slotStart, end: slotEnd })
-    }
-  }
-
-  return slots
-}
+import { generateAvailableSlots } from '../services/availability.service.js'
 
 export const getBusinessPublicProfile = async (req, reply) => {
   const { slug } = req.params
@@ -80,7 +48,13 @@ export const getAvailableSlots = async (req, reply) => {
   }
 
   const occupiedSlots = await getOccupiedSlots(business.id, date)
-  const slots = generateSlots(availability.start_time, availability.end_time, service.duration, occupiedSlots)
+  const slots = generateAvailableSlots({
+    date,
+    business,
+    service,
+    availability,
+    occupiedSlots
+  })
 
   reply.send({ date, slots })
 }

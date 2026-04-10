@@ -25,3 +25,19 @@ export const createBusiness = async ({ name, slug, email, password, phone, addre
   )
   return result.rows[0]
 }
+
+export const findBusinessById = async (id) => {
+  const result = await pool.query(
+    'SELECT * FROM businesses WHERE id = $1',
+    [id]
+  )
+  return result.rows[0]
+}
+
+export const updateGoogleRefreshToken = async (id, token) => {
+  const result = await pool.query(
+    'UPDATE businesses SET google_refresh_token = $1 WHERE id = $2 RETURNING *',
+    [token, id]
+  )
+  return result.rows[0]
+}

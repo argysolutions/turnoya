@@ -2,7 +2,7 @@ import { pool } from '../config/db.js'
 
 export const getBusinessBySlug = async (slug) => {
   const result = await pool.query(
-    `SELECT id, name, slug, phone, address, description FROM businesses WHERE slug = $1`,
+    `SELECT id, name, slug, phone, address, description, min_advance_hours, max_future_days, cancellation_policy FROM businesses WHERE slug = $1`,
     [slug]
   )
   return result.rows[0]
@@ -10,7 +10,7 @@ export const getBusinessBySlug = async (slug) => {
 
 export const getActiveServicesByBusiness = async (businessId) => {
   const result = await pool.query(
-    `SELECT id, name, duration, price, description FROM services
+    `SELECT id, name, duration, price, description, buffer_time FROM services
      WHERE business_id = $1 AND active = true ORDER BY name ASC`,
     [businessId]
   )
