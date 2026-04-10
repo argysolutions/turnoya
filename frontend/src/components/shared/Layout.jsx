@@ -1,5 +1,14 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Separator } from '@/components/ui/separator'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu"
+import { Settings, HelpCircle, Share2, LogOut, User } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const navItems = [
   { label: 'Agenda', path: '/dashboard' },
@@ -43,13 +52,39 @@ export default function Layout({ children }) {
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">{business.name}</span>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              Salir
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center border border-slate-200 focus-visible:ring-offset-0 focus-visible:ring-0">
+                  <User className="h-5 w-5 text-slate-600" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mt-1 shadow-sm rounded-xl">
+                <div className="flex flex-col space-y-1 p-2">
+                  <p className="text-sm font-medium leading-none text-slate-900">{business.name || 'Mi Negocio'}</p>
+                  <p className="text-xs leading-none text-slate-500">
+                    Administrador
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer py-2">
+                  <Settings className="mr-2 h-4 w-4 text-slate-500" />
+                  <span>Configuración</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer py-2">
+                  <Share2 className="mr-2 h-4 w-4 text-slate-500" />
+                  <span>Redes</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer py-2">
+                  <HelpCircle className="mr-2 h-4 w-4 text-slate-500" />
+                  <span>Ayuda</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer py-2">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Cerrar sesión</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getAppointments, updateStatus, createBlock } from '@/api/appointments'
+import { es } from 'react-day-picker/locale'
 import Layout from '@/components/shared/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -93,7 +94,7 @@ export default function DashboardPage() {
   const [activeBlocksListModal, setActiveBlocksListModal] = useState(false)
   const [eventModal, setEventModal] = useState(false)
   const [blockForm, setBlockForm] = useState({ date: today(), start_time: '14:00', end_time: '15:00', fullDay: false })
-  const [eventForm, setEventForm] = useState({ date: today(), start_time: '09:00', end_time: '18:00', notes: '' })
+  const [eventForm, setEventForm] = useState({ date: today(), start_time: '09:00', end_time: '18:00', text: '', color: 'blue' })
   const [cancelStrategy, setCancelStrategy] = useState('liberate')
 
   const business = JSON.parse(localStorage.getItem('business') || '{}')
@@ -204,7 +205,11 @@ export default function DashboardPage() {
   const submitEventPayload = async (e) => {
     e.preventDefault()
     try {
-      const payload = { ...eventForm, isEvent: true }
+      const payload = { 
+        ...eventForm,
+        notes: JSON.stringify({ text: eventForm.text, color: eventForm.color }),
+        isEvent: true 
+      }
       const [sh, sm] = payload.start_time.split(':').map(Number)
       const [eh, em] = payload.end_time.split(':').map(Number)
       let durationMins = (eh * 60 + em) - (sh * 60 + sm)
@@ -220,6 +225,16 @@ export default function DashboardPage() {
     }
   }
 
+  // ===== LÓGICA EVENTOS ESTRUCTURADOS ===== //
+  const getEventData = (notesStr) => {
+    try {
+      const data = JSON.parse(notesStr || '{}')
+      return { text: data.text || notesStr, color: data.color || 'blue' }
+    } catch {
+      return { text: notesStr || '', color: 'blue' }
+    }
+  }
+
   // ===== LÓGICA DE FILTROS =====
   const todayStr = today()
   const next7DaysStr = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
@@ -232,8 +247,15 @@ export default function DashboardPage() {
   const cancelledForDate = appointments.filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status) && safeDate(a.date) === date && !a.client_name?.includes('Evento'))
 
   const activeBlocksArray = appointments.filter(a => a.status === 'cancelled_occupied' && a.client_name?.includes('Bloqueo'))
+  
   const allEventsArray = appointments.filter(a => a.status === 'cancelled' && a.client_name?.includes('Evento'))
-  const eventDatesArray = allEventsArray.map(e => new Date(safeDate(e.date) + 'T00:00:00'))
+  const eventForDate = allEventsArray.find(a => safeDate(a.date) === date)
+
+  const eventBlue = allEventsArray.filter(e => getEventData(e.notes).color === 'blue').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
+  const eventRed = allEventsArray.filter(e => getEventData(e.notes).color === 'red').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
+  const eventGreen = allEventsArray.filter(e => getEventData(e.notes).color === 'green').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
+  const eventPurple = allEventsArray.filter(e => getEventData(e.notes).color === 'purple').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
+  const eventAmber = allEventsArray.filter(e => getEventData(e.notes).color === 'amber').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
 
   const boxOfficeToday = completedForDate.reduce((acc, a) => acc + parseFloat(a.price || 0), 0)
 
@@ -244,7 +266,7 @@ export default function DashboardPage() {
 
   // Arreglo de fechas para el Calendario (Rojo para las cancelaciones)
   const cancelledDatesArray = appointments
-    .filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status))
+    .filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status) && !a.client_name?.includes('Evento'))
     .map(a => new Date(safeDate(a.date) + 'T12:00:00'))
 
   // REUSABLE RENDERER
@@ -386,42 +408,63 @@ export default function DashboardPage() {
             <CardContent className="p-1">
               <Calendar
                 mode="single"
+                locale={es}
                 selected={calendarDate}
                 onSelect={handleCalendarSelect}
-                modifiers={{ cancelled: cancelledDatesArray, event: eventDatesArray }}
+                modifiers={{ 
+                  cancelled: cancelledDatesArray, 
+                  evtBlue: eventBlue, 
+                  evtRed: eventRed, 
+                  evtGreen: eventGreen, 
+                  evtPurple: eventPurple, 
+                  evtAmber: eventAmber 
+                }}
                 modifiersClassNames={{ 
                   cancelled: "text-red-500 font-bold bg-red-50 ring-1 ring-inset ring-red-200 rounded-full",
-                  event: "text-blue-500 font-bold bg-blue-50 ring-1 ring-inset ring-blue-200 rounded-full" 
+                  evtBlue: "text-blue-500 font-bold bg-blue-50 ring-1 ring-inset ring-blue-200 rounded-full",
+                  evtRed: "text-rose-500 font-bold bg-rose-50 ring-1 ring-inset ring-rose-200 rounded-full",
+                  evtGreen: "text-emerald-500 font-bold bg-emerald-50 ring-1 ring-inset ring-emerald-200 rounded-full",
+                  evtPurple: "text-purple-500 font-bold bg-purple-50 ring-1 ring-inset ring-purple-200 rounded-full",
+                  evtAmber: "text-amber-500 font-bold bg-amber-50 ring-1 ring-inset ring-amber-200 rounded-full"
                 }}
                 className="mx-auto text-sm scale-90 origin-top -mb-6"
               />
               
+              <div className="pt-2 px-4 pb-4">
+                {eventForDate && (() => {
+                  const evData = getEventData(eventForDate.notes)
+                  const mapBorders = {
+                    blue: 'bg-blue-50 border-blue-200 text-blue-700',
+                    red: 'bg-rose-50 border-rose-200 text-rose-700',
+                    green: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+                    purple: 'bg-purple-50 border-purple-200 text-purple-700',
+                    amber: 'bg-amber-50 border-amber-200 text-amber-700'
+                  }
+                  return (
+                    <div className={`mb-3 p-3 rounded-lg border shadow-sm flex items-center justify-between ${mapBorders[evData.color]}`}>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5 opacity-80">Evento Destacado</p>
+                        <p className="font-semibold text-sm leading-tight">{evData.text}</p>
+                        <p className="text-xs opacity-80 mt-1">{eventForDate.start_time.slice(0,5)} hs - {eventForDate.end_time.slice(0,5)} hs</p>
+                      </div>
+                      <Button size="icon" variant="ghost" className="opacity-70 hover:opacity-100 hover:bg-white/50 h-8 w-8" onClick={() => handleStatus(eventForDate.id, 'cancelled')}> <X className="w-4 h-4"/> </Button>
+                    </div>
+                  )
+                })()}
+
+                <div className="flex items-center justify-between mt-2 mb-2"></div>
+              
               {/* === TOTALES COMPACTOS === */}
               <div className="px-3 pb-3">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1 mb-1.5 border-t border-slate-100 pt-3">
-                  {date === todayStr ? 'HOY' : date.slice(-2) + ' / ' + date.slice(5,7)}
-                </p>
-                <div className="flex gap-1.5">
-                  <div className="flex-1 bg-emerald-50 rounded-lg py-2 text-center text-emerald-900 border border-emerald-100/50">
-                    <p className="text-[9px] font-bold uppercase text-emerald-600/70 mb-0.5">Conf.</p>
-                    <p className="text-xl font-bold leading-none">{confirmedForDate.length}</p>
-                  </div>
-                  <div className="flex-1 bg-yellow-50 rounded-lg py-2 text-center text-yellow-900 border border-yellow-100/50">
-                    <p className="text-[9px] font-bold uppercase text-yellow-600/70 mb-0.5">Pend.</p>
-                    <p className="text-xl font-bold leading-none">{pendingForDate.length}</p>
-                  </div>
-                  <div className="flex-1 bg-slate-50 rounded-lg py-2 text-center text-slate-700 border border-slate-100">
-                    <p className="text-[9px] font-bold uppercase text-slate-400 mb-0.5">Canc.</p>
-                    <p className="text-xl font-bold leading-none">{cancelledForDate.length}</p>
-                  </div>
-                </div>
-
                 {boxOfficeToday > 0 && (
-                  <div className="bg-emerald-50/80 border border-emerald-100 rounded-lg p-2 mt-1.5 flex justify-between items-center">
-                    <span className="text-[10px] font-bold uppercase text-emerald-600">Caja del Día</span>
-                    <span className="text-sm font-bold text-emerald-900">${boxOfficeToday.toLocaleString('es-AR')}</span>
+                  <div className="border-t border-slate-100 pt-3 mt-1.5">
+                    <div className="bg-emerald-50/80 border border-emerald-100 rounded-lg p-2 mt-1.5 flex justify-between items-center">
+                      <span className="text-[10px] font-bold uppercase text-emerald-600">Caja del Día</span>
+                      <span className="text-sm font-bold text-emerald-900">${boxOfficeToday.toLocaleString('es-AR')}</span>
+                    </div>
                   </div>
                 )}
+              </div>
               </div>
             </CardContent>
           </Card>
@@ -433,14 +476,14 @@ export default function DashboardPage() {
         <div className="flex-1 min-w-0">
           <Tabs defaultValue="pendientes" className="w-full">
             <TabsList className="mb-4 bg-slate-100/80 p-1 rounded-xl">
-              <TabsTrigger value="pendientes" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Pendientes {allPending.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-slate-200 text-slate-700">{allPending.length}</Badge>}
+              <TabsTrigger value="pendientes" className="rounded-lg transition-colors data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-900 data-[state=active]:shadow-sm">
+                Pendientes {pendingForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-yellow-200/50 text-yellow-800 border-none">{pendingForDate.length}</Badge>}
               </TabsTrigger>
-              <TabsTrigger value="confirmados" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Confirmados
+              <TabsTrigger value="confirmados" className="rounded-md transition-colors data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-900 data-[state=active]:shadow-sm">
+                Confirmados {confirmedForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-emerald-200/50 text-emerald-800 border-none">{confirmedForDate.length}</Badge>}
               </TabsTrigger>
-              <TabsTrigger value="cancelados" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Cancelados
+              <TabsTrigger value="cancelados" className="rounded-md transition-colors data-[state=active]:bg-red-100 data-[state=active]:text-red-900 data-[state=active]:shadow-sm">
+                Cancelados {cancelledForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-red-200/50 text-red-800 border-none">{cancelledForDate.length}</Badge>}
               </TabsTrigger>
             </TabsList>
 
@@ -718,7 +761,27 @@ export default function DashboardPage() {
 
               <div className="grid gap-2">
                 <Label>Nombre del Asunto</Label>
-                <input type="text" placeholder="Ej: Día de la Primavera 20% OFF" required value={eventForm.notes} onChange={e => setEventForm({...eventForm, notes: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                <input type="text" placeholder="Ej: Día de la Primavera 20% OFF" required value={eventForm.text} onChange={e => setEventForm({...eventForm, text: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Color del Calendario</Label>
+                <div className="flex items-center gap-3 mt-1">
+                  {[
+                    { id: 'blue', text: 'bg-blue-500 ring-blue-200' },
+                    { id: 'red', text: 'bg-rose-500 ring-rose-200' },
+                    { id: 'green', text: 'bg-emerald-500 ring-emerald-200' },
+                    { id: 'purple', text: 'bg-purple-500 ring-purple-200' },
+                    { id: 'amber', text: 'bg-amber-500 ring-amber-200' }
+                  ].map(c => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setEventForm({...eventForm, color: c.id})}
+                      className={`w-7 h-7 rounded-full shadow-sm ring-offset-2 transition-all ${c.text} ${eventForm.color === c.id ? `ring-2 scale-110` : 'hover:scale-105'}`}
+                    />
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
