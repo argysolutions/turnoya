@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import ProtectedRoute from '@/components/shared/ProtectedRoute'
 
 import BusinessPage from '@/pages/public/BusinessPage'
@@ -10,11 +11,13 @@ import RegisterPage from '@/pages/panel/RegisterPage'
 import DashboardPage from '@/pages/panel/DashboardPage'
 import ServicesPage from '@/pages/panel/ServicesPage'
 import AvailabilityPage from '@/pages/panel/AvailabilityPage'
+import SettingsPage from '@/pages/panel/SettingsPage'
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Toaster position="top-right" />
+    <TooltipProvider delayDuration={300}>
+      <BrowserRouter>
+        <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
@@ -31,7 +34,11 @@ export default function App() {
         <Route path="/disponibilidad" element={
           <ProtectedRoute><AvailabilityPage /></ProtectedRoute>
         } />
+        <Route path="/dashboard/configuracion" element={
+          <ProtectedRoute><SettingsPage /></ProtectedRoute>
+        } />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </TooltipProvider>
   )
 }

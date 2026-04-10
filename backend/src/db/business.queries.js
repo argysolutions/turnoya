@@ -41,3 +41,15 @@ export const updateGoogleRefreshToken = async (id, token) => {
   )
   return result.rows[0]
 }
+
+export const updateBusinessSettings = async (id, settings) => {
+  const { cancellation_policy, anticipation_margin, buffer_time, whatsapp_enabled } = settings
+  const result = await pool.query(
+    `UPDATE businesses 
+     SET cancellation_policy = $1, anticipation_margin = $2, buffer_time = $3, whatsapp_enabled = $4
+     WHERE id = $5
+     RETURNING *`,
+    [cancellation_policy, anticipation_margin, buffer_time, whatsapp_enabled, id]
+  )
+  return result.rows[0]
+}

@@ -43,7 +43,8 @@ export const getAppointmentById = async (id) => {
 export const getAppointmentsByBusiness = async (businessId, date) => {
   let query = `SELECT a.*,
                       s.name as service_name, s.duration, s.price,
-                      c.name as client_name, c.phone as client_phone
+                      c.name as client_name, c.phone as client_phone,
+                      (SELECT CAST(COUNT(*) AS INTEGER) FROM appointments a2 WHERE a2.client_id = a.client_id AND a2.business_id = a.business_id) as client_history_count
                FROM appointments a
                JOIN services s ON a.service_id = s.id
                JOIN clients c ON a.client_id = c.id

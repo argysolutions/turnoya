@@ -288,20 +288,21 @@ export default function DashboardPage() {
                 if (a.status === 'cancelled_occupied' && !isLiberating) setLiberateModal(a)
               }}
             >
-              <div className="flex gap-4 sm:gap-6 w-full max-w-[80%] pr-4 cursor-default">
+              <div className="flex gap-4 sm:gap-6 w-full min-w-0 flex-1 pr-2 sm:pr-4 cursor-default">
                 <div className="text-sm font-semibold text-slate-900 w-12 pt-0.5 shrink-0 tabular-nums">
                   {a.start_time.slice(0, 5)}
                 </div>
                 
-                <div className="flex flex-col">
+                <div className="flex flex-col min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-slate-900 truncate">
-                      {a.client_name} {isLiberating && <span className="text-xs text-yellow-600 font-normal ml-2">(Liberando slot temporalmente...)</span>}
+                      {a.client_name}
                     </p>
+                    {isLiberating && <span className="text-xs text-yellow-600 font-normal truncate">(Liberando slot temporalmente...)</span>}
                     {(() => {
-                      const clientOccurrences = appointments.filter(p => p.client_phone === a.client_phone).length
-                      if (clientOccurrences === 1) return <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shadow-sm">NUEVO 🥇</span>
-                      if (clientOccurrences > 1) return <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded shadow-sm">FRECUENTE 🔥</span>
+                      const count = a.client_history_count || 1;
+                      if (count === 1) return <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shadow-sm">NUEVO 🥇</span>
+                      if (count > 1) return <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded shadow-sm">FRECUENTE 🔥</span>
                       return null
                     })()}
                   </div>
@@ -314,7 +315,7 @@ export default function DashboardPage() {
                       </span>
                       <Button 
                         variant="ghost" size="sm" 
-                        className="h-6 text-xs text-yellow-800 bg-yellow-200/50 hover:bg-yellow-200 hover:text-yellow-900 border border-yellow-300/50 px-2"
+                        className="h-11 sm:h-9 text-xs text-yellow-800 bg-yellow-200/50 hover:bg-yellow-200 hover:text-yellow-900 border border-yellow-300/50 px-3 sm:px-2"
                         onClick={() => handleUndoLiberation(a.id)}
                       >
                         Deshacer
@@ -337,17 +338,21 @@ export default function DashboardPage() {
                   {STATUS_LABEL[a.status]}
                 </Badge>
                 {a.status === 'pending' && (
-                  <div className="flex gap-2">
-                     <Button size="sm" variant="outline" onClick={() => handleStatus(a.id, 'confirmed')}>Confirmar</Button>
-                     <Button size="sm" variant="ghost" onClick={() => setPendingCancelModal(a)}>Cancelar</Button>
+                  <div className="flex gap-1 sm:gap-2">
+                     <Button size="sm" variant="outline" className="h-11 sm:h-9 w-11 sm:w-auto px-0 sm:px-3 text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => handleStatus(a.id, 'confirmed')}>
+                       <Check className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                       <span className="hidden sm:inline">Confirmar</span>
+                     </Button>
+                     <Button size="sm" variant="ghost" className="h-11 sm:h-9 w-11 sm:w-auto px-0 sm:px-3 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setPendingCancelModal(a)}>
+                       <X className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                       <span className="hidden sm:inline">Rechazar</span>
+                     </Button>
                   </div>
                 )}
                 {a.status === 'confirmed' && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-900">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
+                    <DropdownMenuTrigger className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950">
+                      <MoreVertical className="h-5 w-5" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem className="text-emerald-600 font-medium cursor-pointer mb-1 focus:bg-emerald-50 focus:text-emerald-700" onClick={() => handleStatus(a.id, 'completed')}>
@@ -383,8 +388,8 @@ export default function DashboardPage() {
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Link público</span>
               <span className="text-xs text-slate-700 truncate w-32 sm:w-48">{publicLink}</span>
             </div>
-            <Button size="icon" variant="secondary" className="h-7 w-7 flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-600" onClick={copyLink}>
-              <Copy className="h-3.5 w-3.5" />
+            <Button variant="secondary" className="h-11 w-11 px-0 flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center" onClick={copyLink}>
+              <Copy className="h-4 w-4" />
             </Button>
           </div>
         )}
@@ -396,10 +401,10 @@ export default function DashboardPage() {
         {/* === LADO SECUNDARIO (Derecha): CALENDARIO Y COUNTERS === */}
         <div className="w-full lg:w-[260px] shrink-0 space-y-3">
           <div className="flex gap-2 w-full">
-            <Button size="sm" className="flex-1 h-9 text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-lg font-medium" onClick={() => setBlockModal(true)}>
+            <Button size="sm" className="flex-1 h-11 sm:h-9 text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-lg font-medium" onClick={() => setBlockModal(true)}>
               + Bloquear
             </Button>
-            <Button size="sm" variant="outline" className="flex-1 h-9 text-xs text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-lg font-medium" onClick={() => setEventModal(true)}>
+            <Button size="sm" variant="outline" className="flex-1 h-11 sm:h-9 text-xs text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-lg font-medium" onClick={() => setEventModal(true)}>
               ⭐ Destacar
             </Button>
           </div>
@@ -447,7 +452,7 @@ export default function DashboardPage() {
                         <p className="font-semibold text-sm leading-tight">{evData.text}</p>
                         <p className="text-xs opacity-80 mt-1">{eventForDate.start_time.slice(0,5)} hs - {eventForDate.end_time.slice(0,5)} hs</p>
                       </div>
-                      <Button size="icon" variant="ghost" className="opacity-70 hover:opacity-100 hover:bg-white/50 h-8 w-8" onClick={() => handleStatus(eventForDate.id, 'cancelled')}> <X className="w-4 h-4"/> </Button>
+                      <Button variant="ghost" className="opacity-70 hover:opacity-100 hover:bg-white/50 h-11 w-11 px-0 flex items-center justify-center shrink-0" onClick={() => handleStatus(eventForDate.id, 'cancelled')}> <X className="w-5 h-5"/> </Button>
                     </div>
                   )
                 })()}
@@ -473,19 +478,21 @@ export default function DashboardPage() {
 
 
         {/* === LADO PRINCIPAL (Izquierda): PESTAÑAS (TABS) === */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full">
           <Tabs defaultValue="pendientes" className="w-full">
-            <TabsList className="mb-4 bg-slate-100/80 p-1 rounded-xl">
-              <TabsTrigger value="pendientes" className="rounded-lg transition-colors data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-900 data-[state=active]:shadow-sm">
-                Pendientes {pendingForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-yellow-200/50 text-yellow-800 border-none">{pendingForDate.length}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="confirmados" className="rounded-md transition-colors data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-900 data-[state=active]:shadow-sm">
-                Confirmados {confirmedForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-emerald-200/50 text-emerald-800 border-none">{confirmedForDate.length}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="cancelados" className="rounded-md transition-colors data-[state=active]:bg-red-100 data-[state=active]:text-red-900 data-[state=active]:shadow-sm">
-                Cancelados {cancelledForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-red-200/50 text-red-800 border-none">{cancelledForDate.length}</Badge>}
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto no-scrollbar mask-fade-edges pb-2 -mb-2">
+              <TabsList className="mb-4 bg-slate-100/80 p-1 rounded-xl flex w-max min-w-full justify-start sm:justify-center">
+                <TabsTrigger value="pendientes" className="rounded-lg h-10 px-4 transition-colors data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-900 data-[state=active]:shadow-sm">
+                  Pendientes {pendingForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-yellow-200/50 text-yellow-800 border-none">{pendingForDate.length}</Badge>}
+                </TabsTrigger>
+                <TabsTrigger value="confirmados" className="rounded-md h-10 px-4 transition-colors data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-900 data-[state=active]:shadow-sm">
+                  Confirmados {confirmedForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-emerald-200/50 text-emerald-800 border-none">{confirmedForDate.length}</Badge>}
+                </TabsTrigger>
+                <TabsTrigger value="cancelados" className="rounded-md h-10 px-4 transition-colors data-[state=active]:bg-red-100 data-[state=active]:text-red-900 data-[state=active]:shadow-sm">
+                  Cancelados {cancelledForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-red-200/50 text-red-800 border-none">{cancelledForDate.length}</Badge>}
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="pendientes" className="space-y-3 outline-none">
               
@@ -725,11 +732,11 @@ export default function DashboardPage() {
                </div>
              ) : activeBlocksArray.map(b => (
                <div key={b.id} className="flex justify-between items-center p-3 border border-slate-200 shadow-sm rounded-lg hover:border-slate-300 transition-colors bg-white">
-                  <div>
+                   <div>
                      <p className="font-semibold text-sm text-slate-900">{formatDate(safeDate(b.date))}</p>
                      <p className="text-xs text-slate-500 font-medium mt-0.5">{b.start_time.slice(0,5)} hs - {b.end_time ? b.end_time.slice(0,5) : 'NaN'} hs</p>
                   </div>
-                  <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleStatus(b.id, 'cancelled')}>
+                  <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 h-11 sm:h-9" onClick={() => handleStatus(b.id, 'cancelled')}>
                     Deshabilitar
                   </Button>
                </div>

@@ -82,12 +82,12 @@ export default function AvailabilityPage() {
 
   return (
     <Layout>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="sticky top-14 z-20 bg-slate-50 py-4 mb-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Disponibilidad</h1>
           <p className="text-sm text-slate-500 mt-0.5">Configurá qué días y horarios atendés</p>
         </div>
-        <Button onClick={handleSave} disabled={loading}>
+        <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto h-11 sm:h-10 shadow-md">
           {loading ? 'Guardando...' : 'Guardar cambios'}
         </Button>
       </div>
@@ -101,49 +101,51 @@ export default function AvailabilityPage() {
             {DAYS.map((day) => (
               <div
                 key={day.value}
-                className={`flex items-center gap-4 p-3 rounded-lg border transition-colors ${
+                className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-lg border transition-colors ${
                   slots[day.value].enabled
                     ? 'border-slate-200 bg-white'
                     : 'border-slate-100 bg-slate-50'
                 }`}
               >
-                <button
-                  onClick={() => toggle(day.value)}
-                  className={`w-10 h-5 rounded-full transition-colors flex-shrink-0 relative ${
-                    slots[day.value].enabled ? 'bg-slate-900' : 'bg-slate-200'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
-                      slots[day.value].enabled ? 'translate-x-5' : 'translate-x-0.5'
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => toggle(day.value)}
+                    className={`w-10 h-5 rounded-full transition-colors flex-shrink-0 relative ${
+                      slots[day.value].enabled ? 'bg-slate-900' : 'bg-slate-200'
                     }`}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                        slots[day.value].enabled ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
 
-                <span className={`text-sm w-24 flex-shrink-0 ${
-                  slots[day.value].enabled ? 'text-slate-900 font-medium' : 'text-slate-400'
-                }`}>
-                  {day.label}
-                </span>
+                  <span className={`text-sm w-24 flex-shrink-0 ${
+                    slots[day.value].enabled ? 'text-slate-900 font-medium' : 'text-slate-400'
+                  }`}>
+                    {day.label}
+                  </span>
+                </div>
 
                 {slots[day.value].enabled ? (
-                  <div className="flex items-center gap-2 flex-1">
+                  <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
                     <input
                       type="time"
                       value={slots[day.value].start}
                       onChange={(e) => handleTime(day.value, 'start', e.target.value)}
-                      className="text-sm border border-slate-200 rounded-md px-2 py-1.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                      className="flex-1 min-w-0 text-sm border border-slate-200 rounded-md px-2 h-11 sm:h-9 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                     />
-                    <span className="text-slate-400 text-sm">a</span>
+                    <span className="text-slate-400 text-sm shrink-0">a</span>
                     <input
                       type="time"
                       value={slots[day.value].end}
                       onChange={(e) => handleTime(day.value, 'end', e.target.value)}
-                      className="text-sm border border-slate-200 rounded-md px-2 py-1.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                      className="flex-1 min-w-0 text-sm border border-slate-200 rounded-md px-2 h-11 sm:h-9 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                     />
                   </div>
                 ) : (
-                  <span className="text-sm text-slate-400">No disponible</span>
+                  <span className="text-sm text-slate-400 hidden sm:inline-block">No disponible</span>
                 )}
               </div>
             ))}

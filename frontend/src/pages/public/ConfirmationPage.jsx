@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getAppointment } from '@/api/appointments'
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 export default function ConfirmationPage() {
   const { id } = useParams()
@@ -34,9 +36,7 @@ export default function ConfirmationPage() {
     </div>
   )
 
-  const date = new Date(appointment.date + 'T00:00:00').toLocaleDateString('es-AR', {
-    weekday: 'long', day: 'numeric', month: 'long'
-  })
+  const date = format(parseISO(`${appointment.date}T${appointment.start_time}`), "EEEE d 'de' MMMM - HH:mm 'hs'", { locale: es })
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
@@ -59,40 +59,40 @@ export default function ConfirmationPage() {
             <p className="text-slate-300 text-sm capitalize">{date}</p>
           </div>
           <div className="px-5 py-4 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Horario</span>
-              <span className="font-medium font-mono">
+            <div className="flex gap-4 justify-between text-sm">
+              <span className="text-slate-500 shrink-0">Horario</span>
+              <span className="font-medium font-mono text-right break-words min-w-0">
                 {appointment.start_time.slice(0, 5)} — {appointment.end_time.slice(0, 5)}
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Duración</span>
-              <span className="font-medium">{appointment.duration} min</span>
+            <div className="flex gap-4 justify-between text-sm">
+              <span className="text-slate-500 shrink-0">Duración</span>
+              <span className="font-medium text-right">{appointment.duration} min</span>
             </div>
             {appointment.price && (
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Precio</span>
-                <span className="font-medium">${Number(appointment.price).toLocaleString('es-AR')}</span>
+              <div className="flex gap-4 justify-between text-sm">
+                <span className="text-slate-500 shrink-0">Precio</span>
+                <span className="font-medium text-right">${Number(appointment.price).toLocaleString('es-AR')}</span>
               </div>
             )}
             <div className="border-t border-slate-100 pt-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Cliente</span>
-                <span className="font-medium">{appointment.client_name}</span>
+              <div className="flex gap-4 justify-between text-sm">
+                <span className="text-slate-500 shrink-0">Cliente</span>
+                <span className="font-medium text-right break-words min-w-0">{appointment.client_name}</span>
               </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-slate-500">Teléfono</span>
-                <span className="font-medium">{appointment.client_phone}</span>
+              <div className="flex gap-4 justify-between text-sm mt-1">
+                <span className="text-slate-500 shrink-0">Teléfono</span>
+                <span className="font-medium text-right break-words min-w-0">{appointment.client_phone}</span>
               </div>
             </div>
             <div className="border-t border-slate-100 pt-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Dirección</span>
-                <span className="font-medium text-right">{appointment.business_address}</span>
+              <div className="flex gap-4 justify-between text-sm">
+                <span className="text-slate-500 shrink-0">Dirección</span>
+                <span className="font-medium text-right break-words min-w-0">{appointment.business_address}</span>
               </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-slate-500">Contacto</span>
-                <span className="font-medium">{appointment.business_phone}</span>
+              <div className="flex gap-4 justify-between text-sm mt-1">
+                <span className="text-slate-500 shrink-0">Contacto</span>
+                <span className="font-medium text-right break-words min-w-0">{appointment.business_phone}</span>
               </div>
             </div>
           </div>
