@@ -2,6 +2,7 @@ import { findOrCreateClient, createAppointment, getAppointmentById, getAppointme
 import { getBusinessBySlug, getAvailabilityByDay, getOccupiedSlots } from '../db/public.queries.js'
 import { getServiceById } from '../db/services.queries.js'
 import { sendConfirmation } from '../services/whatsapp.service.js'
+import { ensureContactExists } from '../services/google.service.js'
 import { pool } from '../config/db.js'
 
 const timeToMinutes = (time) => {
@@ -55,6 +56,16 @@ export const bookAppointment = async (req, reply) => {
 
   const full = await getAppointmentById(appointment.id)
   
+  // Sincronizamos con Google Contacts pasivamente sin trabar la UI
+  ensureContactExists(business.id, {
+    name: client_name,
+    phone: client_phone,
+    email: client_email
+  }).catch(e => {
+    // Es esperado que falle si el negocio no vinculó su cuenta de Google aún
+    console.log(`Google Sync ignorado para negocio ${business.id}:`, e.message)
+  })
+
   // Enviamos la notificación por WhatsApp en segundo plano (para no blockear al front)
   sendConfirmation(client_phone, {
     businessName: business.name,
