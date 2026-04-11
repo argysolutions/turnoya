@@ -450,7 +450,7 @@ export default function DashboardPage() {
                 evtAmber: "bg-amber-500"
               }}
               actions={
-                <div className="flex gap-2 w-full mt-4 pt-4 border-t border-slate-50">
+                <div className="flex flex-col sm:flex-row gap-2 w-full mt-4 pt-4 border-t border-slate-50">
                   <Button size="sm" className="flex-1 h-11 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
                     Bloquear Día/Horario
                   </Button>
@@ -490,8 +490,13 @@ export default function DashboardPage() {
                 <div className="pt-2 px-4 pb-4">
                   {isMobile && (
                     <div className="flex justify-center mb-4">
-                      <Button variant="ghost" size="sm" onClick={() => setIsCalendarExpanded(false)} className="text-xs text-slate-400 font-medium h-8">
-                        Contraer vista semanal
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setIsCalendarExpanded(false)} 
+                        className="text-xs text-blue-600 font-bold h-9 bg-blue-50/50 hover:bg-blue-100 rounded-xl px-4 transition-colors"
+                      >
+                        ← Volver a vista semanal
                       </Button>
                     </div>
                   )}
@@ -518,11 +523,11 @@ export default function DashboardPage() {
 
                 {/* === BOTONES DE ACCIÓN === */}
                 <div className="px-4 pb-4">
-                  <div className="flex gap-2 w-full pt-4 border-t border-slate-50">
-                    <Button size="sm" className="flex-1 h-10 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
+                  <div className="flex flex-col gap-2 w-full pt-4 border-t border-slate-50">
+                    <Button size="sm" className="w-full h-10 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
                       Bloquear Día/Horario
                     </Button>
-                    <Button size="sm" variant="outline" className="flex-1 h-10 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
+                    <Button size="sm" variant="outline" className="w-full h-10 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
                       Destacar Día/Evento
                     </Button>
                   </div>
