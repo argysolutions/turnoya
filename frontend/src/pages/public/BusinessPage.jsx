@@ -116,13 +116,19 @@ export default function BusinessPage() {
           </div>
         </div>
 
-        <Button
-          className="w-full"
-          disabled={!selected}
-          onClick={handleContinue}
-        >
-          {selected ? `Continuar con ${selected.name} →` : 'Seleccioná un servicio'}
-        </Button>
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200 z-30 sm:relative sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
+          <Button
+            className="w-full h-12 sm:h-10 text-base sm:text-sm font-semibold"
+            disabled={!selected}
+            onClick={handleContinue}
+          >
+            {selected ? `Continuar con ${selected.name} →` : 'Seleccioná un servicio'}
+          </Button>
+          <div className="h-safe-bottom sm:hidden" />
+        </div>
+
+        {/* Espaciador para no tapar contenido */}
+        <div className="h-24 sm:hidden" />
 
       </div>
     </div>

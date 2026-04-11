@@ -4,6 +4,9 @@ import Layout from '@/components/shared/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import client from '@/api/client'
+import WheelTimePicker from '@/components/ui/wheel-time-picker'
+import TimePickerModal from '@/components/ui/time-picker-modal'
+import { Label } from '@/components/ui/label'
 
 const DAYS = [
   { label: 'Domingo', value: 0 },
@@ -22,6 +25,14 @@ const defaultSlots = () => Object.fromEntries(
 export default function AvailabilityPage() {
   const [slots, setSlots] = useState(defaultSlots())
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia("(max-width: 768px)").matches)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     const fetch = async () => {
@@ -107,42 +118,68 @@ export default function AvailabilityPage() {
                     : 'border-slate-100 bg-slate-50'
                 }`}
               >
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => toggle(day.value)}
-                    className={`w-10 h-5 rounded-full transition-colors flex-shrink-0 relative ${
-                      slots[day.value].enabled ? 'bg-slate-900' : 'bg-slate-200'
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
-                        slots[day.value].enabled ? 'translate-x-5' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
-
-                  <span className={`text-sm w-24 flex-shrink-0 ${
-                    slots[day.value].enabled ? 'text-slate-900 font-medium' : 'text-slate-400'
+                <div className="flex items-center justify-between gap-4 w-full sm:w-auto min-w-[140px]">
+                  <span className={`text-sm flex-1 font-bold ${
+                    slots[day.value].enabled ? 'text-slate-900' : 'text-slate-400'
                   }`}>
                     {day.label}
                   </span>
+
+                  <button
+                    onClick={() => toggle(day.value)}
+                    className={`w-11 h-6 rounded-full transition-all flex-shrink-0 relative ${
+                      slots[day.value].enabled ? 'bg-[#34C759]' : 'bg-slate-200'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+                        slots[day.value].enabled ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
                 </div>
 
                 {slots[day.value].enabled ? (
-                  <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
-                    <input
-                      type="time"
-                      value={slots[day.value].start}
-                      onChange={(e) => handleTime(day.value, 'start', e.target.value)}
-                      className="flex-1 min-w-0 text-sm border border-slate-200 rounded-md px-2 h-11 sm:h-9 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                    />
-                    <span className="text-slate-400 text-sm shrink-0">a</span>
-                    <input
-                      type="time"
-                      value={slots[day.value].end}
-                      onChange={(e) => handleTime(day.value, 'end', e.target.value)}
-                      className="flex-1 min-w-0 text-sm border border-slate-200 rounded-md px-2 h-11 sm:h-9 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                    />
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto flex-1">
+                    <div className="flex-1 w-full sm:w-32">
+                      {isMobile ? (
+                        <TimePickerModal
+                          label="Abre"
+                          value={slots[day.value].start}
+                          onChange={(val) => handleTime(day.value, 'start', val)}
+                        />
+                      ) : (
+                        <>
+                          <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Abre</Label>
+                          <input
+                            type="time"
+                            value={slots[day.value].start}
+                            onChange={(e) => handleTime(day.value, 'start', e.target.value)}
+                            className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                          />
+                        </>
+                      )}
+                    </div>
+                    <span className="text-slate-400 text-sm hidden sm:block mt-6">a</span>
+                    <div className="flex-1 w-full sm:w-32">
+                      {isMobile ? (
+                        <TimePickerModal
+                          label="Cierra"
+                          value={slots[day.value].end}
+                          onChange={(val) => handleTime(day.value, 'end', val)}
+                        />
+                      ) : (
+                        <>
+                          <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Cierra</Label>
+                          <input
+                            type="time"
+                            value={slots[day.value].end}
+                            onChange={(e) => handleTime(day.value, 'end', e.target.value)}
+                            className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                          />
+                        </>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <span className="text-sm text-slate-400 hidden sm:inline-block">No disponible</span>

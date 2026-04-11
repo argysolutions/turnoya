@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Separator } from '@/components/ui/separator'
 import {
   DropdownMenu,
@@ -50,13 +51,20 @@ export default function Layout({ children }) {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`text-sm px-4 h-11 flex items-center justify-center rounded-md transition-colors shrink-0 ${
+                  className={`relative text-sm px-4 h-11 flex items-center justify-center transition-all shrink-0 ${
                     location.pathname === item.path
-                      ? 'bg-slate-100 text-slate-900 font-medium'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'text-slate-900 font-bold'
+                      : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
                   {item.label}
+                  {location.pathname === item.path && (
+                    <motion.div
+                      layoutId="nav-underline"
+                      className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-slate-900 rounded-full"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
                 </Link>
               ))}
             </nav>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { getAppointments, updateStatus, createBlock } from '@/api/appointments'
 import { es } from 'react-day-picker/locale'
 import Layout from '@/components/shared/Layout'
@@ -24,6 +25,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
+import WheelTimePicker from '@/components/ui/wheel-time-picker'
+import WeeklyCalendar from '@/components/ui/weekly-calendar'
 
 const STATUS_VARIANT = {
   pending: 'secondary',
@@ -79,12 +82,34 @@ const Countdown = ({ targetTime, onFinished }) => {
   return <span className="font-mono font-bold ml-1 text-yellow-700">{timeLeft}</span>
 }
 
+// Helper para el subrayado animado de las pestañas
+const TabUnderline = ({ value, activeTab, color }) => {
+  if (value !== activeTab) return null;
+  return (
+    <motion.div
+      layoutId="activeTab"
+      className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 ${color} rounded-full z-10`}
+      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+    />
+  );
+};
+
 export default function DashboardPage() {
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('pendientes')
+  
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia("(max-width: 768px)").matches)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
   
   const [date, setDate] = useState(today())
   const [calendarDate, setCalendarDate] = useState(new Date())
+  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
   
   const [cancelModal, setCancelModal] = useState(null)
   const [pendingCancelModal, setPendingCancelModal] = useState(null)
@@ -264,6 +289,8 @@ export default function DashboardPage() {
   const pendingProx = allPending.filter(a => safeDate(a.date) > next7DaysStr && safeDate(a.date) !== date)
   const pendingAtrasados = allPending.filter(a => safeDate(a.date) < todayStr && safeDate(a.date) !== date)
 
+  const totalPending = pendingForDate.length + pendingSemana.length + pendingProx.length + pendingAtrasados.length
+  
   // Arreglo de fechas para el Calendario (Rojo para las cancelaciones)
   const cancelledDatesArray = appointments
     .filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status) && !a.client_name?.includes('Evento'))
@@ -337,13 +364,13 @@ export default function DashboardPage() {
                 <Badge variant={STATUS_VARIANT[a.status]}>
                   {STATUS_LABEL[a.status]}
                 </Badge>
-                {a.status === 'pending' && (
+                 {a.status === 'pending' && (
                   <div className="flex gap-1 sm:gap-2">
-                     <Button size="sm" variant="outline" className="h-11 sm:h-9 w-11 sm:w-auto px-0 sm:px-3 text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => handleStatus(a.id, 'confirmed')}>
+                     <Button size="sm" className="h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 bg-[#34C759] hover:bg-[#2eaa4d] text-white border-none shadow-md shadow-emerald-100 rounded-xl sm:rounded-md transition-all active:scale-95" onClick={() => handleStatus(a.id, 'confirmed')}>
                        <Check className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
                        <span className="hidden sm:inline">Confirmar</span>
                      </Button>
-                     <Button size="sm" variant="ghost" className="h-11 sm:h-9 w-11 sm:w-auto px-0 sm:px-3 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setPendingCancelModal(a)}>
+                     <Button size="sm" variant="ghost" className="h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 text-red-600 bg-red-50 hover:bg-red-100/80 hover:text-red-700 border-none rounded-xl sm:rounded-md transition-all active:scale-95" onClick={() => setPendingCancelModal(a)}>
                        <X className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
                        <span className="hidden sm:inline">Rechazar</span>
                      </Button>
@@ -383,113 +410,159 @@ export default function DashboardPage() {
         </div>
 
         {business.slug && (
-          <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm max-w-sm shrink-0">
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Link público</span>
-              <span className="text-xs text-slate-700 truncate w-32 sm:w-48">{publicLink}</span>
+          <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-xl border border-slate-100 shadow-sm max-w-[280px] sm:max-w-sm shrink-0">
+            <div className="flex flex-col overflow-hidden px-1">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Link público</span>
+              <span className="text-xs text-slate-600 truncate w-32 sm:w-48 font-medium">{publicLink}</span>
             </div>
-            <Button variant="secondary" className="h-11 w-11 px-0 flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center" onClick={copyLink}>
+            <Button variant="ghost" className="h-9 w-9 px-0 flex-shrink-0 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center" onClick={copyLink}>
               <Copy className="h-4 w-4" />
             </Button>
           </div>
         )}
       </div>
 
-      {/* Lado Derecho -> Izquierda (Flex-row-reverse) para tener el calendario secundario a la derecha */}
+      {/* Calendario ARRIBA en Mobile para acceso rápido */}
       <div className="flex flex-col lg:flex-row-reverse gap-8">
         
         {/* === LADO SECUNDARIO (Derecha): CALENDARIO Y COUNTERS === */}
         <div className="w-full lg:w-[260px] shrink-0 space-y-3">
-          <div className="flex gap-2 w-full">
-            <Button size="sm" className="flex-1 h-11 sm:h-9 text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-lg font-medium" onClick={() => setBlockModal(true)}>
-              + Bloquear
-            </Button>
-            <Button size="sm" variant="outline" className="flex-1 h-11 sm:h-9 text-xs text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-lg font-medium" onClick={() => setEventModal(true)}>
-              ⭐ Destacar
-            </Button>
-          </div>
 
-          <Card className="border border-slate-100 shadow-sm bg-white overflow-hidden rounded-2xl">
-            <CardContent className="p-1">
-              <Calendar
-                mode="single"
-                locale={es}
-                selected={calendarDate}
-                onSelect={handleCalendarSelect}
-                modifiers={{ 
-                  cancelled: cancelledDatesArray, 
-                  evtBlue: eventBlue, 
-                  evtRed: eventRed, 
-                  evtGreen: eventGreen, 
-                  evtPurple: eventPurple, 
-                  evtAmber: eventAmber 
-                }}
-                modifiersClassNames={{ 
-                  cancelled: "text-red-500 font-bold bg-red-50 ring-1 ring-inset ring-red-200 rounded-full",
-                  evtBlue: "text-blue-500 font-bold bg-blue-50 ring-1 ring-inset ring-blue-200 rounded-full",
-                  evtRed: "text-rose-500 font-bold bg-rose-50 ring-1 ring-inset ring-rose-200 rounded-full",
-                  evtGreen: "text-emerald-500 font-bold bg-emerald-50 ring-1 ring-inset ring-emerald-200 rounded-full",
-                  evtPurple: "text-purple-500 font-bold bg-purple-50 ring-1 ring-inset ring-purple-200 rounded-full",
-                  evtAmber: "text-amber-500 font-bold bg-amber-50 ring-1 ring-inset ring-amber-200 rounded-full"
-                }}
-                className="mx-auto text-sm scale-90 origin-top -mb-6"
-              />
-              
-              <div className="pt-2 px-4 pb-4">
-                {eventForDate && (() => {
-                  const evData = getEventData(eventForDate.notes)
-                  const mapBorders = {
-                    blue: 'bg-blue-50 border-blue-200 text-blue-700',
-                    red: 'bg-rose-50 border-rose-200 text-rose-700',
-                    green: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-                    purple: 'bg-purple-50 border-purple-200 text-purple-700',
-                    amber: 'bg-amber-50 border-amber-200 text-amber-700'
-                  }
-                  return (
-                    <div className={`mb-3 p-3 rounded-lg border shadow-sm flex items-center justify-between ${mapBorders[evData.color]}`}>
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5 opacity-80">Evento Destacado</p>
-                        <p className="font-semibold text-sm leading-tight">{evData.text}</p>
-                        <p className="text-xs opacity-80 mt-1">{eventForDate.start_time.slice(0,5)} hs - {eventForDate.end_time.slice(0,5)} hs</p>
+          {isMobile && !isCalendarExpanded ? (
+            <WeeklyCalendar
+              selectedDate={calendarDate}
+              onSelect={handleCalendarSelect}
+              onExpand={() => setIsCalendarExpanded(true)}
+              modifiers={{ 
+                cancelled: cancelledDatesArray, 
+                evtBlue: eventBlue, 
+                evtRed: eventRed, 
+                evtGreen: eventGreen, 
+                evtPurple: eventPurple, 
+                evtAmber: eventAmber 
+              }}
+              modifiersClassNames={{ 
+                cancelled: "bg-red-500",
+                evtBlue: "bg-blue-500",
+                evtRed: "bg-rose-500",
+                evtGreen: "bg-[#34C759]",
+                evtPurple: "bg-purple-500",
+                evtAmber: "bg-amber-500"
+              }}
+              actions={
+                <div className="flex gap-2 w-full mt-4 pt-4 border-t border-slate-50">
+                  <Button size="sm" className="flex-1 h-11 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
+                    Bloquear Día/Horario
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1 h-11 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
+                    Destacar Día/Evento
+                  </Button>
+                </div>
+              }
+            />
+          ) : (
+            <Card className="border border-slate-100 shadow-sm bg-white overflow-hidden rounded-2xl max-h-[50vh] lg:max-h-none overflow-y-auto lg:overflow-visible transition-all duration-300">
+              <CardContent className="p-1">
+                <Calendar
+                  mode="single"
+                  locale={es}
+                  selected={calendarDate}
+                  onSelect={handleCalendarSelect}
+                  modifiers={{ 
+                    cancelled: cancelledDatesArray, 
+                    evtBlue: eventBlue, 
+                    evtRed: eventRed, 
+                    evtGreen: eventGreen, 
+                    evtPurple: eventPurple, 
+                    evtAmber: eventAmber 
+                  }}
+                  modifiersClassNames={{ 
+                    cancelled: "text-red-500 font-bold bg-red-50 ring-1 ring-inset ring-red-200 rounded-full",
+                    evtBlue: "text-blue-500 font-bold bg-blue-50 ring-1 ring-inset ring-blue-200 rounded-full",
+                    evtRed: "text-rose-500 font-bold bg-rose-50 ring-1 ring-inset ring-rose-200 rounded-full",
+                    evtGreen: "text-[#34C759] font-bold bg-emerald-50 ring-1 ring-inset ring-emerald-200 rounded-full",
+                    evtPurple: "text-purple-500 font-bold bg-purple-50 ring-1 ring-inset ring-purple-200 rounded-full",
+                    evtAmber: "text-amber-500 font-bold bg-amber-50 ring-1 ring-inset ring-amber-200 rounded-full"
+                  }}
+                  className="mx-auto text-sm scale-90 origin-top -mb-6"
+                />
+                
+                <div className="pt-2 px-4 pb-4">
+                  {isMobile && (
+                    <div className="flex justify-center mb-4">
+                      <Button variant="ghost" size="sm" onClick={() => setIsCalendarExpanded(false)} className="text-xs text-slate-400 font-medium h-8">
+                        Contraer vista semanal
+                      </Button>
+                    </div>
+                  )}
+                  {eventForDate && (() => {
+                    const evData = getEventData(eventForDate.notes)
+                    const mapBorders = {
+                      blue: 'bg-blue-50 border-blue-200 text-blue-700',
+                      red: 'bg-rose-50 border-rose-200 text-rose-700',
+                      green: 'bg-emerald-50 border-emerald-100 text-[#34C759]',
+                      purple: 'bg-purple-50 border-purple-200 text-purple-700',
+                      amber: 'bg-amber-50 border-amber-200 text-amber-700'
+                    }
+                    return (
+                      <div className={`mb-3 p-3 rounded-lg border shadow-sm flex items-center justify-between ${mapBorders[evData.color]}`}>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5 opacity-80">Evento Destacado</p>
+                          <p className="font-semibold text-sm leading-tight">{evData.text}</p>
+                          <p className="text-xs opacity-80 mt-1">{eventForDate.start_time.slice(0,5)} hs - {eventForDate.end_time.slice(0,5)} hs</p>
+                        </div>
+                        <Button variant="ghost" className="opacity-70 hover:opacity-100 hover:bg-white/50 h-11 w-11 px-0 flex items-center justify-center shrink-0" onClick={() => handleStatus(eventForDate.id, 'cancelled')}> <X className="w-5 h-5"/> </Button>
                       </div>
-                      <Button variant="ghost" className="opacity-70 hover:opacity-100 hover:bg-white/50 h-11 w-11 px-0 flex items-center justify-center shrink-0" onClick={() => handleStatus(eventForDate.id, 'cancelled')}> <X className="w-5 h-5"/> </Button>
-                    </div>
-                  )
-                })()}
+                    )
+                  })()}
 
-                <div className="flex items-center justify-between mt-2 mb-2"></div>
-              
-              {/* === TOTALES COMPACTOS === */}
-              <div className="px-3 pb-3">
-                {boxOfficeToday > 0 && (
-                  <div className="border-t border-slate-100 pt-3 mt-1.5">
-                    <div className="bg-emerald-50/80 border border-emerald-100 rounded-lg p-2 mt-1.5 flex justify-between items-center">
-                      <span className="text-[10px] font-bold uppercase text-emerald-600">Caja del Día</span>
-                      <span className="text-sm font-bold text-emerald-900">${boxOfficeToday.toLocaleString('es-AR')}</span>
-                    </div>
+                {/* === BOTONES DE ACCIÓN === */}
+                <div className="px-4 pb-4">
+                  <div className="flex gap-2 w-full pt-4 border-t border-slate-50">
+                    <Button size="sm" className="flex-1 h-10 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
+                      Bloquear Día/Horario
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1 h-10 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
+                      Destacar Día/Evento
+                    </Button>
                   </div>
-                )}
+                </div>
+
+                {/* === TOTALES COMPACTOS === */}
+                <div className="px-4 pb-4">
+                  {boxOfficeToday > 0 && (
+                    <div className="border-t border-slate-100 pt-4">
+                      <div className="bg-emerald-50/30 border border-emerald-100/50 rounded-2xl p-4 flex justify-between items-center shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#34C759] tracking-widest opacity-80">Caja del Día</span>
+                        <span className="text-sm font-bold text-slate-900">${boxOfficeToday.toLocaleString('es-AR')}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
 
 
         {/* === LADO PRINCIPAL (Izquierda): PESTAÑAS (TABS) === */}
         <div className="flex-1 min-w-0 w-full">
-          <Tabs defaultValue="pendientes" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="overflow-x-auto no-scrollbar mask-fade-edges pb-2 -mb-2">
-              <TabsList className="mb-4 bg-slate-100/80 p-1 rounded-xl flex w-max min-w-full justify-start sm:justify-center">
-                <TabsTrigger value="pendientes" className="rounded-lg h-10 px-4 transition-colors data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-900 data-[state=active]:shadow-sm">
-                  Pendientes {pendingForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-yellow-200/50 text-yellow-800 border-none">{pendingForDate.length}</Badge>}
+              <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-xl flex w-max min-w-full justify-start sm:justify-center border-none">
+                <TabsTrigger value="pendientes" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-yellow-700 data-[state=active]:shadow-none">
+                  Pendientes {totalPending > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-yellow-100 text-yellow-700 border-none">{totalPending}</Badge>}
+                  <TabUnderline value="pendientes" activeTab={activeTab} color="bg-yellow-500" />
                 </TabsTrigger>
-                <TabsTrigger value="confirmados" className="rounded-md h-10 px-4 transition-colors data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-900 data-[state=active]:shadow-sm">
-                  Confirmados {confirmedForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-emerald-200/50 text-emerald-800 border-none">{confirmedForDate.length}</Badge>}
+                <TabsTrigger value="confirmados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-[#269442] data-[state=active]:shadow-none">
+                  Confirmados {confirmedForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-emerald-100 text-[#269442] border-none">{confirmedForDate.length}</Badge>}
+                  <TabUnderline value="confirmados" activeTab={activeTab} color="bg-[#34C759]" />
                 </TabsTrigger>
-                <TabsTrigger value="cancelados" className="rounded-md h-10 px-4 transition-colors data-[state=active]:bg-red-100 data-[state=active]:text-red-900 data-[state=active]:shadow-sm">
-                  Cancelados {cancelledForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] flex items-center justify-center bg-red-200/50 text-red-800 border-none">{cancelledForDate.length}</Badge>}
+                <TabsTrigger value="cancelados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-red-700 data-[state=active]:shadow-none">
+                  Cancelados {cancelledForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-red-100 text-red-700 border-none">{cancelledForDate.length}</Badge>}
+                  <TabUnderline value="cancelados" activeTab={activeTab} color="bg-red-500" />
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -677,12 +750,20 @@ export default function DashboardPage() {
               {!blockForm.fullDay && (
                 <div className="grid grid-cols-2 gap-4 pt-1">
                   <div className="grid gap-2">
-                    <Label>Hora inicio</Label>
-                    <input type="time" required={!blockForm.fullDay} value={blockForm.start_time} onChange={e => setBlockForm({...blockForm, start_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                    <Label className="text-xs uppercase text-slate-400 font-bold ml-1">Hora inicio</Label>
+                    {isMobile ? (
+                      <WheelTimePicker value={blockForm.start_time} onChange={val => setBlockForm({...blockForm, start_time: val})} />
+                    ) : (
+                      <input type="time" required={!blockForm.fullDay} value={blockForm.start_time} onChange={e => setBlockForm({...blockForm, start_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                    )}
                   </div>
                   <div className="grid gap-2">
-                    <Label>Hora fin</Label>
-                    <input type="time" required={!blockForm.fullDay} value={blockForm.end_time} onChange={e => setBlockForm({...blockForm, end_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                    <Label className="text-xs uppercase text-slate-400 font-bold ml-1">Hora fin</Label>
+                    {isMobile ? (
+                      <WheelTimePicker value={blockForm.end_time} onChange={val => setBlockForm({...blockForm, end_time: val})} />
+                    ) : (
+                      <input type="time" required={!blockForm.fullDay} value={blockForm.end_time} onChange={e => setBlockForm({...blockForm, end_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                    )}
                   </div>
                 </div>
               )}
@@ -777,7 +858,7 @@ export default function DashboardPage() {
                   {[
                     { id: 'blue', text: 'bg-blue-500 ring-blue-200' },
                     { id: 'red', text: 'bg-rose-500 ring-rose-200' },
-                    { id: 'green', text: 'bg-emerald-500 ring-emerald-200' },
+                    { id: 'green', text: 'bg-[#34C759] ring-emerald-200' },
                     { id: 'purple', text: 'bg-purple-500 ring-purple-200' },
                     { id: 'amber', text: 'bg-amber-500 ring-amber-200' }
                   ].map(c => (
@@ -793,12 +874,20 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label>Hora inicio</Label>
-                  <input type="time" required value={eventForm.start_time} onChange={e => setEventForm({...eventForm, start_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                  <Label className="text-xs uppercase text-slate-400 font-bold ml-1">Hora inicio</Label>
+                  {isMobile ? (
+                    <WheelTimePicker value={eventForm.start_time} onChange={val => setEventForm({...eventForm, start_time: val})} />
+                  ) : (
+                    <input type="time" required value={eventForm.start_time} onChange={e => setEventForm({...eventForm, start_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                  )}
                 </div>
                 <div className="grid gap-2">
-                  <Label>Hora fin</Label>
-                  <input type="time" required value={eventForm.end_time} onChange={e => setEventForm({...eventForm, end_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                  <Label className="text-xs uppercase text-slate-400 font-bold ml-1">Hora fin</Label>
+                  {isMobile ? (
+                    <WheelTimePicker value={eventForm.end_time} onChange={val => setEventForm({...eventForm, end_time: val})} />
+                  ) : (
+                    <input type="time" required value={eventForm.end_time} onChange={e => setEventForm({...eventForm, end_time: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" />
+                  )}
                 </div>
               </div>
             </div>

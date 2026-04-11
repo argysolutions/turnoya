@@ -127,6 +127,10 @@
   html {
     @apply font-sans;
   }
+  /* Prevent iOS zoom on focus by ensuring at least 16px font size on mobile */
+  input, select, textarea {
+    @apply text-[16px] sm:text-sm;
+  }
 }
 
 .PhoneInputInput {
@@ -135,7 +139,6 @@
   border: none;
   background: transparent;
   outline: none;
-  font-size: 0.875rem;
 }
 
 .PhoneInputCountry {
@@ -154,4 +157,25 @@
     mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 10px), transparent);
     -webkit-mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 10px), transparent);
   }
+  .bg-modern-night {
+    background: radial-gradient(ellipse at top left, #1e293b, #0f172a, #020617);
+  }
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl;
+  }
+  .touch-target { 
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center; 
+  }
 }
+
+/* Wheel Picker Visual Polish */
+.picker-container {
+  @apply relative h-[200px] w-full overflow-hidden bg-white/5 shadow-inner rounded-xl border border-white/10;
+  mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+}
+
+.picker-highlight {
+  @apply absolute top-1/2 left-0 right-0 h-10 -translate-y-1/2 bg-slate-100/10 pointer-events-none rounded-md border-y border-white/10;
+}
+

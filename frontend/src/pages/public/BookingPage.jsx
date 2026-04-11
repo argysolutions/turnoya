@@ -119,7 +119,7 @@ export default function BookingPage() {
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-lg mx-auto px-4 py-10">
 
-        <div className="mb-6">
+        <div className="mb-6 sticky top-0 bg-slate-50/80 backdrop-blur-sm z-20 py-2 -mx-4 px-4 sm:relative sm:bg-transparent sm:backdrop-blur-none sm:p-0">
           <div className="h-1 bg-slate-200 rounded-full overflow-hidden mb-4">
             <div
               className="h-full bg-slate-900 rounded-full transition-all duration-500"
@@ -129,7 +129,7 @@ export default function BookingPage() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">✓</div>
-              <span className="text-sm font-medium text-slate-900">Servicio</span>
+              <span className="text-sm font-medium text-slate-900 hidden sm:inline">Servicio</span>
             </div>
             <div className="flex-1 h-px bg-slate-900" />
             <div className="flex items-center gap-2">
@@ -179,12 +179,12 @@ export default function BookingPage() {
                   ) : slots.length === 0 ? (
                     <p className="text-sm text-slate-400 py-4 text-center">No hay horarios disponibles para este día</p>
                   ) : (
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {slots.map((slot) => (
                         <button
                           key={slot.start}
                           onClick={() => setSelectedSlot(slot)}
-                          className={`text-sm py-2 px-3 rounded-lg border transition-all ${
+                          className={`text-sm py-2 px-3 rounded-lg border transition-all h-12 flex items-center justify-center ${
                             selectedSlot?.start === slot.start
                               ? 'bg-slate-900 text-white border-slate-900 scale-105'
                               : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:scale-[1.02]'
@@ -199,13 +199,19 @@ export default function BookingPage() {
               </CardContent>
             </Card>
 
-            <Button
-              className="w-full"
-              disabled={!selectedSlot}
-              onClick={() => setStep(2)}
-            >
-              {selectedSlot ? `Continuar con ${selectedSlot.start} →` : 'Seleccioná un horario'}
-            </Button>
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200 z-30 sm:relative sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
+              <Button
+                className="w-full h-12 sm:h-10 text-base sm:text-sm font-semibold"
+                disabled={!selectedSlot}
+                onClick={() => setStep(2)}
+              >
+                {selectedSlot ? `Continuar con ${selectedSlot.start} →` : 'Seleccioná un horario'}
+              </Button>
+              <div className="h-safe-bottom sm:hidden" /> {/* Para iPhones con Notch */}
+            </div>
+            
+            {/* Espaciador para que el contenido no quede tapado por el botón sticky */}
+            <div className="h-24 sm:hidden" />
           </div>
         )}
 
@@ -264,14 +270,20 @@ export default function BookingPage() {
               )}
             </div>
 
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                ← Volver
-              </Button>
-              <Button onClick={handleBook} disabled={loading} className="flex-1">
-                {loading ? 'Reservando...' : 'Confirmar turno'}
-              </Button>
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200 z-30 sm:relative sm:p-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none sm:z-auto">
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 h-12 sm:h-10 text-base sm:text-sm">
+                  ← Volver
+                </Button>
+                <Button onClick={handleBook} disabled={loading} className="flex-1 h-12 sm:h-10 text-base sm:text-sm font-semibold">
+                  {loading ? 'Reservando...' : 'Confirmar turno'}
+                </Button>
+              </div>
+              <div className="h-safe-bottom sm:hidden" />
             </div>
+
+            {/* Espaciador para que el contenido no quede tapado por el botón sticky */}
+            <div className="h-24 sm:hidden" />
           </div>
         )}
 
