@@ -92,9 +92,9 @@ export const listAppointments = async (req, reply) => {
 
 export const updateStatus = async (req, reply) => {
   const { id } = req.params
-  const { status } = req.body
+  const { status, paymentInfo } = req.body
 
-  if (!['confirmed', 'cancelled', 'cancelled_occupied', 'liberate'].includes(status)) {
+  if (!['confirmed', 'cancelled', 'cancelled_occupied', 'liberate', 'completed'].includes(status)) {
     return reply.status(400).send({ error: 'Estado inválido' })
   }
 
@@ -134,7 +134,7 @@ export const updateStatus = async (req, reply) => {
   }
 
   // Lógicas estándar
-  const updated = await updateAppointmentStatus(id, req.business.id, status)
+  const updated = await updateAppointmentStatus(id, req.business.id, status, paymentInfo)
   if (!updated) return reply.status(404).send({ error: 'Turno no encontrado' })
 
   reply.send(updated)

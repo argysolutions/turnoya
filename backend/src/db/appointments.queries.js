@@ -62,14 +62,35 @@ export const getAppointmentsByBusiness = async (businessId, date) => {
   return result.rows
 }
 
-export const updateAppointmentStatus = async (id, businessId, status) => {
-  const result = await pool.query(
-    `UPDATE appointments SET status = $1
-     WHERE id = $2 AND business_id = $3
-     RETURNING *`,
-    [status, id, businessId]
-  )
-  return result.rows[0]
+export const updateAppointmentStatus = async (id, businessId, status, paymentInfo = null) => {
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    
+    const res = await client.query(
+      `UPDATE appointments SET status = $1
+       WHERE id = $2 AND business_id = $3
+       RETURNING *`,
+      [status, id, businessId]
+    )
+
+    if (res.rows[0] && status === 'completed' && paymentInfo) {
+      const { amount, method } = paymentInfo
+      await client.query(
+        `INSERT INTO sales (business_id, appointment_id, monto, metodo_pago)
+         VALUES ($1, $2, $3, $4)`,
+        [businessId, id, amount, method]
+      )
+    }
+
+    await client.query('COMMIT')
+    return res.rows[0]
+  } catch (e) {
+    await client.query('ROLLBACK')
+    throw e
+  } finally {
+    client.release()
+  }
 }
 
 export const deleteAppointment = async (id, businessId) => {

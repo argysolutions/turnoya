@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
 import WheelTimePicker from '@/components/ui/wheel-time-picker'
 import WeeklyCalendar from '@/components/ui/weekly-calendar'
+import DateStrip from '@/components/ui/date-strip'
 
 const STATUS_VARIANT = {
   pending: 'secondary',
@@ -121,6 +122,10 @@ export default function DashboardPage() {
   const [blockForm, setBlockForm] = useState({ date: today(), start_time: '14:00', end_time: '15:00', fullDay: false })
   const [eventForm, setEventForm] = useState({ date: today(), start_time: '09:00', end_time: '18:00', text: '', color: 'blue' })
   const [cancelStrategy, setCancelStrategy] = useState('liberate')
+  
+  // Estados para Cobro
+  const [finishModal, setFinishModal] = useState(null)
+  const [paymentInfo, setPaymentInfo] = useState({ amount: '', method: 'Efectivo' })
 
   const business = JSON.parse(localStorage.getItem('business') || '{}')
   const publicLink = `${window.location.origin}/p/${business.slug}`
@@ -155,15 +160,22 @@ export default function DashboardPage() {
 
   useEffect(() => { fetchAppointments() }, [])
 
-  const handleStatus = async (id, status) => {
+  const handleStatus = async (id, status, extraData = null) => {
     try {
-      await updateStatus(id, status)
-      toast.success(`Turno actualizado`)
+      const payload = extraData ? { status, paymentInfo: extraData } : { status }
+      await updateStatus(id, payload.status, payload.paymentInfo)
+      toast.success(status === 'completed' ? `¡Venta registrada!` : `Turno actualizado`)
       fetchAppointments()
       if (status === 'cancelled' && pendingCancelModal) setPendingCancelModal(null)
+      if (status === 'completed') setFinishModal(null)
     } catch {
       toast.error('Error al actualizar el turno')
     }
+  }
+
+  const openFinishModal = (a) => {
+    setFinishModal(a)
+    setPaymentInfo({ amount: a.price || 0, method: 'Efectivo' })
   }
 
   const handleCancelSubmit = async () => {
@@ -267,23 +279,6 @@ export default function DashboardPage() {
   const safeDate = (dbDate) => (dbDate ? dbDate.split('T')[0] : '')
 
   const allPending = appointments.filter(a => a.status === 'pending')
-  const confirmedForDate = appointments.filter(a => a.status === 'confirmed' && safeDate(a.date) === date)
-  const completedForDate = appointments.filter(a => a.status === 'completed' && safeDate(a.date) === date)
-  const cancelledForDate = appointments.filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status) && safeDate(a.date) === date && !a.client_name?.includes('Evento'))
-
-  const activeBlocksArray = appointments.filter(a => a.status === 'cancelled_occupied' && a.client_name?.includes('Bloqueo'))
-  
-  const allEventsArray = appointments.filter(a => a.status === 'cancelled' && a.client_name?.includes('Evento'))
-  const eventForDate = allEventsArray.find(a => safeDate(a.date) === date)
-
-  const eventBlue = allEventsArray.filter(e => getEventData(e.notes).color === 'blue').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
-  const eventRed = allEventsArray.filter(e => getEventData(e.notes).color === 'red').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
-  const eventGreen = allEventsArray.filter(e => getEventData(e.notes).color === 'green').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
-  const eventPurple = allEventsArray.filter(e => getEventData(e.notes).color === 'purple').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
-  const eventAmber = allEventsArray.filter(e => getEventData(e.notes).color === 'amber').map(e => new Date(safeDate(e.date) + 'T12:00:00'))
-
-  const boxOfficeToday = completedForDate.reduce((acc, a) => acc + parseFloat(a.price || 0), 0)
-
   const pendingForDate = allPending.filter(a => safeDate(a.date) === date)
   const pendingSemana = allPending.filter(a => safeDate(a.date) > todayStr && safeDate(a.date) <= next7DaysStr && safeDate(a.date) !== date)
   const pendingProx = allPending.filter(a => safeDate(a.date) > next7DaysStr && safeDate(a.date) !== date)
@@ -291,10 +286,42 @@ export default function DashboardPage() {
 
   const totalPending = pendingForDate.length + pendingSemana.length + pendingProx.length + pendingAtrasados.length
   
-  // Arreglo de fechas para el Calendario (Rojo para las cancelaciones)
+  const allConfirmed = appointments.filter(a => a.status === 'confirmed')
+  const confirmedForDate = allConfirmed.filter(a => safeDate(a.date) === date)
+  const confirmedSemana = allConfirmed.filter(a => safeDate(a.date) > todayStr && safeDate(a.date) <= next7DaysStr && safeDate(a.date) !== date)
+  const confirmedProx = allConfirmed.filter(a => safeDate(a.date) > next7DaysStr && safeDate(a.date) !== date)
+  const confirmedAtrasados = allConfirmed.filter(a => safeDate(a.date) < todayStr && safeDate(a.date) !== date)
+  const totalConfirmed = confirmedForDate.length + confirmedSemana.length + confirmedProx.length + confirmedAtrasados.length
+
+  const allCompleted = appointments.filter(a => a.status === 'completed')
+  const completedForDate = allCompleted.filter(a => safeDate(a.date) === date)
+  const completedSemana = allCompleted.filter(a => safeDate(a.date) > todayStr && safeDate(a.date) <= next7DaysStr && safeDate(a.date) !== date)
+  const completedProx = allCompleted.filter(a => safeDate(a.date) > next7DaysStr && safeDate(a.date) !== date)
+  const totalCompleted = completedForDate.length + completedSemana.length + completedProx.length
+
+  const allCancelled = appointments.filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status) && !a.client_name?.includes('Evento'))
+  const cancelledForDate = allCancelled.filter(a => safeDate(a.date) === date)
+  const cancelledSemana = allCancelled.filter(a => safeDate(a.date) > todayStr && safeDate(a.date) <= next7DaysStr && safeDate(a.date) !== date)
+  const cancelledProx = allCancelled.filter(a => safeDate(a.date) > next7DaysStr && safeDate(a.date) !== date)
+  const totalCancelled = cancelledForDate.length + cancelledSemana.length + cancelledProx.length
+
+  const activeBlocksArray = appointments.filter(a => a.status === 'cancelled_occupied' && a.client_name?.includes('Bloqueo'))
+  
+  // ESTRUCTURA DE EVENTOS PARA EL CALENDARIO
+  const allEvents = appointments.filter(a => a.notes?.includes('"text"') && a.client_name?.includes('Evento'))
+  const eventBlue = allEvents.filter(a => getEventData(a.notes).color === 'blue').map(a => new Date(safeDate(a.date) + 'T12:00:00'))
+  const eventRed = allEvents.filter(a => getEventData(a.notes).color === 'red').map(a => new Date(safeDate(a.date) + 'T12:00:00'))
+  const eventGreen = allEvents.filter(a => getEventData(a.notes).color === 'green').map(a => new Date(safeDate(a.date) + 'T12:00:00'))
+  const eventPurple = allEvents.filter(a => getEventData(a.notes).color === 'purple').map(a => new Date(safeDate(a.date) + 'T12:00:00'))
+  const eventAmber = allEvents.filter(a => getEventData(a.notes).color === 'amber').map(a => new Date(safeDate(a.date) + 'T12:00:00'))
+
+  const eventForDate = allEvents.find(a => safeDate(a.date) === date)
+
   const cancelledDatesArray = appointments
     .filter(a => ['cancelled', 'cancelled_occupied'].includes(a.status) && !a.client_name?.includes('Evento'))
     .map(a => new Date(safeDate(a.date) + 'T12:00:00'))
+
+  const boxOfficeToday = completedForDate.reduce((sum, a) => sum + (parseFloat(a.price) || 0), 0)
 
   // REUSABLE RENDERER
   const renderAppointmentList = (list, emptyMessage = 'No hay turnos') => {
@@ -382,7 +409,7 @@ export default function DashboardPage() {
                       <MoreVertical className="h-5 w-5" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem className="text-emerald-600 font-medium cursor-pointer mb-1 focus:bg-emerald-50 focus:text-emerald-700" onClick={() => handleStatus(a.id, 'completed')}>
+                      <DropdownMenuItem className="text-emerald-600 font-medium cursor-pointer mb-1 focus:bg-emerald-50 focus:text-emerald-700" onClick={() => openFinishModal(a)}>
                         Finalizar y Cobrar
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600 focus:text-red-700 cursor-pointer" onClick={() => setCancelModal(a)}>
@@ -422,45 +449,17 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Calendario ARRIBA en Mobile para acceso rápido */}
+      {/* Vista de Navegación de Fecha en Mobile */}
+      {isMobile && !isCalendarExpanded && (
+        <DateStrip 
+          selectedDate={calendarDate}
+          onSelect={handleCalendarSelect}
+          onExpand={() => setIsCalendarExpanded(true)}
+        />
+      )}
       <div className="flex flex-col lg:flex-row-reverse gap-8">
-        
-        {/* === LADO SECUNDARIO (Derecha): CALENDARIO Y COUNTERS === */}
-        <div className="w-full lg:w-[260px] shrink-0 space-y-3">
-
-          {isMobile && !isCalendarExpanded ? (
-            <WeeklyCalendar
-              selectedDate={calendarDate}
-              onSelect={handleCalendarSelect}
-              onExpand={() => setIsCalendarExpanded(true)}
-              modifiers={{ 
-                cancelled: cancelledDatesArray, 
-                evtBlue: eventBlue, 
-                evtRed: eventRed, 
-                evtGreen: eventGreen, 
-                evtPurple: eventPurple, 
-                evtAmber: eventAmber 
-              }}
-              modifiersClassNames={{ 
-                cancelled: "bg-red-500",
-                evtBlue: "bg-blue-500",
-                evtRed: "bg-rose-500",
-                evtGreen: "bg-[#34C759]",
-                evtPurple: "bg-purple-500",
-                evtAmber: "bg-amber-500"
-              }}
-              actions={
-                <div className="flex flex-col sm:flex-row gap-2 w-full mt-4 pt-4 border-t border-slate-50">
-                  <Button size="sm" className="flex-1 h-11 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
-                    Bloquear Día/Horario
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex-1 h-11 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
-                    Destacar Día/Evento
-                  </Button>
-                </div>
-              }
-            />
-          ) : (
+        {/* === LADO SECUNDARIO (Derecha): CALENDARIO (Solo Desktop o expandido en Mobile) === */}
+        <div className={`w-full lg:w-[260px] shrink-0 space-y-3 ${isMobile && !isCalendarExpanded ? 'hidden lg:block' : 'block'}`}>
             <Card className="border border-slate-100 shadow-sm bg-white overflow-hidden rounded-2xl max-h-[50vh] lg:max-h-none overflow-y-auto lg:overflow-visible transition-all duration-300">
               <CardContent className="p-1">
                 <Calendar
@@ -520,6 +519,7 @@ export default function DashboardPage() {
                       </div>
                     )
                   })()}
+                </div>
 
                 {/* === BOTONES DE ACCIÓN === */}
                 <div className="px-4 pb-4">
@@ -544,30 +544,40 @@ export default function DashboardPage() {
                     </div>
                   )}
                 </div>
-              </div>
               </CardContent>
             </Card>
-          )}
         </div>
-
-
 
         {/* === LADO PRINCIPAL (Izquierda): PESTAÑAS (TABS) === */}
         <div className="flex-1 min-w-0 w-full">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="overflow-x-auto no-scrollbar mask-fade-edges pb-2 -mb-2">
               <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-xl flex w-max min-w-full justify-start sm:justify-center border-none">
-                <TabsTrigger value="pendientes" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-yellow-700 data-[state=active]:shadow-none">
-                  Pendientes {totalPending > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-yellow-100 text-yellow-700 border-none">{totalPending}</Badge>}
-                  <TabUnderline value="pendientes" activeTab={activeTab} color="bg-yellow-500" />
+                <TabsTrigger value="pendientes" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-red-700 data-[state=active]:shadow-none">
+                  Pendientes {totalPending > 0 && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="ml-2"
+                    >
+                      <Badge className="h-5 text-[10px] bg-red-600 text-white border-none shadow-sm shadow-red-200">
+                        {totalPending}
+                      </Badge>
+                    </motion.div>
+                  )}
+                  <TabUnderline value="pendientes" activeTab={activeTab} color="bg-red-600" />
                 </TabsTrigger>
                 <TabsTrigger value="confirmados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-[#269442] data-[state=active]:shadow-none">
-                  Confirmados {confirmedForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-emerald-100 text-[#269442] border-none">{confirmedForDate.length}</Badge>}
+                  Confirmados {totalConfirmed > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-emerald-100 text-[#269442] border-none">{totalConfirmed}</Badge>}
                   <TabUnderline value="confirmados" activeTab={activeTab} color="bg-[#34C759]" />
                 </TabsTrigger>
                 <TabsTrigger value="cancelados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-red-700 data-[state=active]:shadow-none">
-                  Cancelados {cancelledForDate.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-red-100 text-red-700 border-none">{cancelledForDate.length}</Badge>}
+                  Cancelados {totalCancelled > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-red-100 text-red-700 border-none">{totalCancelled}</Badge>}
                   <TabUnderline value="cancelados" activeTab={activeTab} color="bg-red-500" />
+                </TabsTrigger>
+                <TabsTrigger value="finalizados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-blue-700 data-[state=active]:shadow-none">
+                  Finalizados {totalCompleted > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-blue-100 text-blue-700 border-none">{totalCompleted}</Badge>}
+                  <TabUnderline value="finalizados" activeTab={activeTab} color="bg-blue-500" />
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -618,41 +628,111 @@ export default function DashboardPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="confirmados" className="space-y-6 outline-none">
+            <TabsContent value="confirmados" className="space-y-3 outline-none">
+              {confirmedAtrasados.length > 0 && (
+                <Card className="border-emerald-100 shadow-sm">
+                  <CardHeader className="pb-3 bg-emerald-50/50">
+                    <CardTitle className="text-sm flex items-center gap-2 text-emerald-700">
+                      <Clock className="w-4 h-4" /> Pasados sin cobrar
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {renderAppointmentList(confirmedAtrasados)}
+                  </CardContent>
+                </Card>
+              )}
+
               <Card className="shadow-sm">
                 <CardHeader className="pb-3 border-b border-slate-100">
-                   <CardTitle className="text-lg flex items-center gap-2">
-                     <Check className="h-5 w-5 text-emerald-500" /> Confirmados para el {formatDate(date)}
-                   </CardTitle>
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    {date === todayStr ? 'Para Hoy' : `Confirmados para el ${formatDate(date)}`}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderAppointmentList(confirmedForDate, 'Día libre. No hay confirmados.')}
                 </CardContent>
               </Card>
 
-              {completedForDate.length > 0 && (
-                <Card className="shadow-sm border-emerald-100 bg-emerald-50/20">
-                  <CardHeader className="pb-3 border-b border-emerald-100">
-                     <CardTitle className="text-sm uppercase tracking-wide text-emerald-700">
-                       Servicios Finalizados / Cobrados ({completedForDate.length})
-                     </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {renderAppointmentList(completedForDate)}
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderAppointmentList(confirmedSemana, 'No hay confirmados para los proximos 7 dias')}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderAppointmentList(confirmedProx, 'Vacío')}
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="cancelados" className="outline-none">
+            <TabsContent value="cancelados" className="space-y-3 outline-none">
               <Card className="shadow-sm">
-                 <CardHeader className="pb-3 border-b border-slate-100">
-                   <CardTitle className="text-lg flex items-center gap-2">
-                     <X className="h-5 w-5 text-red-500" /> Cancelados del {formatDate(date)}
-                   </CardTitle>
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
+                    <X className="w-4 h-4 text-red-500" />
+                    {date === todayStr ? 'Cancelados Hoy' : `Cancelados del ${formatDate(date)}`}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderAppointmentList(cancelledForDate, 'Ningún turno fue cancelado este día.')}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderAppointmentList(cancelledSemana, 'Vacío')}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderAppointmentList(cancelledProx, 'Vacío')}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="finalizados" className="space-y-3 outline-none">
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
+                    <Check className="w-4 h-4 text-blue-500" />
+                    {date === todayStr ? 'Finalizados Hoy' : `Cobrados el ${formatDate(date)}`}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderAppointmentList(completedForDate, 'Ninguna caja hoy todavía.')}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderAppointmentList(completedSemana, 'Vacío')}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderAppointmentList(completedProx, 'Vacío')}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -802,6 +882,54 @@ export default function DashboardPage() {
              <Button variant="destructive" onClick={submitBlockPayload}>Sí, Bloquear Espacio</Button>
            </DialogFooter>
          </DialogContent>
+      </Dialog>
+
+      {/* MODAL DE COBRO (PAYMENT MODAL) */}
+      <Dialog open={!!finishModal} onOpenChange={(o) => !o && setFinishModal(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-emerald-700 flex items-center gap-2">
+              <Check className="w-5 h-5" /> Registrar Cobro
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="grid gap-2">
+              <Label className="text-xs uppercase text-slate-400 font-bold">Monto final cobrado ($)</Label>
+              <input 
+                type="number" 
+                value={paymentInfo.amount} 
+                onChange={e => setPaymentInfo({...paymentInfo, amount: e.target.value})}
+                className="flex h-12 w-full rounded-xl border border-input bg-slate-50 px-4 py-2 text-xl font-bold tabular-nums focus:ring-2 focus:ring-emerald-500 outline-none" 
+              />
+              <p className="text-[10px] text-slate-400 italic">Precio base del servicio: ${finishModal?.price}</p>
+            </div>
+
+            <div className="grid gap-2">
+              <Label className="text-xs uppercase text-slate-400 font-bold">Método de pago</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {['Efectivo', 'Transferencia', 'Tarjeta', 'Otro'].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setPaymentInfo({...paymentInfo, method: m})}
+                    className={`h-11 rounded-xl text-sm font-medium border transition-all ${
+                      paymentInfo.method === m 
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-700 shadow-sm' 
+                        : 'border-slate-100 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setFinishModal(null)}>Volver</Button>
+            <Button className="bg-[#34C759] hover:bg-[#2eaa4d] text-white rounded-xl h-11" onClick={() => handleStatus(finishModal.id, 'completed', paymentInfo)}>
+              Confirmar y Cerrar Caja
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       {/* ACTIVE BLOCKS LIST MODAL */}
