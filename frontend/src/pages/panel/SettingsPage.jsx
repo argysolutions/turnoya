@@ -93,7 +93,12 @@ export default function SettingsPage() {
     setSaving(true)
     try {
       const { data } = await client.put('/settings', settings)
-      setSettings(data)
+      setSettings({
+        cancellation_policy: data.cancellation_policy || '',
+        anticipation_margin: data.anticipation_margin || 0,
+        buffer_time: data.buffer_time || 0,
+        whatsapp_enabled: data.whatsapp_enabled || false
+      })
       toast.success('Configuración guardada correctamente')
     } catch {
       toast.error('Error al guardar la configuración')

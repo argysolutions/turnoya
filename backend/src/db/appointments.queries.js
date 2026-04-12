@@ -76,9 +76,13 @@ export const updateAppointmentStatus = async (id, businessId, status, paymentInf
 
     if (res.rows[0] && status === 'completed' && paymentInfo) {
       const { amount, method } = paymentInfo
+      // Obtenemos client_name y phone directamente desde la BD para no necesitar pasarlos desde arriba
       await client.query(
-        `INSERT INTO sales (business_id, appointment_id, monto, metodo_pago)
-         VALUES ($1, $2, $3, $4)`,
+        `INSERT INTO sales (business_id, appointment_id, client_name, phone, amount, payment_method)
+         SELECT $1, $2, c.name, c.phone, $3, $4
+         FROM appointments a
+         JOIN clients c ON a.client_id = c.id
+         WHERE a.id = $2`,
         [businessId, id, amount, method]
       )
     }

@@ -24,6 +24,7 @@ const navItems = [
   { label: 'Agenda', path: '/dashboard' },
   { label: 'Servicios', path: '/servicios' },
   { label: 'Disponibilidad', path: '/disponibilidad' },
+  { label: 'Caja 💰', path: '/dashboard/caja' },
   { label: 'Configuración', path: '/dashboard/configuracion' }
 ]
 
