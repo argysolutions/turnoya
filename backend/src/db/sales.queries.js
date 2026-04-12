@@ -15,7 +15,9 @@ export const getSalesByBusiness = async (businessId, date) => {
   }
 
   const { rows: sales } = await pool.query(
-    `SELECT s.*
+    `SELECT s.id, s.business_id, s.appointment_id, s.client_name, s.phone,
+            s.amount::NUMERIC(10,2) AS amount, s.payment_method,
+            s.professional_name, s.created_at
      FROM sales s
      WHERE s.business_id = $1
        ${whereDate}
