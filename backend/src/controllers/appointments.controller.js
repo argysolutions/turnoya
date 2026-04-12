@@ -98,46 +98,47 @@ export const updateStatus = async (req, reply) => {
     return reply.status(400).send({ error: 'Estado inválido' })
   }
 
-  // Lógica A: Liberar (con retraso de 2 minutos)
-  if (status === 'liberate') {
-    // Calculamos el timestamp actual + 2 minutos
-    const liberatesAt = new Date(Date.now() + 120000)
+  try {
+    // Lógica A: Liberar (con retraso de 2 minutos)
+    if (status === 'liberate') {
+      const liberatesAt = new Date(Date.now() + 120000)
 
-    // Lo fijamos como occupied para que nadie lo pueda usar en estos 2 minutos
-    await updateAppointmentStatus(id, req.business.id, 'cancelled_occupied')
-    
-    // Le seteamos el countdown
-    await setAppointmentLiberationTime(id, req.business.id, liberatesAt)
-    
-    // Disparamos timer no bloqueante blindado con validación de estado real
-    setTimeout(async () => {
-      try {
-        const current = await getAppointmentById(id)
-        // Solo eliminamos si el usuario no canceló la orden durante estos 2 minutos (es decir, el timer sigue activo en DB)
-        if (current && current.liberates_at !== null) {
-          await deleteAppointment(id, req.business.id)
-          console.log(`⏱️ Turno ${id} liberado y eliminado permanentemente luego de 2 minutos.`)
-        } else {
-          console.log(`🛑 Liberación de turno ${id} cancelada. El administrador presionó deshacer.`)
+      // Lo fijamos como occupied para que nadie lo pueda usar en estos 2 minutos
+      await updateAppointmentStatus(id, req.business.id, 'cancelled_occupied')
+      await setAppointmentLiberationTime(id, req.business.id, liberatesAt)
+
+      // Disparamos timer no bloqueante blindado con validación de estado real
+      setTimeout(async () => {
+        try {
+          const current = await getAppointmentById(id)
+          if (current && current.liberates_at !== null) {
+            await deleteAppointment(id, req.business.id)
+            console.log(`⏱️ Turno ${id} liberado y eliminado permanentemente luego de 2 minutos.`)
+          } else {
+            console.log(`🛑 Liberación de turno ${id} cancelada. El administrador presionó deshacer.`)
+          }
+        } catch (err) {
+          console.error('Error liberando turno:', err.message)
         }
-      } catch (err) {
-        console.error('Error liberando turno:', err.message)
-      }
-    }, 120000) // 120,000 ms = 2 minutos
+      }, 120000)
 
-    return reply.send({ success: true, action: 'liberating' })
+      return reply.send({ success: true, action: 'liberating' })
+    }
+
+    // Si apretó "Deshacer" o forzó keep_occupied, le quitamos la fecha límite
+    if (status === 'cancelled_occupied' || status === 'confirmed') {
+      await setAppointmentLiberationTime(id, req.business.id, null)
+    }
+
+    // Lógicas estándar (incluye INSERT en sales si status === 'completed')
+    const updated = await updateAppointmentStatus(id, req.business.id, status, paymentInfo)
+    if (!updated) return reply.status(404).send({ error: 'Turno no encontrado' })
+
+    reply.send(updated)
+  } catch (error) {
+    console.error(`[updateStatus] Error al actualizar turno ${id}:`, error.message)
+    reply.status(500).send({ error: 'Error al actualizar el turno' })
   }
-
-  // Si envuelve manualmente a keep_occupied o apretó "Deshacer" restaurandolo a confirmado, le quitamos toda fecha límite
-  if (status === 'cancelled_occupied' || status === 'confirmed') {
-    await setAppointmentLiberationTime(id, req.business.id, null)
-  }
-
-  // Lógicas estándar
-  const updated = await updateAppointmentStatus(id, req.business.id, status, paymentInfo)
-  if (!updated) return reply.status(404).send({ error: 'Turno no encontrado' })
-
-  reply.send(updated)
 }
 
 export const blockTime = async (req, reply) => {

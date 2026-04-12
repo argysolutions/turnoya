@@ -1,30 +1,27 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Layout from '@/components/shared/Layout'
 import { getSales } from '@/api/sales'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, Printer, TrendingUp, CreditCard, Wallet, ArrowLeftRight, HelpCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Printer, TrendingUp, CreditCard, Wallet, ArrowLeftRight, HelpCircle, Eye, EyeOff } from 'lucide-react'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
-
-const toLocalDate = (dateStr) => {
-  // dateStr viene como YYYY-MM-DD desde el input[type=date]
-  return dateStr
-}
 
 const today = () => new Date().toISOString().split('T')[0]
 
 const fmt = (amount) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount ?? 0)
 
+const masked = () => '$ •••••'
+
 const fmtDate = (dateStr) =>
   new Date(dateStr + 'T00:00:00').toLocaleDateString('es-AR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   })
 
-const fmtShortDate = (isoString) =>
+const fmtTime = (isoString) =>
   new Date(isoString).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
 
 const addDays = (dateStr, n) => {
@@ -47,7 +44,6 @@ const METHOD_STYLE = {
   Otro:          'bg-slate-50    text-slate-600    border-slate-100',
 }
 
-// Agrupa ventas por método de pago para el resumen
 const summarize = (sales) => {
   const acc = {}
   sales.forEach((s) => {
@@ -59,7 +55,7 @@ const summarize = (sales) => {
   return acc
 }
 
-// ─── Print helpers ──────────────────────────────────────────────────────────
+// ─── Print / Export PDF ─────────────────────────────────────────────────────
 
 const printReport = (sales, total, date, businessName) => {
   const dateLabel = date === today() ? 'Hoy' : fmtDate(date)
@@ -67,7 +63,7 @@ const printReport = (sales, total, date, businessName) => {
     .map(
       (s) => `
         <tr>
-          <td>${fmtShortDate(s.created_at)}</td>
+          <td>${fmtTime(s.created_at)}</td>
           <td>${s.client_name || '—'}</td>
           <td>${s.phone || '—'}</td>
           <td>${s.payment_method}</td>
@@ -129,6 +125,8 @@ export default function CajaPage() {
   const [total, setTotal] = useState(0)
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  // Toggle de privacidad: oculta los montos con asteriscos
+  const [hidden, setHidden] = useState(false)
 
   const business = JSON.parse(localStorage.getItem('business') || '{}')
 
@@ -150,6 +148,7 @@ export default function CajaPage() {
 
   const isToday = date === today()
   const summary = summarize(sales)
+  const display = (amount) => hidden ? masked() : fmt(amount)
 
   return (
     <Layout>
@@ -157,7 +156,7 @@ export default function CajaPage() {
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Caja 💰</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Caja</h1>
             <p className="text-sm text-slate-500 mt-0.5">Historial de cobros registrados por turno.</p>
           </div>
           <Button
@@ -173,29 +172,44 @@ export default function CajaPage() {
 
       {/* ── HERO TOTAL CARD ── */}
       <div className="mb-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-8 shadow-xl overflow-hidden relative">
-        {/* Decorative blob */}
+        {/* Decorative blobs */}
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
 
         <p className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-2">
           {isToday ? 'Caja de hoy' : fmtDate(date)}
         </p>
-        <div className="flex items-end gap-4 flex-wrap">
+
+        {/* Total + toggle de privacidad */}
+        <div className="flex items-center gap-3 flex-wrap">
           {loading ? (
             <div className="h-10 w-40 bg-white/10 animate-pulse rounded-xl" />
           ) : (
-            <span className="text-4xl sm:text-5xl font-extrabold text-white tabular-nums tracking-tight">
-              {fmt(total)}
+            <span className={`text-4xl sm:text-5xl font-extrabold tabular-nums tracking-tight transition-all ${hidden ? 'text-white/40 blur-sm select-none' : 'text-white'}`}>
+              {hidden ? '$ •••••' : fmt(total)}
             </span>
           )}
+
+          {/* Botón ojo — sin fondo, como emoji funcional */}
+          <button
+            onClick={() => setHidden(h => !h)}
+            title={hidden ? 'Mostrar montos' : 'Ocultar montos'}
+            className="text-white/50 hover:text-white/90 transition-colors p-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 shrink-0"
+          >
+            {hidden
+              ? <EyeOff className="w-5 h-5" />
+              : <Eye className="w-5 h-5" />
+            }
+          </button>
+
           {!loading && (
-            <span className="text-slate-400 text-sm mb-1">
+            <span className="text-slate-400 text-sm mt-1 w-full sm:w-auto sm:mt-0">
               {count} {count === 1 ? 'cobro' : 'cobros'}
             </span>
           )}
         </div>
 
-        {/* Summary by method */}
+        {/* Resumen por método de pago */}
         {!loading && Object.keys(summary).length > 0 && (
           <div className="mt-5 flex flex-wrap gap-2">
             {Object.entries(summary).map(([method, { count: c, total: t }]) => (
@@ -203,7 +217,7 @@ export default function CajaPage() {
                 {METHOD_ICON[method] || METHOD_ICON['Otro']}
                 <span className="font-medium">{method}</span>
                 <span className="opacity-60">·</span>
-                <span>{fmt(t)}</span>
+                <span className={hidden ? 'blur-sm select-none' : ''}>{hidden ? '•••' : fmt(t)}</span>
               </div>
             ))}
           </div>
@@ -301,7 +315,7 @@ export default function CajaPage() {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className="text-xs text-slate-400">
-                        {fmtShortDate(sale.created_at)} hs
+                        {fmtTime(sale.created_at)} hs
                       </span>
                       {sale.phone && (
                         <span className="text-xs text-slate-400 truncate">
@@ -313,8 +327,8 @@ export default function CajaPage() {
 
                   {/* Método + Monto */}
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
-                    <span className="text-sm font-bold text-slate-900 tabular-nums">
-                      {fmt(sale.amount)}
+                    <span className={`text-sm font-bold text-slate-900 tabular-nums transition-all ${hidden ? 'blur-sm select-none' : ''}`}>
+                      {display(sale.amount)}
                     </span>
                     <Badge
                       className={`text-[10px] font-semibold border px-2 py-0.5 flex items-center gap-1 ${
@@ -331,14 +345,14 @@ export default function CajaPage() {
             </div>
           )}
 
-          {/* Footer total (visible con datos) */}
+          {/* Footer total */}
           {!loading && sales.length > 0 && (
             <div className="flex justify-between items-center py-4 mt-1 border-t border-slate-100 bg-slate-50/50 -mx-6 px-6">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Total del período
               </span>
-              <span className="text-lg font-extrabold text-slate-900 tabular-nums">
-                {fmt(total)}
+              <span className={`text-lg font-extrabold text-slate-900 tabular-nums transition-all ${hidden ? 'blur-sm select-none' : ''}`}>
+                {display(total)}
               </span>
             </div>
           )}
