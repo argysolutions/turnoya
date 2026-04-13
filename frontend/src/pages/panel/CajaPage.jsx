@@ -26,7 +26,7 @@ import {
 } from 'date-fns'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, 
-  Tooltip, CartesianGrid
+  Tooltip as RechartsTooltip, CartesianGrid
 } from 'recharts'
 import {
   ChevronLeft, ChevronRight, Printer, TrendingUp, TrendingDown,
@@ -530,7 +530,7 @@ export default function CajaPage() {
                                 </defs>
                                 <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="date" hide /> <YAxis hide domain={['auto', 'auto']} />
-                                <Tooltip content={({ active, payload }) => {
+                                <RechartsTooltip content={({ active, payload }) => {
                                   if (active && payload && payload.length) {
                                     return (
                                       <div className="bg-slate-900 p-2 rounded-xl shadow-xl">
@@ -559,8 +559,6 @@ export default function CajaPage() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
-          </div>
           </div>
         </div>
 
@@ -680,11 +678,11 @@ export default function CajaPage() {
           </DialogContent>
         </Dialog>
 
-          </div>
-        </TooltipProvider>
-      </Layout>
-    )
-  }
+        </div>
+      </TooltipProvider>
+    </Layout>
+  )
+}
 
 function ExpenseModal({ onClose, onSaved, sessionLocked, categories }) {
   const cats = categories?.length > 0 ? categories : EXPENSE_CATEGORIES
