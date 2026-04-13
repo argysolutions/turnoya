@@ -36,7 +36,7 @@ export const getSessionStats = async (session) => {
   const { rows } = await pool.query(
     `SELECT
        COALESCE(
-         (SELECT SUM(sl.amount)
+         (SELECT SUM(COALESCE(sl.amount, 0))
           FROM sales sl
           WHERE sl.business_id = $1
             AND sl.payment_method = 'Efectivo'
@@ -46,7 +46,7 @@ export const getSessionStats = async (session) => {
        )::NUMERIC(12,2) AS cash_sales,
 
        COALESCE(
-         (SELECT SUM(e.amount)
+         (SELECT SUM(COALESCE(e.amount, 0))
           FROM expenses e
           WHERE e.business_id = $1
             AND e.created_at >= $2::timestamptz

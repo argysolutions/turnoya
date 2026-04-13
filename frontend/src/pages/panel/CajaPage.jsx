@@ -679,25 +679,25 @@ function ExpenseModal({ onClose, onSaved, sessionLocked }) {
 
 function SummaryCard({ label, amount, color, icon: Icon, hidden, subtitle }) {
   const colors = {
-    green:  { bg: 'bg-emerald-50', border: 'border-emerald-100', text: 'text-emerald-700', icon: 'text-emerald-500', label: 'text-emerald-600' },
-    red:    { bg: 'bg-red-50',     border: 'border-red-100',     text: 'text-red-700',     icon: 'text-red-400',     label: 'text-red-500'   },
-    blue:   { bg: 'bg-blue-50',    border: 'border-blue-100',    text: 'text-blue-700',    icon: 'text-blue-400',    label: 'text-blue-600'  },
-    amber:  { bg: 'bg-amber-50',   border: 'border-amber-100',   text: 'text-amber-700',   icon: 'text-amber-500',   label: 'text-amber-600' },
-    slate:  { bg: 'bg-slate-50',   border: 'border-slate-200',   text: 'text-slate-800',   icon: 'text-slate-400',   label: 'text-slate-500' },
-    purple: { bg: 'bg-purple-50',  border: 'border-purple-100',  text: 'text-purple-700',  icon: 'text-purple-400',  label: 'text-purple-600'},
-    deepBlue: { bg: 'bg-white', border: 'border-slate-200', text: 'text-[#1e3a8a]', icon: 'text-[#1e1b4b]', label: 'text-slate-500' },
+    green:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-emerald-600', icon: 'text-emerald-500', label: 'text-slate-400' },
+    red:      { bg: 'bg-white', border: 'border-slate-100', text: 'text-red-500',     icon: 'text-red-400',     label: 'text-slate-400' },
+    blue:     { bg: 'bg-white', border: 'border-slate-100', text: 'text-blue-600',    icon: 'text-blue-400',    label: 'text-slate-400' },
+    amber:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-amber-600',   icon: 'text-amber-500',   label: 'text-slate-400' },
+    slate:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-slate-400',   icon: 'text-slate-400',   label: 'text-slate-400' },
+    purple:   { bg: 'bg-white', border: 'border-slate-100', text: 'text-purple-600',  icon: 'text-purple-400',  label: 'text-slate-400' },
+    deepBlue: { bg: 'bg-white', border: 'border-slate-100', text: 'text-slate-900',   icon: 'text-slate-400',  label: 'text-slate-400' },
   }
   const c = colors[color] || colors.slate
   return (
-    <div className={`rounded-2xl border ${c.bg} ${c.border} p-4 flex flex-col gap-1`}>
-      <div className="flex items-center gap-2">
-        <Icon className={`w-4 h-4 ${c.icon}`} />
-        <span className={`text-xs font-bold uppercase tracking-wider ${c.label}`}>{label}</span>
+    <div className={`rounded-xl border ${c.bg} ${c.border} p-5 flex flex-col gap-1 hover:border-slate-200 transition-all shadow-sm`}>
+      <div className="flex items-start justify-between mb-2">
+        <Icon className={`w-4 h-4 ${c.icon} opacity-80`} />
+        <span className={`text-[9px] font-bold uppercase tracking-widest ${c.label}`}>{label}</span>
       </div>
-      <span className={`text-xl font-extrabold tabular-nums transition-all ${c.text} ${hidden ? 'blur-sm select-none' : ''}`}>
+      <span className={`text-xl font-bold tabular-nums tracking-tight text-slate-900 ${hidden ? 'blur-sm select-none opacity-20' : ''}`}>
         {hidden ? '$ •••••' : fmt(amount)}
       </span>
-      {subtitle && <span className="text-[11px] text-slate-400 mt-0.5">{subtitle}</span>}
+      {subtitle && <span className="text-[10px] text-slate-400 font-medium leading-none mt-1">{subtitle}</span>}
     </div>
   )
 }
@@ -913,7 +913,15 @@ export default function CajaPage() {
       setCount(salesRes.data.count || 0)
       setSummary(summaryRes.data)
       setExpenses(expRes.data.expenses || [])
-    } catch { toast.error('Error al cargar los datos de caja') }
+    } catch (err) { 
+      // Falla silenciosa con fallback a 0.00 como pidió el usuario
+      console.warn('API Error (Silent Fallback):', err.message)
+      setSales([])
+      setTotal(0)
+      setCount(0)
+      setSummary({ totalIncome: 0, totalExpenses: 0, netBalance: 0, byMethod: {} })
+      setExpenses([])
+    }
     finally { setLoading(false) }
   }, [])
 
@@ -1123,67 +1131,51 @@ export default function CajaPage() {
       {/* ── ARQUEO DE CAJA — Banner de sesión cerrada ── */}
       <ArqueoBanner session={session} />
 
-      {/* ── SECCIÓN DE FONDOS (TOP) ── */}
+      {/* ── SECCIÓN SUPERIOR: BALANCE & FONDOS ── */}
       {!loading && (
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <SummaryCard
-            label="Efectivo en Cajón"
-            amount={efectivoDisponible}
-            color="amber" icon={Wallet} hidden={hidden}
-            subtitle={session?.status === 'open' ? "Calculado vs. Inicial" : "Arqueo esperado"}
-          />
-          <SummaryCard
-            label="Total Digital"
-            amount={totalDigital}
-            color="purple" icon={CreditCard} hidden={hidden}
-            subtitle="Banco / MP / Tarjeta"
-          />
+        <div className="space-y-8 mb-12">
+          {/* Balance Neto Central (Smaller & Cleaner) */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-xl bg-white border border-slate-100 rounded-2xl p-8 sm:p-10 shadow-sm flex flex-col items-center text-center gap-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Balance Neto Real</p>
+              <div className="flex items-center gap-5">
+                <span className={`text-5xl font-bold tracking-tighter text-slate-900 tabular-nums ${hidden ? 'blur-xl select-none opacity-10' : ''}`}>
+                  {display(displayNetBalance)}
+                </span>
+                <button onClick={() => setHidden(h => !h)} className="text-slate-300 hover:text-slate-500 transition-colors p-1">
+                  {hidden ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+                </button>
+              </div>
+              <div className="flex items-center gap-3 text-xs font-semibold">
+                <span className={displayNetBalance >= 0 ? 'text-emerald-500' : 'text-red-400'}>
+                   {displayNetBalance >= 0 ? '+' : '-'} {display(Math.abs(displayNetBalance))}
+                </span>
+                <span className="text-slate-200">|</span>
+                <span className="text-slate-400">{filteredCount} transacciones hoy</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Cards de Fondos (White & Minimal) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2 sm:px-0">
+            <SummaryCard
+              label="Efectivo Disponible"
+              amount={efectivoDisponible}
+              color="deepBlue" icon={Wallet} hidden={hidden}
+              subtitle="Dinero físico calculado en caja"
+            />
+            <SummaryCard
+              label="Total Digital"
+              amount={totalDigital}
+              color="deepBlue" icon={CreditCard} hidden={hidden}
+              subtitle="Transferencias / Tarjetas / MP"
+            />
+          </div>
         </div>
       )}
 
-      {/* ── TOTALIZADOR PRINCIPAL (CLEAN WHITE) ── */}
-      {!loading && (
-        <Card className="mb-6 shadow-sm border-slate-100 overflow-hidden">
-          <CardContent className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="space-y-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Balance Neto del Período</p>
-              <div className="flex items-center gap-4">
-                <span className={`text-4xl sm:text-5xl font-extrabold tracking-tight tabular-nums text-[#1e3a8a] ${hidden ? 'blur-md select-none opacity-20' : ''}`}>
-                  {display(displayNetBalance)}
-                </span>
-                <button
-                  onClick={() => setHidden(h => !h)}
-                  className="text-slate-300 hover:text-slate-500 transition-colors p-1"
-                >
-                  {hidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-medium">
-                <span className={displayNetBalance >= 0 ? 'text-emerald-600' : 'text-red-500'}>
-                  {displayNetBalance >= 0 ? '+' : ''}{display(displayNetBalance)} final
-                </span>
-                <span className="text-slate-300">|</span>
-                <span className="text-slate-400">{filteredCount} transacciones</span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 sm:justify-end">
-              {Object.entries(byMethodFiltered).map(([method, { total: t }]) => (
-                <div key={method} className="bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 flex items-center gap-2">
-                  <span className="text-slate-400">{METHOD_ICON[method] || METHOD_ICON['Otro']}</span>
-                  <div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase leading-none">{method}</p>
-                    <p className={`text-xs font-bold text-slate-700 leading-tight ${hidden ? 'blur-sm' : ''}`}>{hidden ? '•••' : fmt(t)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ── NAVEGACIÓN MINIMALISTA (DATE PILL) ── */}
-      <div className="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* ── NAVEGACIÓN DE FECHA ── */}
+      <div className="mb-10 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="bg-white border border-slate-200 rounded-full px-2 py-1.5 flex items-center gap-1 shadow-sm">
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-50"
             onClick={() => setDate(d => addDays(d, -1))}>

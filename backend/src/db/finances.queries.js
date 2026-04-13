@@ -24,17 +24,14 @@ export const getFinancesSummary = async (businessId, startDate, endDate) => {
 
   if (startDate && endDate) {
     const dateFilter = `
-      AND created_at AT TIME ZONE ${tz} >= ($2::date)::timestamptz AT TIME ZONE ${tz}
-      AND created_at AT TIME ZONE ${tz} <  ($3::date + interval '1 day')::timestamptz AT TIME ZONE ${tz}`
+      AND (created_at AT TIME ZONE ${tz})::date >= $2::date
+      AND (created_at AT TIME ZONE ${tz})::date <= $3::date`
     salWhere = dateFilter
     expWhere = dateFilter
     salParams.push(startDate, endDate)
     expParams.push(startDate, endDate)
-  } else {
-    // default: hoy
-    const todayFilter = `
-      AND created_at AT TIME ZONE ${tz} >= (CURRENT_DATE AT TIME ZONE ${tz})
-      AND created_at AT TIME ZONE ${tz} <  ((CURRENT_DATE + interval '1 day') AT TIME ZONE ${tz})`
+    // default: hoy en Argentina
+    const todayFilter = ` AND (created_at AT TIME ZONE ${tz})::date = (CURRENT_TIMESTAMP AT TIME ZONE ${tz})::date`
     salWhere = todayFilter
     expWhere = todayFilter
   }
