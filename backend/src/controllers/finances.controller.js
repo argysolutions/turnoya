@@ -1,4 +1,4 @@
-import { getFinancesSummary } from '../db/finances.queries.js'
+import { getFinancesSummary, getFinancesTrend } from '../db/finances.queries.js'
 import { getExpensesByBusiness } from '../db/expenses.queries.js'
 import {
   getOpenSession,
@@ -12,6 +12,8 @@ import {
 export const financesSummary = async (req, reply) => {
   try {
     const businessId = req.business.id
+    const { startDate, endDate, date, includeTrend } = req.query
+
     let start = startDate || date || null
     let end   = endDate   || date || null
 
@@ -29,7 +31,14 @@ export const financesSummary = async (req, reply) => {
     }
 
     const summary = await getFinancesSummary(businessId, start, end)
-    reply.send(summary)
+    
+    // Si se pide explícitamente o hay rango masivo, incluimos tendencia
+    let trend = []
+    if (includeTrend === 'true' && start && end) {
+      trend = await getFinancesTrend(businessId, start, end)
+    }
+
+    reply.send({ ...summary, trend })
   } catch (error) {
     console.error('Error obteniendo resumen financiero:', error)
     reply.status(500).send({ error: 'Error al obtener el resumen financiero' })

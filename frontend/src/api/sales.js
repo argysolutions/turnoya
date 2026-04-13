@@ -27,7 +27,7 @@ export const deleteExpense = (id) =>
  * @param {string} [startDate] - Inicio de rango
  * @param {string} [endDate] - Fin de rango
  */
-export const getFinancesSummary = ({ date, startDate, endDate } = {}) => {
+export const getFinancesSummary = ({ date, startDate, endDate, includeTrend } = {}) => {
   const params = new URLSearchParams()
   if (startDate && endDate) {
     params.set('startDate', startDate)
@@ -35,6 +35,7 @@ export const getFinancesSummary = ({ date, startDate, endDate } = {}) => {
   } else if (date) {
     params.set('date', date)
   }
+  if (includeTrend) params.set('includeTrend', 'true')
   const qs = params.toString()
   return client.get(`/finances/summary${qs ? `?${qs}` : ''}`)
 }

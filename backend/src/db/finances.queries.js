@@ -90,3 +90,45 @@ export const getFinancesSummary = async (businessId, startDate, endDate) => {
     expensesCount,
   }
 }
+
+/**
+ * Devuelve la serie temporal de ingresos y gastos diarios para un rango.
+ * Útil para gráficos de tendencia.
+ */
+export const getFinancesTrend = async (businessId, startDate, endDate) => {
+  const tz = `'America/Argentina/Buenos_Aires'`
+  
+  const query = `
+    SELECT 
+      d.date::text,
+      COALESCE(s.income, 0)   AS income,
+      COALESCE(e.expenses, 0) AS expenses
+    FROM (
+      SELECT generate_series($2::date, $3::date, '1 day'::interval)::date AS date
+    ) d
+    LEFT JOIN (
+      SELECT 
+        (created_at AT TIME ZONE ${tz})::date AS date,
+        SUM(amount) AS income
+      FROM sales
+      WHERE business_id = $1
+      GROUP BY 1
+    ) s ON s.date = d.date
+    LEFT JOIN (
+      SELECT 
+        (created_at AT TIME ZONE ${tz})::date AS date,
+        SUM(amount) AS expenses
+      FROM expenses
+      WHERE business_id = $1
+      GROUP BY 1
+    ) e ON e.date = d.date
+    ORDER BY d.date ASC
+  `
+  
+  const { rows } = await pool.query(query, [businessId, startDate, endDate])
+  return rows.map(r => ({
+    date: r.date,
+    income: parseFloat(r.income),
+    expenses: parseFloat(r.expenses)
+  }))
+}
