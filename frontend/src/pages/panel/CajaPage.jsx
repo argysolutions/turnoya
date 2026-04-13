@@ -5,39 +5,22 @@ import {
   getCashSession, openCashSession, closeCashSession,
 } from '@/api/sales'
 import { getSettings } from '@/api/business'
-import { getAppointment } from '@/api/appointments'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar"
 import { es } from 'date-fns/locale'
-import { format as fnsFormat } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
+import { addDays as fnsAddDays } from 'date-fns'
 import {
-  startOfWeek, endOfWeek, startOfMonth, endOfMonth, 
-  startOfQuarter, endOfQuarter, startOfYear, endOfYear,
-  subDays, isSameDay, startOfDay, addDays as fnsAddDays
-} from 'date-fns'
-import {
-  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, 
-  Tooltip as RechartsTooltip, CartesianGrid
-} from 'recharts'
-import {
-  ChevronLeft, ChevronRight, Printer, TrendingUp, TrendingDown,
-  CreditCard, Wallet, ArrowLeftRight, HelpCircle, Eye, EyeOff,
-  PlusCircle, Trash2, X, User, Lock, Unlock,
-  Share2, ChevronDown, ChevronUp, Scissors, Phone, Clock,
-  AlertTriangle, CheckCircle2, Info, Cloud, CalendarDays as CalendarIcon,
-  BarChart3, Activity, Zap
+  ChevronLeft, ChevronRight, CreditCard, Wallet, ArrowLeftRight,
+  HelpCircle, Eye, EyeOff, PlusCircle, Trash2, X, Unlock,
+  Share2, ChevronDown, Scissors, Search, FileText, Download,
+  Menu, Banknote, Smartphone, ClipboardList, Lock, Settings
 } from 'lucide-react'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -45,11 +28,6 @@ const today = () => new Date().toISOString().split('T')[0]
 
 const fmt = (amount) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount ?? 0)
-
-const fmtDate = (dateStr) =>
-  new Date(dateStr + 'T00:00:00').toLocaleDateString('es-AR', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  })
 
 const fmtTime = (isoString) =>
   new Date(isoString).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
@@ -60,16 +38,10 @@ const fmtDateShort = (dateStr) =>
   })
 
 const METHOD_ICON = {
-  Efectivo:      <Wallet className="w-3.5 h-3.5" />,
-  Transferencia: <ArrowLeftRight className="w-3.5 h-3.5" />,
-  Tarjeta:       <CreditCard className="w-3.5 h-3.5" />,
-  Otro:          <HelpCircle className="w-3.5 h-3.5" />,
-}
-const METHOD_STYLE = {
-  Efectivo:      'bg-emerald-50 text-emerald-700 border-emerald-100/50',
-  Transferencia: 'bg-blue-50 text-blue-700 border-blue-100/50',
-  Tarjeta:       'bg-purple-50 text-purple-700 border-purple-100/50',
-  Otro:          'bg-slate-50 text-slate-600 border-slate-100/50',
+  Efectivo:      <Wallet className="w-3 h-3" />,
+  Transferencia: <ArrowLeftRight className="w-3 h-3" />,
+  Tarjeta:       <CreditCard className="w-3 h-3" />,
+  Otro:          <HelpCircle className="w-3 h-3" />,
 }
 
 const EXPENSE_CATEGORIES = ['General', 'Insumos', 'Servicios', 'Alquiler', 'Personal', 'Marketing', 'Otro']
@@ -117,7 +89,7 @@ function SessionBanner({ session, onOpen, onOpenCierre, loading }) {
   
   if (!session || session.status === 'closed') {
     return (
-      <div className="rounded-2xl border border-amber-100 bg-amber-50/30 px-4 py-2 flex items-center justify-between">
+      <div className="rounded-2xl border border-amber-100 bg-amber-50/30 px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Unlock className="w-3.5 h-3.5 text-amber-600" />
           <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider">Caja Cerrada</span>
@@ -128,7 +100,7 @@ function SessionBanner({ session, onOpen, onOpenCierre, loading }) {
   }
 
   return (
-    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 flex items-center justify-between">
+    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/30 px-4 py-2.5 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1.5">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -259,49 +231,6 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
   )
 }
 
-// ─── Summary Card ────────────────────────────────────────────────────────────
-
-function HeroBalanceCard({ summary, hidden, onOpenSales, onOpenExpenses }) {
-  const byMethod = summary?.byMethod || {}
-  const efectivo = byMethod['Efectivo']?.total ?? 0
-  const digital = (byMethod['Transferencia']?.total ?? 0) + (byMethod['Tarjeta']?.total ?? 0)
-
-  const fmtValue = (val) => (
-    <span className={hidden ? 'blur-lg select-none opacity-40' : ''}>{fmt(val)}</span>
-  )
-
-  return (
-    <div className="w-full bg-white rounded-[2.5rem] border border-slate-100 p-8 sm:p-12 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden group">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 opacity-20" />
-      
-      <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.3em] text-slate-400 mb-4">Balance Neto Estimado</span>
-      
-      <div className="relative mb-6">
-        <h1 className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter transition-all">
-          {fmtValue(summary?.netBalance)}
-        </h1>
-      </div>
-
-      <div className="flex items-center gap-3 text-[11px] sm:text-xs font-bold text-slate-400">
-        <div className="flex items-center gap-1.5 hover:text-slate-600 transition-colors cursor-pointer" onClick={onOpenSales}>
-          <Wallet className="w-3.5 h-3.5" />
-          <span>Efectivo: {fmtValue(efectivo)}</span>
-        </div>
-        <div className="w-1 h-1 rounded-full bg-slate-200" />
-        <div className="flex items-center gap-1.5 hover:text-slate-600 transition-colors cursor-pointer" onClick={onOpenSales}>
-          <CreditCard className="w-3.5 h-3.5" />
-          <span>Digital: {fmtValue(digital)}</span>
-        </div>
-      </div>
-      
-      <div className="mt-8 flex gap-4">
-        <button onClick={onOpenSales} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">Ventas</button>
-        <button onClick={onOpenExpenses} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">Egresos</button>
-      </div>
-    </div>
-  )
-}
-
 // ─── Sale Detail Drawer ───────────────────────────────────────────────────────
 
 function SaleDetailDrawer({ sale, onClose }) {
@@ -333,69 +262,218 @@ function SaleDetailDrawer({ sale, onClose }) {
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Management Drawer ───────────────────────────────────────────────────────
+
+function ManagementDrawer({ 
+  onClose, session, summary, professionals, businessSettings,
+  onOpenExpenseModal, onOpenCierre, onOpenApertura, display,
+  date, sales, expenses 
+}) {
+  const byMethod = summary?.byMethod || {}
+  const isToday = date === today()
+
+  const handleWhatsAppExport = () => {
+    const text = generateWhatsAppText({
+      dateLabel: isToday ? 'Hoy' : fmtDateShort(date),
+      summary, byMethod, session,
+    })
+    navigator.clipboard?.writeText(text)
+    toast.success('Resumen copiado')
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+  }
+
+  const handleTXTDownload = () => {
+    const text = generateWhatsAppText({
+      dateLabel: isToday ? 'Hoy' : fmtDateShort(date),
+      summary, byMethod, session,
+    })
+    const blob = new Blob([text], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `cierre_caja_${date}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Archivo TXT descargado')
+  }
+
+  const handleXMLDownload = () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<cierre_caja fecha="${date}">
+  <resumen>
+    <ventas_brutas>${summary?.totalIncome ?? 0}</ventas_brutas>
+    <gastos_totales>${summary?.totalExpenses ?? 0}</gastos_totales>
+    <balance_neto>${summary?.netBalance ?? 0}</balance_neto>
+    <cantidad_cobros>${summary?.salesCount ?? 0}</cantidad_cobros>
+  </resumen>
+  <metodos_pago>
+    ${Object.entries(byMethod).map(([m, d]) => `<metodo nombre="${m}" total="${d.total}" cantidad="${d.count}" />`).join('\n    ')}
+  </metodos_pago>
+</cierre_caja>`
+    const blob = new Blob([xml], { type: 'application/xml' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `cierre_caja_${date}.xml`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Archivo XML descargado')
+  }
+
+  const commissionRate = businessSettings?.commission_rate || 0
+
+  const DrawerItem = ({ icon: Icon, label, onClick, accent, disabled }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
+        disabled
+          ? 'opacity-40 cursor-not-allowed'
+          : accent
+            ? `hover:bg-${accent}-50 text-${accent}-700`
+            : 'hover:bg-slate-50 text-slate-700'
+      }`}
+    >
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+        accent ? `bg-${accent}-50 text-${accent}-500` : 'bg-slate-100 text-slate-500'
+      }`}>
+        <Icon className="w-4 h-4" />
+      </div>
+      <span className="text-sm font-semibold">{label}</span>
+    </button>
+  )
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+      <motion.div 
+        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} 
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="relative bg-white w-full sm:w-80 border-l border-slate-100 shadow-2xl h-full flex flex-col"
+      >
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-800">Gestión y Reportes</h2>
+          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-xl h-8 w-8"><X className="w-4 h-4" /></Button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
+          
+          {/* Operaciones */}
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 mb-2">Operaciones</p>
+            <div className="space-y-1">
+              <DrawerItem icon={PlusCircle} label="Registrar Gasto" onClick={onOpenExpenseModal} />
+              {session?.status === 'open' ? (
+                <DrawerItem icon={Lock} label="Cierre Definitivo" onClick={onOpenCierre} accent="red" />
+              ) : (
+                <DrawerItem icon={Unlock} label="Abrir Sesión" onClick={onOpenApertura} accent="amber" />
+              )}
+            </div>
+          </div>
+
+          {/* Arqueo */}
+          {session?.status === 'open' && (
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 mb-2">Arqueo de Caja</p>
+              <div className="mx-4 p-4 rounded-2xl bg-slate-900 text-white">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Efectivo Esperado</p>
+                    <p className="text-lg font-black">{fmt(session.expected_cash)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Fondo Inicial</p>
+                    <p className="text-lg font-black">{fmt(session.initial_amount)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Análisis */}
+          {professionals.length > 0 && commissionRate > 0 && (
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 mb-2">Comisiones Staff ({commissionRate}%)</p>
+              <div className="mx-4 space-y-2">
+                {professionals.map(p => (
+                  <div key={p.name} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">{p.name}</p>
+                      <p className="text-[10px] text-slate-400">Bruto: {fmt(p.total)}</p>
+                    </div>
+                    <p className="text-sm font-black text-blue-600">{display(p.total * commissionRate / 100)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Exportación */}
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 mb-2">Exportar Cierre</p>
+            <div className="space-y-1">
+              <DrawerItem icon={Share2} label="Enviar por WhatsApp" onClick={handleWhatsAppExport} />
+              <DrawerItem icon={FileText} label="Descargar TXT" onClick={handleTXTDownload} />
+              <DrawerItem icon={Download} label="Descargar XML" onClick={handleXMLDownload} />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 shrink-0">
+          <Button variant="ghost" className="w-full uppercase font-black text-[10px] tracking-widest text-slate-300" onClick={onClose}>Cerrar Panel</Button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MAIN PAGE
+// ════════════════════════════════════════════════════════════════════════════
 
 export default function CajaPage() {
   const [date, setDate] = useState(today())
-  const [viewRange, setViewRange] = useState('daily')
   const [sales, setSales] = useState([])
+  const [expenses, setExpenses] = useState([])
   const [summary, setSummary] = useState(null)
-  const [trendData, setTrendData] = useState([])
   const [loading, setLoading] = useState(true)
   const [hidden, setHidden] = useState(() => localStorage.getItem('turno_ya_privacy_mode') === 'true')
   const [session, setSession] = useState(null)
   const [sessionLoading, setSessionLoading] = useState(true)
-  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
   const [businessSettings, setBusinessSettings] = useState(null)
+  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
 
-  const [showSalesDrawer, setShowSalesDrawer] = useState(false)
-  const [showExpensesDrawer, setShowExpensesDrawer] = useState(false)
+  // UI States
+  const [showManagementDrawer, setShowManagementDrawer] = useState(false)
   const [showExpenseModal, setShowExpenseModal] = useState(false)
-  const [showSessionDrawer, setShowSessionDrawer] = useState(false)
-  const [showStaffDrawer, setShowStaffDrawer] = useState(false)
   const [showCierreModal, setShowCierreModal] = useState(false)
+  const [showSessionDrawer, setShowSessionDrawer] = useState(false)
   const [drawerSale, setDrawerSale] = useState(null)
-  const [isTrendExpanded, setIsTrendExpanded] = useState(false)
+  const [isDetailExpanded, setIsDetailExpanded] = useState(false)
+  const [ledgerFilter, setLedgerFilter] = useState('')
 
   useEffect(() => { localStorage.setItem('turno_ya_privacy_mode', hidden) }, [hidden])
-
-  const rangeDates = useMemo(() => {
-    const d = new Date(date + 'T12:00:00')
-    switch (viewRange) {
-      case 'weekly':    return { start: startOfWeek(d, { weekStartsOn: 1 }), end: endOfWeek(d, { weekStartsOn: 1 }) }
-      case 'monthly':   return { start: startOfMonth(d), end: endOfMonth(d) }
-      case 'quarterly': return { start: startOfQuarter(d), end: endOfQuarter(d) }
-      case 'yearly':    return { start: startOfYear(d), end: endOfYear(d) }
-      default:          return { start: d, end: d }
-    }
-  }, [viewRange, date])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const isDaily = viewRange === 'daily'
-      const startStr = rangeDates.start.toISOString().split('T')[0]
-      const endStr = rangeDates.end.toISOString().split('T')[0]
-
-      const [summaryRes, salesRes, sessionRes, settingsRes] = await Promise.all([
-        getFinancesSummary({ 
-          date: isDaily ? date : null,
-          startDate: isDaily ? null : startStr,
-          endDate: isDaily ? null : endStr,
-          includeTrend: true
-        }),
-        getSales(isDaily ? date : null),
+      const [summaryRes, salesRes, sessionRes, settingsRes, expensesRes] = await Promise.all([
+        getFinancesSummary({ date, includeTrend: false }),
+        getSales(date),
         getCashSession(date),
-        getSettings()
+        getSettings(),
+        getExpenses({ date })
       ])
-
       setSummary(summaryRes.data)
-      setTrendData(summaryRes.data.trend || [])
       setSales(salesRes.data.sales || [])
       setSession(sessionRes.data.session)
       setBusinessSettings(settingsRes.data)
+      setExpenses(expensesRes.data.expenses || [])
     } finally { setLoading(false); setSessionLoading(false) }
-  }, [date, viewRange, rangeDates])
+  }, [date])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -415,278 +493,327 @@ export default function CajaPage() {
   }, [sales])
 
   const display = (amount) => (
-    <span className={hidden ? 'blur-md select-none opacity-50' : ''}>{fmt(amount)}</span>
+    <span className={hidden ? 'blur-md select-none' : ''}>{fmt(amount)}</span>
   )
 
   const isToday = date === today()
 
+  // Ledger: merge sales + expenses
+  const ledgerEntries = useMemo(() => {
+    const entries = [
+      ...sales.map(s => ({
+        type: 'income', id: `s-${s.id}`,
+        description: s.client_name || 'Venta',
+        amount: parseFloat(s.amount),
+        method: s.payment_method,
+        time: s.created_at,
+        raw: s,
+      })),
+      ...expenses.map(e => ({
+        type: 'expense', id: `e-${e.id}`,
+        description: e.description || 'Gasto',
+        amount: parseFloat(e.amount),
+        category: e.category,
+        time: e.created_at,
+      }))
+    ]
+    entries.sort((a, b) => new Date(b.time) - new Date(a.time))
+    if (ledgerFilter.trim()) {
+      const q = ledgerFilter.toLowerCase()
+      return entries.filter(e => e.description?.toLowerCase().includes(q))
+    }
+    return entries
+  }, [sales, expenses, ledgerFilter])
+
+  // Computed
+  const byMethod = summary?.byMethod || {}
+  const digitalTotal = (byMethod['Transferencia']?.total ?? 0) + (byMethod['Tarjeta']?.total ?? 0)
+  const efectivoTotal = byMethod['Efectivo']?.total ?? 0
+
   return (
     <Layout>
       <TooltipProvider>
-        <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col gap-6 h-full overflow-y-auto scrollbar-hide">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col gap-4 h-full overflow-y-auto scrollbar-hide">
           
-          {/* Operative Header & Filters */}
-          <div className="flex flex-col gap-4 sticky top-0 z-20 bg-slate-50/80 backdrop-blur-md -mx-4 px-4 pb-2 pt-1 border-b border-slate-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h1 className="text-sm font-black uppercase tracking-widest text-slate-400">Caja</h1>
-                <Tabs value={viewRange} onValueChange={setViewRange} className="bg-slate-100/50 p-1 rounded-xl">
-                  <TabsList className="bg-transparent gap-0">
-                    <TabsTrigger value="daily" className="text-[9px] px-3 py-1 uppercase font-black tracking-tighter h-6">Día</TabsTrigger>
-                    <TabsTrigger value="weekly" className="text-[9px] px-3 py-1 uppercase font-black tracking-tighter h-6">Sem</TabsTrigger>
-                    <TabsTrigger value="monthly" className="text-[9px] px-3 py-1 uppercase font-black tracking-tighter h-6">Mes</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex items-center bg-white border border-slate-100 rounded-lg p-0.5">
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), -1))}><ChevronLeft className="w-3 h-3" /></Button>
-                  <button onClick={() => setIsCalendarExpanded(true)} className="px-2 text-[9px] font-black uppercase tracking-tight">{isToday ? 'Hoy' : fmtDateShort(date)}</button>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), 1))} disabled={isToday}><ChevronRight className="w-3 h-3" /></Button>
-                </div>
-                <Button variant="ghost" size="icon" className={`h-8 w-8 rounded-lg ${hidden ? 'text-blue-500 bg-blue-50' : 'text-slate-400'}`} onClick={() => setHidden(!hidden)}>
-                  {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </Button>
-              </div>
+          {/* ── Header Operativo ── */}
+          <div className="flex items-center justify-between sticky top-0 z-20 bg-slate-50/90 backdrop-blur-md -mx-4 px-4 py-3">
+            
+            {/* Left: Title + Privacy */}
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-base font-black uppercase tracking-widest text-slate-800">Caja</h1>
+              <button
+                onClick={() => setHidden(!hidden)}
+                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                  hidden ? 'bg-blue-50 text-blue-500' : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
             </div>
 
-            <SessionBanner 
-              session={session} 
-              onOpen={() => setShowSessionDrawer(true)} 
-              onOpenCierre={() => setShowCierreModal(true)} 
-              loading={sessionLoading} 
-            />
+            {/* Center: Date Navigation */}
+            <div className="flex items-center gap-1 bg-white border border-slate-100 rounded-xl p-0.5 shadow-sm">
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), -1).toISOString().split('T')[0])}>
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </Button>
+              <button onClick={() => setIsCalendarExpanded(true)} className="px-3 text-[10px] font-black uppercase tracking-tight text-slate-700 min-w-[60px] text-center">
+                {isToday ? 'Hoy' : fmtDateShort(date)}
+              </button>
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), 1).toISOString().split('T')[0])} disabled={isToday}>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+
+            {/* Right: Hamburger */}
+            <button
+              onClick={() => setShowManagementDrawer(true)}
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* Main Operative View */}
-          <div className="flex flex-col gap-6">
-            <HeroBalanceCard 
-              summary={summary} 
-              hidden={hidden} 
-              onOpenSales={() => setShowSalesDrawer(true)} 
-              onOpenExpenses={() => setShowExpensesDrawer(true)} 
-            />
+          {/* ── Session Banner ── */}
+          <SessionBanner 
+            session={session} 
+            onOpen={() => setShowSessionDrawer(true)} 
+            onOpenCierre={() => setShowCierreModal(true)} 
+            loading={sessionLoading} 
+          />
 
-            {/* Quick Actions Strip */}
-            <div className="flex items-center justify-center gap-6 py-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button onClick={() => setShowExpenseModal(true)} className="w-12 h-12 rounded-full border border-slate-100 bg-white flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all shadow-sm">
-                    <PlusCircle className="w-5 h-5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-slate-900 text-white text-[10px] uppercase font-black px-3 py-1 rounded-xl">Registrar Gasto</TooltipContent>
-              </Tooltip>
-
-              {businessSettings?.showCommissions && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button onClick={() => setShowStaffDrawer(true)} className="w-12 h-12 rounded-full border border-slate-100 bg-white flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-600 transition-all shadow-sm">
-                      <Scissors className="w-5 h-5" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-slate-900 text-white text-[10px] uppercase font-black px-3 py-1">Ver Comisiones</TooltipContent>
-                </Tooltip>
-              )}
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="w-12 h-12 rounded-full border border-slate-100 bg-white flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all shadow-sm">
-                    <Share2 className="w-5 h-5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-slate-900 text-white text-[10px] uppercase font-black px-3 py-1">Exportar Reporte</TooltipContent>
-              </Tooltip>
+          {/* ── Smart Cards de Liquidez ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Disponible Digital */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-shadow hover:shadow-md">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <Smartphone className="w-4.5 h-4.5 text-blue-500" />
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Disponible Digital</span>
+              </div>
+              <p className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-3">
+                {display(digitalTotal)}
+              </p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold text-slate-400">
+                {(byMethod['Transferencia']?.total ?? 0) > 0 && (
+                  <span className="flex items-center gap-1">
+                    <ArrowLeftRight className="w-3 h-3" /> Transferencia: {display(byMethod['Transferencia'].total)}
+                  </span>
+                )}
+                {(byMethod['Tarjeta']?.total ?? 0) > 0 && (
+                  <span className="flex items-center gap-1">
+                    <CreditCard className="w-3 h-3" /> Tarjeta: {display(byMethod['Tarjeta'].total)}
+                  </span>
+                )}
+              </div>
             </div>
             
-            {/* Trend Analysis Accordion */}
-            <div className="border border-slate-100 rounded-3xl overflow-hidden bg-white/30">
-              <button 
-                onClick={() => setIsTrendExpanded(!isTrendExpanded)}
-                className="w-full px-6 py-4 flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-slate-900 transition-colors">Análisis de Tendencia</span>
+            {/* Efectivo en Cajón */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-shadow hover:shadow-md">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+                  <Banknote className="w-4.5 h-4.5 text-emerald-500" />
                 </div>
-                <ChevronDown className={`w-4 h-4 text-slate-300 transition-transform duration-300 ${isTrendExpanded ? 'rotate-180' : ''}`} />
-              </button>
-              
-              <AnimatePresence>
-                {isTrendExpanded && (
-                  <motion.div 
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-6 pb-6 pt-2">
-                       <div className="h-[200px] w-full">
-                          {loading ? (
-                            <div className="w-full h-full flex items-center justify-center"><Activity className="w-6 h-6 text-slate-200 animate-spin" /></div>
-                          ) : (
-                            <ResponsiveContainer width="100%" height="100%">
-                              <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <defs>
-                                  <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
-                                  <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.1}/><stop offset="95%" stopColor="#ef4444" stopOpacity={0}/></linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="date" hide /> <YAxis hide domain={['auto', 'auto']} />
-                                <RechartsTooltip content={({ active, payload }) => {
-                                  if (active && payload && payload.length) {
-                                    return (
-                                      <div className="bg-slate-900 p-2 rounded-xl shadow-xl">
-                                        <p className="text-[8px] font-black text-slate-500 uppercase mb-1">{payload[0].payload.date}</p>
-                                        <p className="text-[10px] font-black text-emerald-400">+{fmt(payload[0].value)}</p>
-                                        <p className="text-[10px] font-black text-red-400">-{fmt(payload[1].value)}</p>
-                                      </div>
-                                    )
-                                  }
-                                  return null
-                                }} />
-                                <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorInc)" />
-                                <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExp)" />
-                              </AreaChart>
-                            </ResponsiveContainer>
-                          )}
-                       </div>
-                       <div className="mt-4 flex justify-between items-center text-[8px] font-black uppercase text-slate-400 tracking-wider">
-                          <div className="flex gap-4">
-                            <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Ingresos</span>
-                            <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-red-400" /> Egresos</span>
-                          </div>
-                          <span>Proyectado al cierre del periodo</span>
-                       </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
+              </div>
+              <p className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-3">
+                {display(efectivoTotal)}
+              </p>
+              {session?.status === 'open' && (
+                <p className="text-[10px] font-semibold text-slate-400">
+                  Esperado en caja: {display(session.expected_cash)}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Global Overlays */}
-          <AnimatePresence>
-          {showSalesDrawer && (
-            <div className="fixed inset-0 z-50 flex justify-end">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSalesDrawer(false)} className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
-              <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="relative bg-white w-full sm:w-96 p-6 border-l border-slate-100 flex flex-col gap-6 shadow-2xl h-full">
-                <div className="flex justify-between items-center shrink-0">
-                   <h2 className="text-sm font-black uppercase tracking-widest">Historial de Ventas</h2>
-                   <Button variant="ghost" size="icon" onClick={() => setShowSalesDrawer(false)}><X className="w-5 h-5"/></Button>
+          {/* ── Ver Detalle (Revelación Progresiva) ── */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <button 
+              onClick={() => setIsDetailExpanded(!isDetailExpanded)}
+              className="w-full px-5 py-3 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <span>Ver detalle</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isDetailExpanded ? 'rotate-180' : ''}`} />
+            </button>
+            
+            <AnimatePresence>
+              {isDetailExpanded && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }} 
+                  animate={{ height: 'auto', opacity: 1 }} 
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-5 pb-5 grid grid-cols-3 gap-3">
+                    <div className="text-center p-4 rounded-xl bg-slate-50 border border-slate-100/50">
+                      <p className="text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
+                      <p className="text-lg font-black text-slate-900">{display(summary?.netBalance)}</p>
+                    </div>
+                    <div className="text-center p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/30">
+                      <p className="text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
+                      <p className="text-lg font-black text-emerald-900">{display(summary?.totalIncome)}</p>
+                      <p className="text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
+                    </div>
+                    <div className="text-center p-4 rounded-xl bg-red-50/50 border border-red-100/30">
+                      <p className="text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos</p>
+                      <p className="text-lg font-black text-red-900">{display(summary?.totalExpenses)}</p>
+                      <p className="text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ── Libro Mayor ── */}
+          <div className="flex-1 flex flex-col gap-3 min-h-0">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+              <input 
+                type="text"
+                placeholder="Buscar por cliente..."
+                value={ledgerFilter}
+                onChange={e => setLedgerFilter(e.target.value)}
+                className="w-full h-10 pl-10 pr-4 rounded-xl bg-white border border-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-200 placeholder:text-slate-300 shadow-sm"
+              />
+            </div>
+            
+            {/* Entries */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              {loading ? (
+                <div className="py-20 text-center">
+                  <div className="w-5 h-5 border-2 border-slate-200 border-t-slate-500 rounded-full animate-spin mx-auto" />
                 </div>
-                <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide">
-                  {sales.length === 0 ? (
-                    <p className="text-center py-20 text-xs text-slate-400 font-bold uppercase tracking-widest">Sin ventas registradas</p>
-                  ) : sales.map(s => (
-                    <button key={s.id} onClick={() => setDrawerSale(s)} className="w-full text-left p-4 rounded-2xl border border-slate-50 hover:bg-slate-50 flex justify-between items-center group">
-                      <div><p className="text-sm font-black text-slate-800">{s.client_name || 'Sin nombre'}</p><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{fmtTime(s.created_at)} hs · {s.payment_method}</span></div>
-                      <span className="text-lg font-black text-slate-900 tracking-tighter">{display(s.amount)}</span>
+              ) : ledgerEntries.length === 0 ? (
+                <div className="py-20 text-center">
+                  <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">Sin movimientos registrados</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-50">
+                  {ledgerEntries.map(entry => (
+                    <button 
+                      key={entry.id}
+                      onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
+                      className={`w-full text-left px-4 py-3.5 flex items-center justify-between transition-colors ${
+                        entry.type === 'income' ? 'hover:bg-slate-50/80 cursor-pointer' : 'cursor-default'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${entry.type === 'income' ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-800 truncate">{entry.description}</p>
+                          <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 mt-0.5">
+                            <span>{fmtTime(entry.time)}</span>
+                            {entry.method && (
+                              <>
+                                <span className="text-slate-200">·</span>
+                                <span className="flex items-center gap-0.5">{METHOD_ICON[entry.method]}{entry.method}</span>
+                              </>
+                            )}
+                            {entry.category && (
+                              <>
+                                <span className="text-slate-200">·</span>
+                                <span>{entry.category}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <span className={`text-sm font-black tabular-nums shrink-0 ml-3 ${
+                        entry.type === 'income' ? 'text-emerald-600' : 'text-red-500'
+                      }`}>
+                        <span className={hidden ? 'blur-md select-none' : ''}>
+                          {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
+                        </span>
+                      </span>
                     </button>
                   ))}
                 </div>
-              </motion.div>
+              )}
             </div>
-          )}
+          </div>
 
-          {showExpensesDrawer && (
-            <div className="fixed inset-0 z-50 flex justify-end">
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowExpensesDrawer(false)} className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
-               <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="relative bg-white w-full sm:w-96 p-6 border-l border-slate-100 flex flex-col gap-6 shadow-2xl h-full">
-                  <div className="flex justify-between items-center">
-                     <h2 className="text-sm font-black uppercase tracking-widest">Auditoría de Egresos</h2>
-                     <Button variant="ghost" size="icon" onClick={() => setShowExpensesDrawer(false)}><X className="w-5 h-5"/></Button>
-                  </div>
-                  <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide">
-                    {summary?.totalExpenses === 0 ? (
-                      <p className="text-center py-20 text-xs text-slate-400 font-bold uppercase tracking-widest">Sin gastos registrados</p>
-                    ) : (
-                      <p className="text-xs text-slate-400 text-center italic">Para gestionar gastos individuales, usá el buscador de la Agenda o contactá soporte.</p>
-                    )}
-                  </div>
-               </motion.div>
-            </div>
-          )}
+        </div>
 
-          {showStaffDrawer && (
-            <div className="fixed inset-0 z-50 flex justify-end">
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowStaffDrawer(false)} className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
-               <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="relative bg-white w-full sm:w-96 p-6 border-l border-slate-100 flex flex-col gap-6 shadow-2xl h-full">
-                  <div className="flex justify-between items-center">
-                     <h2 className="text-sm font-black uppercase tracking-widest text-blue-600">Comisiones Staff</h2>
-                     <Button variant="ghost" size="icon" onClick={() => setShowStaffDrawer(false)}><X className="w-5 h-5"/></Button>
-                  </div>
-                  <div className="space-y-4">
-                     {professionals.map(p => {
-                        const rate = businessSettings?.commission_rate || 0
-                        return (
-                          <div key={p.name} className="p-6 rounded-[2.5rem] bg-slate-50 border border-slate-100">
-                             <div className="flex justify-between items-baseline mb-4"><span className="text-sm font-black text-slate-800 uppercase">{p.name}</span><span className="text-xs text-slate-400">{fmt(p.total)} Bruto</span></div>
-                             <div className="flex justify-between items-center p-5 bg-white rounded-3xl border border-slate-100 shadow-sm">
-                                <span className="text-[10px] font-black uppercase text-slate-400">Neto Prof.</span>
-                                <span className="text-2xl font-black text-blue-600 tracking-tighter">{display(p.total * rate / 100)}</span>
-                             </div>
-                          </div>
-                        )
-                     })}
-                  </div>
-               </motion.div>
-            </div>
+        {/* ── Overlays ── */}
+        <AnimatePresence>
+          {showManagementDrawer && (
+            <ManagementDrawer 
+              onClose={() => setShowManagementDrawer(false)}
+              session={session}
+              summary={summary}
+              professionals={professionals}
+              businessSettings={businessSettings}
+              onOpenExpenseModal={() => { setShowManagementDrawer(false); setShowExpenseModal(true) }}
+              onOpenCierre={() => { setShowManagementDrawer(false); setShowCierreModal(true) }}
+              onOpenApertura={() => { setShowManagementDrawer(false); setShowSessionDrawer(true) }}
+              display={display}
+              date={date}
+              sales={sales}
+              expenses={expenses}
+            />
           )}
 
           {showSessionDrawer && (
             <div className="fixed inset-0 z-50 flex justify-end">
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSessionDrawer(false)} className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
-               <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="relative bg-white w-full sm:w-80 p-8 border-l border-slate-100 flex flex-col gap-10 shadow-2xl h-full">
-                  <div className="text-center shrink-0"><h2 className="text-xl font-black uppercase tracking-tighter">Sesión de Caja</h2><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Control físico de efectivo</p></div>
-                  <div className="space-y-6 flex-1 overflow-y-auto scrollbar-hide">
-                     {isToday && !session && !sessionLoading && <AperturaBanner onOpen={handleOpenCaja} loading={sessionLoading} />}
-                     {session && (
-                       <div className="space-y-6">
-                         <div className="bg-slate-900 text-white p-6 rounded-[2.5rem] text-center shadow-xl">
-                            <p className="text-[10px] uppercase font-black text-slate-500 mb-1">Efectivo Esperado</p>
-                            <p className="text-4xl font-black">{fmt(session.expected_cash)}</p>
-                         </div>
-                         {session.status === 'open' ? (
-                            <Button onClick={() => setShowCierreModal(true)} className="w-full h-14 bg-slate-900 text-white rounded-3xl font-black uppercase text-xs tracking-[0.2em]">Finalizar Caja</Button>
-                         ) : (
-                            <div className="p-5 rounded-3xl bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase text-center border border-emerald-100 flex flex-col gap-1">
-                               <span>Caja Cerrada Exitosamente</span>
-                               <span className="text-sm">Diff: {fmt(session.difference)}</span>
-                            </div>
-                         )}
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSessionDrawer(false)} className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+              <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }} className="relative bg-white w-full sm:w-80 p-8 border-l border-slate-100 flex flex-col gap-10 shadow-2xl h-full">
+                <div className="text-center shrink-0">
+                  <h2 className="text-xl font-black uppercase tracking-tighter">Sesión de Caja</h2>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Control físico de efectivo</p>
+                </div>
+                <div className="space-y-6 flex-1 overflow-y-auto scrollbar-hide">
+                   {isToday && !session && !sessionLoading && <AperturaBanner onOpen={handleOpenCaja} />}
+                   {session && (
+                     <div className="space-y-6">
+                       <div className="bg-slate-900 text-white p-6 rounded-[2.5rem] text-center shadow-xl">
+                          <p className="text-[10px] uppercase font-black text-slate-500 mb-1">Efectivo Esperado</p>
+                          <p className="text-4xl font-black">{fmt(session.expected_cash)}</p>
                        </div>
-                     )}
-                  </div>
-                  <Button variant="ghost" className="shrink-0 uppercase font-black text-[10px] tracking-widest text-slate-300" onClick={() => setShowSessionDrawer(false)}>Cerrar Panel</Button>
-               </motion.div>
+                       {session.status === 'open' ? (
+                          <Button onClick={() => setShowCierreModal(true)} className="w-full h-14 bg-slate-900 text-white rounded-3xl font-black uppercase text-xs tracking-[0.2em]">Finalizar Caja</Button>
+                       ) : (
+                          <div className="p-5 rounded-3xl bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase text-center border border-emerald-100 flex flex-col gap-1">
+                             <span>Caja Cerrada Exitosamente</span>
+                             <span className="text-sm">Diff: {fmt(session.difference)}</span>
+                          </div>
+                       )}
+                     </div>
+                   )}
+                </div>
+                <Button variant="ghost" className="shrink-0 uppercase font-black text-[10px] tracking-widest text-slate-300" onClick={() => setShowSessionDrawer(false)}>Cerrar Panel</Button>
+              </motion.div>
             </div>
           )}
 
           {drawerSale && <SaleDetailDrawer sale={drawerSale} onClose={() => setDrawerSale(null)} />}
           {showExpenseModal && <ExpenseModal onClose={() => setShowExpenseModal(false)} onSaved={fetchData} sessionLocked={session?.status === 'closed'} categories={businessSettings?.expense_categories} />}
           {showCierreModal && <CierreCajaModal session={session} summary={summary} onClose={() => setShowCierreModal(false)} onClosed={s => { setSession(s); fetchData() }} />}
-          </AnimatePresence>
+        </AnimatePresence>
 
-          <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
-            <DialogContent className="sm:max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
-              <DialogHeader className="p-6 bg-slate-900 text-white"><DialogTitle className="text-center font-black uppercase tracking-widest text-xs">Fijar Fecha Base</DialogTitle></DialogHeader>
-              <div className="p-4">
-                <ShadcnCalendar 
-                  mode="single" locale={es} selected={new Date(date + 'T12:00:00')} 
-                  onSelect={d => { if(d){ setDate(d.toISOString().split('T')[0]); setIsCalendarExpanded(false) } }} 
-                  className="rounded-2xl border-none" disabled={d => d > new Date()} 
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
+        <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
+          <DialogContent className="sm:max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="p-6 bg-slate-900 text-white"><DialogTitle className="text-center font-black uppercase tracking-widest text-xs">Fijar Fecha Base</DialogTitle></DialogHeader>
+            <div className="p-4">
+              <ShadcnCalendar 
+                mode="single" locale={es} selected={new Date(date + 'T12:00:00')} 
+                onSelect={d => { if(d){ setDate(d.toISOString().split('T')[0]); setIsCalendarExpanded(false) } }} 
+                className="rounded-2xl border-none" disabled={d => d > new Date()} 
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
 
-        </div>
       </TooltipProvider>
     </Layout>
   )
 }
+
+// ─── Expense Modal ───────────────────────────────────────────────────────────
 
 function ExpenseModal({ onClose, onSaved, sessionLocked, categories }) {
   const cats = categories?.length > 0 ? categories : EXPENSE_CATEGORIES
@@ -712,9 +839,9 @@ function ExpenseModal({ onClose, onSaved, sessionLocked, categories }) {
              <Button variant="ghost" size="icon" onClick={onClose}><X className="w-4 h-4" /></Button>
           </div>
           <form className="p-8 space-y-5" onSubmit={handleSubmit}>
-             <input placeholder="Descripción..." className="w-full h-12 rounded-2xl border-slate-100 bg-slate-50 px-4 text-sm" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
-             <input type="number" placeholder="Monto" className="w-full h-12 rounded-2xl border-slate-100 bg-slate-50 px-4 text-sm" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
-             <select className="w-full h-12 rounded-2xl border-slate-100 bg-slate-50 px-4 text-sm" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+             <input placeholder="Descripción..." className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+             <input type="number" placeholder="Monto" className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+             <select className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
                 {cats.map(c => <option key={c} value={c}>{c}</option>)}
              </select>
              <Button type="submit" disabled={saving} className="w-full h-12 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest">Guardar Gasto</Button>
