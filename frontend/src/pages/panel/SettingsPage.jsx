@@ -201,8 +201,6 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            </Card>
-
             <Card className="shadow-sm border-slate-200">
               <CardHeader>
                 <CardTitle className="text-lg">Finanzas y Comisiones</CardTitle>
