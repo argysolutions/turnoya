@@ -29,6 +29,19 @@ const today = () => new Date().toISOString().split('T')[0]
 const fmt = (amount) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount ?? 0)
 
+// Formatea un string numérico con separadores de miles argentinos (sin símbolo)
+const fmtNumericInput = (raw) => {
+  const cleaned = raw.replace(/[^0-9]/g, '')
+  if (!cleaned) return ''
+  return new Intl.NumberFormat('es-AR').format(parseInt(cleaned, 10))
+}
+
+// Parsea un string formateado (con puntos) a número
+const parseFormattedNumber = (formatted) => {
+  if (!formatted) return 0
+  return parseFloat(formatted.replace(/\./g, '').replace(',', '.')) || 0
+}
+
 const fmtTime = (isoString) =>
   new Date(isoString).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
 
@@ -126,7 +139,7 @@ function AperturaBanner({ onOpen }) {
   const [saving, setSaving] = useState(false)
 
   const handleOpen = async () => {
-    const v = parseFloat(amount)
+    const v = parseFormattedNumber(amount)
     if (isNaN(v) || v < 0) return toast.error('Monto inicial inválido')
     setSaving(true)
     try {
@@ -154,11 +167,12 @@ function AperturaBanner({ onOpen }) {
         ) : (
           <div className="flex flex-col w-full gap-2">
             <input 
-              type="number" 
-              placeholder="0.00" 
+              type="text" 
+              inputMode="numeric"
+              placeholder="0" 
               className="w-full h-12 rounded-2xl border border-amber-200 bg-white px-4 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" 
               value={amount} 
-              onChange={e => setAmount(e.target.value)} 
+              onChange={e => setAmount(fmtNumericInput(e.target.value))} 
             />
             <div className="flex gap-2">
               <Button onClick={() => setOpen(false)} variant="ghost" className="flex-1 h-10 text-[10px] font-black uppercase tracking-widest">Cancelar</Button>
@@ -178,7 +192,7 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
   const [saving, setSaving] = useState(false)
 
   const handleClose = async () => {
-    const v = parseFloat(counted)
+    const v = parseFormattedNumber(counted)
     if (isNaN(v) || v < 0) return toast.error('Monto inválido')
     setSaving(true)
     try {
@@ -222,7 +236,7 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
 
           <div className="space-y-1.5">
             <label className="text-[10px] uppercase font-black text-slate-400 px-1">Efectivo contado físico</label>
-            <input type="number" value={counted} onChange={e => setCounted(e.target.value)} className="w-full h-12 rounded-2xl border border-slate-200 px-4 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" placeholder="0,00" />
+            <input type="text" inputMode="numeric" value={counted} onChange={e => setCounted(fmtNumericInput(e.target.value))} className="w-full h-12 rounded-2xl border border-slate-200 px-4 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" placeholder="0" />
           </div>
           <Button onClick={handleClose} disabled={saving} className="w-full h-12 bg-slate-900 text-white uppercase font-black text-xs tracking-widest rounded-2xl">{saving ? 'Cerrando...' : 'Confirmar Cierre y Guardar'}</Button>
         </div>
@@ -536,7 +550,7 @@ export default function CajaPage() {
         <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col gap-4 h-full overflow-y-auto scrollbar-hide">
           
           {/* ── Header Operativo ── */}
-          <div className="flex items-center justify-between sticky top-0 z-20 bg-slate-50/90 backdrop-blur-md -mx-4 px-4 py-3">
+          <div className="flex items-center justify-between sticky top-0 z-40 bg-slate-50 backdrop-blur-md -mx-4 px-4 py-3 border-b border-slate-100/50">
             
             {/* Left: Title + Privacy */}
             <div className="flex items-center gap-2.5">
@@ -748,8 +762,8 @@ export default function CajaPage() {
               summary={summary}
               professionals={professionals}
               businessSettings={businessSettings}
-              onOpenExpenseModal={() => { setShowManagementDrawer(false); setShowExpenseModal(true) }}
-              onOpenCierre={() => { setShowManagementDrawer(false); setShowCierreModal(true) }}
+              onOpenExpenseModal={() => { setShowExpenseModal(true) }}
+              onOpenCierre={() => { setShowCierreModal(true) }}
               onOpenApertura={() => { setShowManagementDrawer(false); setShowSessionDrawer(true) }}
               display={display}
               date={date}
@@ -825,14 +839,14 @@ function ExpenseModal({ onClose, onSaved, sessionLocked, categories }) {
     if (!form.description || !form.amount) return toast.error('Completá los campos')
     setSaving(true)
     try {
-      await postExpense({ ...form, amount: parseFloat(form.amount) })
+      await postExpense({ ...form, amount: parseFormattedNumber(form.amount) })
       toast.success('Gasto guardado'); onSaved(); onClose()
     } catch { toast.error('Error') } finally { setSaving(false) }
   }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); onClose() }} />
        <div className="relative bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl">
           <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
              <h3 className="text-xs font-black uppercase tracking-widest">Registrar Gasto</h3>
@@ -840,7 +854,7 @@ function ExpenseModal({ onClose, onSaved, sessionLocked, categories }) {
           </div>
           <form className="p-8 space-y-5" onSubmit={handleSubmit}>
              <input placeholder="Descripción..." className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
-             <input type="number" placeholder="Monto" className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+             <input type="text" inputMode="numeric" placeholder="Monto" className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.amount} onChange={e => setForm({...form, amount: fmtNumericInput(e.target.value)})} />
              <select className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
                 {cats.map(c => <option key={c} value={c}>{c}</option>)}
              </select>
