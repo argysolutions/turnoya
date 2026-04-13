@@ -350,6 +350,7 @@ export default function CajaPage() {
 
   const [showSalesDrawer, setShowSalesDrawer] = useState(false)
   const [showExpensesDrawer, setShowExpensesDrawer] = useState(false)
+  const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showSessionDrawer, setShowSessionDrawer] = useState(false)
   const [showStaffDrawer, setShowStaffDrawer] = useState(false)
   const [showCierreModal, setShowCierreModal] = useState(false)
@@ -562,11 +563,11 @@ export default function CajaPage() {
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
           </div>
-        </div>
 
-        {/* Global Overlays */}
-        <AnimatePresence>
+          {/* Global Overlays */}
+          <AnimatePresence>
           {showSalesDrawer && (
             <div className="fixed inset-0 z-50 flex justify-end">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSalesDrawer(false)} className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
@@ -666,20 +667,20 @@ export default function CajaPage() {
           {drawerSale && <SaleDetailDrawer sale={drawerSale} onClose={() => setDrawerSale(null)} />}
           {showExpenseModal && <ExpenseModal onClose={() => setShowExpenseModal(false)} onSaved={fetchData} sessionLocked={session?.status === 'closed'} categories={businessSettings?.expense_categories} />}
           {showCierreModal && <CierreCajaModal session={session} summary={summary} onClose={() => setShowCierreModal(false)} onClosed={s => { setSession(s); fetchData() }} />}
-        </AnimatePresence>
+          </AnimatePresence>
 
-        <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
-          <DialogContent className="sm:max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
-            <DialogHeader className="p-6 bg-slate-900 text-white"><DialogTitle className="text-center font-black uppercase tracking-widest text-xs">Fijar Fecha Base</DialogTitle></DialogHeader>
-            <div className="p-4">
-              <ShadcnCalendar 
-                mode="single" locale={es} selected={new Date(date + 'T12:00:00')} 
-                onSelect={d => { if(d){ setDate(d.toISOString().split('T')[0]); setIsCalendarExpanded(false) } }} 
-                className="rounded-2xl border-none" disabled={d => d > new Date()} 
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+          <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
+            <DialogContent className="sm:max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+              <DialogHeader className="p-6 bg-slate-900 text-white"><DialogTitle className="text-center font-black uppercase tracking-widest text-xs">Fijar Fecha Base</DialogTitle></DialogHeader>
+              <div className="p-4">
+                <ShadcnCalendar 
+                  mode="single" locale={es} selected={new Date(date + 'T12:00:00')} 
+                  onSelect={d => { if(d){ setDate(d.toISOString().split('T')[0]); setIsCalendarExpanded(false) } }} 
+                  className="rounded-2xl border-none" disabled={d => d > new Date()} 
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
 
         </div>
       </TooltipProvider>
