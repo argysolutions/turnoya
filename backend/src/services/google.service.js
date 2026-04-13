@@ -95,20 +95,47 @@ export const getGoogleClientForBusiness = async (businessId) => {
 }
 
 /**
- * Ejemplo de uso: People API (Lectura)
+ * 4. Servicio Principal: ensureContactExists
+ * Verifica si el cliente existe (mediante la People API) dentro de los contactos del usuario.
+ * Si no está, lo crea de forma automática.
  */
-export const searchGoogleContacts = async (businessId, query) => {
+export const ensureContactExists = async (businessId, clientData) => {
   const auth = await getGoogleClientForBusiness(businessId)
   const service = google.people({ version: 'v1', auth })
 
   try {
-    const res = await service.people.searchContacts({
-      query: query,
+    // Paso 1: Intentar buscarlo
+    const searchResponse = await service.people.searchContacts({
+      query: clientData.phone || clientData.email || clientData.name,
       readMask: 'names,emailAddresses,phoneNumbers'
     })
-    return res.data.results || []
+
+    const foundContacts = searchResponse.data.results || []
+
+    // Si ya existe un resultado razonable, simplemente devolvemos la conexión
+    if (foundContacts.length > 0) {
+      return foundContacts[0].person
+    }
+
+    // Paso 2: El contacto no existe. Lo creamos inyectándolo en su agenda.
+    const createPayload = {
+      names: [{ givenName: clientData.name }],
+      phoneNumbers: [{ value: clientData.phone, type: 'mobile' }]
+    }
+
+    if (clientData.email) {
+      createPayload.emailAddresses = [{ value: clientData.email, type: 'home' }]
+    }
+
+    const createResponse = await service.people.createContact({
+      requestBody: createPayload
+    })
+
+    return createResponse.data
+
   } catch (error) {
-    console.error("Error buscando contactos:", error.message)
-    throw error
+    console.error("Error asegurando la existencia del contacto de Google:", error.message)
+    // No lanzamos el error para no trabar el flujo principal de reserva
+    return null
   }
 }
