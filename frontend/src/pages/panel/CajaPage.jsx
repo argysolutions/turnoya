@@ -7,15 +7,27 @@ import {
 import { getSettings } from '@/api/business'
 import { getAppointment } from '@/api/appointments'
 import { toast } from 'sonner'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Calendar as ShadcnCalendar } from "@/components/ui/calendar"
+import DateStrip from '@/components/ui/date-strip'
+import { es } from 'date-fns/locale'
+import { format as fnsFormat } from 'date-fns'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, Printer, TrendingUp, TrendingDown,
   CreditCard, Wallet, ArrowLeftRight, HelpCircle, Eye, EyeOff,
   PlusCircle, Trash2, X, DollarSign, User, Lock, Unlock,
   Share2, ChevronDown, ChevronUp, Scissors, Phone, Clock,
-  AlertTriangle, CheckCircle2, Info, Cloud,
+  AlertTriangle, CheckCircle2, Info, Cloud, CalendarDays as CalendarIcon,
 } from 'lucide-react'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -50,10 +62,10 @@ const METHOD_ICON = {
   Otro:          <HelpCircle className="w-3.5 h-3.5" />,
 }
 const METHOD_STYLE = {
-  Efectivo:      'bg-emerald-50 text-emerald-700 border-emerald-100',
-  Transferencia: 'bg-blue-50 text-blue-700 border-blue-100',
-  Tarjeta:       'bg-purple-50 text-purple-700 border-purple-100',
-  Otro:          'bg-slate-50 text-slate-600 border-slate-100',
+  Efectivo:      'bg-emerald-50 text-emerald-700 border-emerald-100/50',
+  Transferencia: 'bg-blue-50 text-blue-700 border-blue-100/50',
+  Tarjeta:       'bg-purple-50 text-purple-700 border-purple-100/50',
+  Otro:          'bg-slate-50 text-slate-600 border-slate-100/50',
 }
 const METHOD_CARD_STYLE = {
   Efectivo:      { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100', icon: 'text-emerald-500' },
@@ -686,21 +698,18 @@ function SummaryCard({ label, amount, color, icon: Icon, hidden, subtitle }) {
   }
   const c = colors[color] || colors.slate
   return (
-    <div className={`rounded-xl border ${c.bg} ${c.border} p-5 flex flex-col gap-1 hover:border-slate-200 transition-all shadow-sm`}>
-      <div className="flex items-start justify-between mb-2">
-        <Icon className={`w-4 h-4 ${c.icon} opacity-80`} />
-        <span className={`text-[9px] font-bold uppercase tracking-widest ${c.label}`}>{label}</span>
+    <div className={`rounded-2xl border ${c.bg} ${c.border} p-6 flex flex-col gap-1 hover:border-slate-200 transition-all shadow-sm group`}>
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-slate-100 transition-colors">
+          <Icon className={`w-4 h-4 ${c.icon}`} />
+        </div>
+        <span className={`text-[9px] font-bold uppercase tracking-[0.15em] ${c.label}`}>{label}</span>
       </div>
-      <span className={`text-xl font-bold tabular-nums tracking-tight text-slate-900 ${hidden ? 'blur-sm select-none opacity-20' : ''}`}>
+      <span className={`text-2xl font-bold tabular-nums tracking-tighter text-slate-900 ${hidden ? 'blur-md select-none opacity-20' : ''}`}>
         {hidden ? '$ •••••' : fmt(amount)}
       </span>
-      {subtitle && <span className="text-[10px] text-slate-400 font-medium leading-none mt-1">{subtitle}</span>}
+      {subtitle && <span className="text-[10px] text-slate-400 font-medium leading-none mt-1.5 opacity-80">{subtitle}</span>}
     </div>
-  )
-}
-
-      </div>
-    </>
   )
 }
 
@@ -774,9 +783,10 @@ export default function CajaPage() {
   const [deletingId, setDeletingId]   = useState(null)
   const [filterProfessional, setFilterProfessional] = useState('all')
 
-  // ── Sesión de caja (desde DB) ────────────────────────────────────────────
   const [session, setSession]         = useState(null)
   const [sessionLoading, setSessionLoading] = useState(true)
+  const [calendarDate, setCalendarDate]   = useState(new Date())
+  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
 
   const business = useMemo(() => JSON.parse(localStorage.getItem('business') || '{}'), [])
 
@@ -816,6 +826,14 @@ export default function CajaPage() {
   const handleClosed = useCallback((newSession) => {
     setSession(newSession)
   }, [])
+
+  const handleDateSelect = (d) => {
+    if (!d) return
+    const dStr = d.toISOString().split('T')[0]
+    setCalendarDate(d)
+    setDate(dStr)
+    setIsCalendarExpanded(false)
+  }
 
   // ── Fetch datos financieros ──────────────────────────────────────────────
   const [businessSettings, setBusinessSettings] = useState(null)
@@ -976,41 +994,31 @@ export default function CajaPage() {
 
       {/* ── HEADER ── */}
       <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+        <div className="flex flex-col sm:flex-row items-baseline sm:items-center justify-between gap-4">
+          <div className="flex flex-col">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Caja</h1>
             <p className="text-sm text-slate-500 mt-1">
               {isToday ? 'Centro de control financiero de hoy' : fmtDate(date)}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Date Selector Pill (Agenda Style) */}
-            <div className="bg-white border border-slate-200 rounded-full px-2 py-1 flex items-center gap-1 shadow-sm mr-2 hover:border-slate-300 transition-colors">
-              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-slate-50"
-                onClick={() => setDate(d => addDays(d, -1))}>
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </Button>
-              <div className="px-2 relative">
-                 <input type="date" value={date} max={today()}
-                    onChange={e => e.target.value && setDate(e.target.value)}
-                    className="opacity-0 absolute inset-0 cursor-pointer w-full" />
-                 <span className="text-[11px] font-bold text-slate-700 pointer-events-none flex items-center gap-1.5 uppercase tracking-wide">
-                   {isToday ? 'Hoy' : fmtDateShort(date)}
-                   <ChevronDown className="w-3 h-3 text-slate-400" />
-                 </span>
-              </div>
-              <Button variant="ghost" size="icon" disabled={isToday}
-                className="h-7 w-7 rounded-full hover:bg-slate-50 disabled:opacity-20"
-                onClick={() => setDate(d => addDays(d, 1))}>
-                <ChevronRight className="w-3.5 h-3.5" />
+          <div className="flex flex-wrap items-center gap-2 group">
+            <div className="bg-white border border-slate-100 rounded-2xl p-1 flex items-center shadow-sm hover:border-slate-200 transition-all">
+               <Button 
+                variant="ghost" 
+                className="h-9 px-3 gap-2 text-blue-600 hover:bg-blue-50/50 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+                onClick={() => setIsCalendarExpanded(true)}
+              >
+                <CalendarIcon className="w-4 h-4" />
+                <span>{isToday ? 'Cambiar Fecha' : fmtDateShort(date)}</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-50" />
               </Button>
             </div>
 
             <Button
               variant="outline"
               size="sm"
-              className="h-9 px-3 gap-2 text-slate-600 border-slate-200 hover:bg-slate-100 rounded-xl transition-all"
+              className="h-11 px-4 gap-2 text-slate-600 border-slate-100 bg-white hover:bg-slate-50 rounded-2xl shadow-sm transition-all"
               onClick={() => printReport({
                 sales: filteredSales, summary, byMethod: byMethodFiltered,
                 date, businessName: business.name, session, expenses,
@@ -1018,53 +1026,89 @@ export default function CajaPage() {
               })}
             >
               <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">PDF</span>
+              <span className="hidden sm:inline">Reporte PDF</span>
             </Button>
             
             <Button
               variant="outline"
               size="sm"
-              className="h-9 px-3 gap-2 text-slate-600 border-slate-200 hover:bg-slate-100 rounded-xl transition-all"
+              className="h-11 px-4 gap-2 text-slate-600 border-slate-100 bg-white hover:bg-slate-50 rounded-2xl shadow-sm transition-all"
               onClick={handleShareWhatsApp}
             >
               <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Enviar</span>
+              <span className="hidden sm:inline">WhatsApp</span>
             </Button>
           </div>
         </div>
+
+        {/* AGENDA STYLE DATE STRIP (Mobile / Tablets) */}
+        {!isCalendarExpanded && (
+          <div className="mt-6 -mx-4 px-4 border-t border-slate-50 pt-4">
+            <DateStrip 
+              selectedDate={calendarDate}
+              onSelect={handleDateSelect}
+              onExpand={() => setIsCalendarExpanded(true)}
+            />
+          </div>
+        )}
       </div>
+
+      <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
+        <DialogContent className="sm:max-w-sm rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="p-6 bg-slate-900 text-white">
+            <DialogTitle>Seleccionar Fecha</DialogTitle>
+            <p className="text-slate-400 text-xs mt-1 leading-relaxed">Navegá por tus cierres históricos o revisá ventas pasadas.</p>
+          </DialogHeader>
+          <div className="p-4 bg-white">
+            <ShadcnCalendar
+              mode="single"
+              locale={es}
+              selected={calendarDate}
+              onSelect={handleDateSelect}
+              className="rounded-2xl border-none"
+              disabled={(date) => date > new Date()}
+            />
+          </div>
+          <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100">
+             <Button variant="ghost" className="w-full rounded-xl" onClick={() => setIsCalendarExpanded(false)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── TOP STATS ROW ── */}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="relative group overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:border-slate-200 transition-all">
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shadow-sm">
-                <TrendingUp className="w-4 h-4 text-white" />
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-200">
+                <TrendingUp className="w-5 h-5 text-white" />
               </div>
-              <button onClick={() => setHidden(!hidden)} className="text-slate-300 hover:text-slate-500 transition-colors">
+              <button onClick={() => setHidden(!hidden)} className="text-slate-300 hover:text-slate-500 transition-colors p-2">
                 {hidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">Balance Neto Real</p>
-            <h3 className={`text-2xl font-black text-slate-900 tabular-nums tracking-tighter ${hidden ? 'blur-md opacity-20' : ''}`}>
+            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-[0.2em] mb-1">Balance Neto Real</p>
+            <h3 className={`text-3xl font-black text-slate-900 tabular-nums tracking-tighter ${hidden ? 'blur-xl opacity-10' : ''}`}>
               {display(displayNetBalance)}
             </h3>
-            <p className="text-[10px] text-slate-500 mt-2 flex items-center gap-1.5 font-medium">
-               {displayNetBalance >= 0 ? <TrendingUp className="w-3 h-3 text-emerald-500" /> : <TrendingDown className="w-3 h-3 text-red-400" />}
-               {filteredCount} movimientos registrados
-            </p>
+            <div className="mt-4 flex items-center justify-between">
+               <p className="text-[10px] text-slate-500 flex items-center gap-1.5 font-bold uppercase tracking-wide">
+                  {displayNetBalance >= 0 ? <TrendingUp className="w-3 h-3 text-emerald-500" /> : <TrendingDown className="w-3 h-3 text-red-400" />}
+                  {filteredCount} movimientos
+               </p>
+               <Badge variant="outline" className="text-[9px] border-slate-100 text-slate-400 font-bold tracking-widest">REALTIME</Badge>
+            </div>
           </div>
 
           <SummaryCard
-            label="Efectivo en Caja"
+            label="Efectivo en Cajón"
             amount={efectivoDisponible}
             color="deepBlue" icon={Wallet} hidden={hidden}
-            subtitle="Dinero físico calculado"
+            subtitle="Dinero físico esperado hoy"
           />
 
           <SummaryCard
-            label="Caja Digital"
+            label="Total Digital"
             amount={totalDigital}
             color="deepBlue" icon={CreditCard} hidden={hidden}
             subtitle="Transferencias y Tarjetas"
@@ -1078,34 +1122,12 @@ export default function CajaPage() {
         {/* LEFT COLUMN: Activity Feed (70%) */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Action Buttons Row */}
-          <div className="flex items-center gap-3">
-             <Button
-                onClick={() => setShowExpenseModal(true)}
-                variant="outline"
-                className="h-11 flex-1 gap-2 text-red-500 border-red-100 hover:bg-red-50 rounded-2xl transition-all"
-              >
-                <PlusCircle className="w-4 h-4" />
-                Registrar Gasto
-              </Button>
-
-              {session?.status === 'open' ? (
-                <Button
-                  onClick={() => setShowCierreModal(true)}
-                  className="h-11 flex-1 gap-2 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl shadow-sm transition-all"
-                >
-                  <Lock className="w-4 h-4" />
-                  Cerrar Caja
-                </Button>
-              ) : isToday && !sessionLoading && !loading && (
-                <Button
-                  onClick={() => setShowCierreModal(true)}
-                  className="h-11 flex-1 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-sm transition-all"
-                >
-                  <Unlock className="w-4 h-4" />
-                  Abrir Caja
-                </Button>
-              )}
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest opacity-70">Actividad Reciente</h2>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Live Update</span>
+            </div>
           </div>
 
           {/* Banner de Sesión / Arqueo */}
@@ -1216,28 +1238,68 @@ export default function CajaPage() {
           )}
         </div>
 
-        {/* RIGHT COLUMN: Summaries (30%) */}
+        {/* RIGHT COLUMN: Summaries & Actions (30%) */}
         <div className="space-y-6">
+           {/* Session Control Card */}
+           {isToday && !sessionLoading && (
+             <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden bg-white">
+                <CardHeader className="pb-3 border-b border-slate-50">
+                  <CardTitle className="text-xs uppercase tracking-widest text-slate-400 font-bold flex items-center gap-2">
+                    {session?.status === 'open' ? <Lock className="w-3.5 h-3.5 text-slate-400" /> : <Unlock className="w-3.5 h-3.5 text-emerald-500" />}
+                    Gestión de Sesión
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
+                  {session?.status === 'open' ? (
+                    <Button
+                      onClick={() => setShowCierreModal(true)}
+                      className="w-full h-11 gap-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 transition-all font-bold uppercase tracking-wider text-xs"
+                    >
+                      <Lock className="w-4 h-4" />
+                      Cerrar Caja Hoy
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setShowCierreModal(true)}
+                      className="w-full h-11 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-100 transition-all font-bold uppercase tracking-wider text-xs"
+                    >
+                      <Unlock className="w-4 h-4" />
+                      Abrir Nueva Caja
+                    </Button>
+                  )}
+                  
+                  <Button
+                    onClick={() => setShowExpenseModal(true)}
+                    variant="outline"
+                    className="w-full h-11 gap-2 text-red-500 border-red-100 hover:bg-red-50 rounded-xl transition-all font-bold uppercase tracking-wider text-xs"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    Registrar Gasto
+                  </Button>
+                </CardContent>
+             </Card>
+           )}
+
            {/* Summary Stats Mini Cards */}
            <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
-              <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                   <div className="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-slate-200 transition-all group">
+                <div className="flex items-center justify-between mb-4">
+                   <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
                       <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
                    </div>
-                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Ingresos</span>
+                   <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">Bruto Ventas</span>
                 </div>
-                <p className={`text-xl font-bold text-slate-900 tabular-nums ${hidden ? 'blur-sm' : ''}`}>{display(summary?.totalIncome || 0)}</p>
+                <p className={`text-xl font-bold text-slate-900 tabular-nums tracking-tight ${hidden ? 'blur-md' : ''}`}>{display(summary?.totalIncome || 0)}</p>
               </div>
 
-              <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                   <div className="w-6 h-6 rounded-lg bg-red-50 flex items-center justify-center">
+              <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-slate-200 transition-all group">
+                <div className="flex items-center justify-between mb-4">
+                   <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
                       <TrendingDown className="w-3.5 h-3.5 text-red-400" />
                    </div>
-                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Gastos</span>
+                   <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">Total Gastos</span>
                 </div>
-                <p className={`text-xl font-bold text-slate-900 tabular-nums ${hidden ? 'blur-sm' : ''}`}>{display(summary?.totalExpenses || 0)}</p>
+                <p className={`text-xl font-bold text-slate-900 tabular-nums tracking-tight ${hidden ? 'blur-md' : ''}`}>{display(summary?.totalExpenses || 0)}</p>
               </div>
            </div>
 

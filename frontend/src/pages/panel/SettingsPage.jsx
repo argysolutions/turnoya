@@ -203,8 +203,8 @@ export default function SettingsPage() {
 
             <Card className="shadow-sm border-slate-200">
               <CardHeader>
-                <CardTitle className="text-lg">Finanzas y Comisiones</CardTitle>
-                <CardDescription>Configuración para el módulo de Caja.</CardDescription>
+                <CardTitle className="text-lg">Finanzas</CardTitle>
+                <CardDescription>Configuración global del módulo de Caja y Comisiones.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
