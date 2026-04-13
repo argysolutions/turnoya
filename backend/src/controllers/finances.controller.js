@@ -146,9 +146,10 @@ function normalizeSession(raw) {
     status:         raw.status,
     cash_sales:     parseFloat(raw.cash_sales    ?? 0),
     cash_expenses:  parseFloat(raw.cash_expenses ?? 0),
-    expected_cash:  raw.expected_cash  != null ? parseFloat(raw.expected_cash)  :
-                    parseFloat(raw.initial_amount ?? 0) +
-                    parseFloat(raw.cash_sales    ?? 0) -
-                    parseFloat(raw.cash_expenses ?? 0),
+    expected_cash:  parseFloat(raw.expected_cash ?? (
+                      parseFloat(raw.initial_amount ?? 0) +
+                      parseFloat(raw.cash_sales    ?? 0) -
+                      parseFloat(raw.cash_expenses ?? 0)
+                    )),
   }
 }

@@ -56,14 +56,14 @@ export const getSessionStats = async (session) => {
     params
   )
 
-  const cashSales    = parseFloat(rows[0].cash_sales)
-  const cashExpenses = parseFloat(rows[0].cash_expenses)
+  const cashSales    = parseFloat(rows[0]?.cash_sales ?? 0)
+  const cashExpenses = parseFloat(rows[0]?.cash_expenses ?? 0)
   const initialAmt   = parseFloat(initial_amount ?? 0)
   const expectedCash = initialAmt + cashSales - cashExpenses
 
   return {
-    cash_sales:    cashSales,
-    cash_expenses: cashExpenses,
+    cash_sales:    parseFloat(cashSales.toFixed(2)),
+    cash_expenses: parseFloat(cashExpenses.toFixed(2)),
     expected_cash: parseFloat(expectedCash.toFixed(2)),
   }
 }

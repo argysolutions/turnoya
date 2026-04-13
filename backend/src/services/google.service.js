@@ -42,7 +42,10 @@ export const getGoogleAuthUrl = (businessId) => {
 export const handleGoogleCallback = async (code, businessId) => {
   const oauth2Client = createOAuth2Client()
   
-  const { tokens } = await oauth2Client.getToken(code)
+  const { tokens } = await oauth2Client.getToken({
+    code,
+    redirect_uri: ENV.GOOGLE.REDIRECT_URI
+  })
   
   // Encriptamos tokens antes de guardar
   const encryptedTokens = {
