@@ -686,30 +686,44 @@ function ExpenseModal({ onClose, onSaved, sessionLocked, categories: CUSTOM_CATE
 
 // ─── Summary Card ────────────────────────────────────────────────────────────
 
-function SummaryCard({ label, amount, color, icon: Icon, display, subtitle }) {
+function SummaryCard({ label, amount, color, icon: Icon, display, subtitle, onClick }) {
   const colors = {
-    green:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-emerald-600', icon: 'text-emerald-500', label: 'text-slate-400' },
-    red:      { bg: 'bg-white', border: 'border-slate-100', text: 'text-red-500',     icon: 'text-red-400',     label: 'text-slate-400' },
-    blue:     { bg: 'bg-white', border: 'border-slate-100', text: 'text-blue-600',    icon: 'text-blue-400',    label: 'text-slate-400' },
-    amber:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-amber-600',   icon: 'text-amber-500',   label: 'text-slate-400' },
-    slate:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-slate-400',   icon: 'text-slate-400',   label: 'text-slate-400' },
-    purple:   { bg: 'bg-white', border: 'border-slate-100', text: 'text-purple-600',  icon: 'text-purple-400',  label: 'text-slate-400' },
-    deepBlue: { bg: 'bg-white', border: 'border-slate-100', text: 'text-slate-900',   icon: 'text-slate-400',  label: 'text-slate-400' },
+    green:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-emerald-600', icon: 'text-emerald-300', label: 'text-slate-400' },
+    red:      { bg: 'bg-white', border: 'border-slate-100', text: 'text-red-500',     icon: 'text-red-300',     label: 'text-slate-400' },
+    blue:     { bg: 'bg-white', border: 'border-slate-100', text: 'text-blue-600',    icon: 'text-blue-300',    label: 'text-slate-400' },
+    amber:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-amber-600',   icon: 'text-amber-300',   label: 'text-slate-400' },
+    slate:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-slate-400',   icon: 'text-slate-300',   label: 'text-slate-400' },
+    purple:   { bg: 'bg-white', border: 'border-slate-100', text: 'text-purple-600',  icon: 'text-purple-300',  label: 'text-slate-400' },
+    deepBlue: { bg: 'bg-white', border: 'border-slate-100', text: 'text-slate-900',   icon: 'text-slate-300',  label: 'text-slate-400' },
   }
   const c = colors[color] || colors.slate
   return (
-    <div className={`rounded-2xl border ${c.bg} ${c.border} p-6 flex flex-col gap-1 hover:border-slate-200 transition-all shadow-sm group`}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-slate-100 transition-colors">
+    <motion.button
+      whileHover={{ scale: 0.995, borderColor: '#e2e8f0' }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={`relative w-full text-left rounded-2xl border ${c.bg} ${c.border} p-5 flex flex-col gap-1 transition-all group overflow-hidden`}
+    >
+      <div className="flex items-start justify-between relative z-10">
+        <div className="flex flex-col">
+          <span className={`text-[10px] font-black uppercase tracking-[0.15em] ${c.label} mb-1`}>{label}</span>
+          <div className="text-2xl font-black tabular-nums tracking-tighter text-slate-800 leading-none">
+            {display(amount)}
+          </div>
+        </div>
+        <div className="w-8 h-8 rounded-full border border-slate-50 flex items-center justify-center group-hover:bg-slate-50 transition-colors">
           <Icon className={`w-4 h-4 ${c.icon}`} />
         </div>
-        <span className={`text-[9px] font-bold uppercase tracking-[0.15em] ${c.label}`}>{label}</span>
       </div>
-      <div className="text-2xl font-bold tabular-nums tracking-tighter text-slate-900">
-        {display(amount)}
+      {subtitle && <div className="text-[10px] text-slate-400 font-bold leading-none mt-3 opacity-60 uppercase tracking-widest">{subtitle}</div>}
+      
+      {/* Ghost Detail Indicator */}
+      <div className="absolute bottom-2 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 text-[8px] font-black text-slate-300 uppercase tracking-tighter">
+          Ver Detalle <ChevronRight className="w-2.5 h-2.5" />
+        </div>
       </div>
-      {subtitle && <div className="text-xs text-slate-500 font-medium leading-none mt-2 opacity-80">{subtitle}</div>}
-    </div>
+    </motion.button>
   )
 }
 
@@ -733,12 +747,12 @@ function ExpensesList({ date, hidden, display, onDelete, deletingId, sessionLock
 
   if (loading) return <div className="py-4 animate-pulse h-10 bg-slate-50 rounded-xl" />
   if (expenses.length === 0)
-    return <p className="py-4 text-xs text-slate-400 text-center">Los totales se muestran en las tarjetas de resumen.</p>
+    return <p className="py-4 text-xs text-slate-400 text-center">Sin egresos registrados para este período.</p>
 
   return (
     <div className="divide-y divide-slate-50">
       {expenses.map(exp => (
-        <div key={exp.id} className="py-3 flex items-center gap-3 group hover:bg-slate-50/60 -mx-6 px-6 transition-colors">
+        <div key={exp.id} className="py-3 flex items-center gap-3 group hover:bg-slate-50/60 transition-colors">
           <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
             <TrendingDown className="w-4 h-4 text-red-400" />
           </div>
@@ -784,6 +798,7 @@ export default function CajaPage() {
   useEffect(() => {
     localStorage.setItem('turno_ya_privacy_mode', hidden)
   }, [hidden])
+
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showCierreModal, setShowCierreModal]   = useState(false)
   const [drawerSale, setDrawerSale]   = useState(null)
@@ -794,6 +809,12 @@ export default function CajaPage() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [calendarDate, setCalendarDate]   = useState(new Date())
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
+
+  // States para Revelación Progresiva
+  const [showSalesDrawer, setShowSalesDrawer]       = useState(false)
+  const [showExpensesDrawer, setShowExpensesDrawer] = useState(false)
+  const [showStaffDrawer, setShowStaffDrawer]       = useState(false)
+  const [showSessionDrawer, setShowSessionDrawer]   = useState(false)
 
   const business = useMemo(() => JSON.parse(localStorage.getItem('business') || '{}'), [])
 
@@ -875,7 +896,7 @@ export default function CajaPage() {
 
   useEffect(() => { fetchAll(date) }, [date, fetchAll])
 
-  // Re-fetch al recuperar el foco (para "Actualización Instantánea" al volver de otras páginas/pestañas)
+  // Re-fetch al recuperar el foco
   useEffect(() => {
     const handleFocus = () => {
       if (!loading && !sessionLoading) {
@@ -924,10 +945,8 @@ export default function CajaPage() {
   // Efectivo disponible: usa datos del servidor si hay sesión activa
   const efectivoDisponible = useMemo(() => {
     if (session?.status === 'open') {
-      // Usa stats calculadas en tiempo real por el servidor
       return session.expected_cash ?? 0
     }
-    // Fallback: cálculo local por día
     const ventasEfectivo = byMethodFiltered['Efectivo']?.total ?? 0
     const gastosEfectivo = expenses.reduce((a, e) => a + parseFloat(e.amount || 0), 0)
     return ventasEfectivo - gastosEfectivo
@@ -942,9 +961,6 @@ export default function CajaPage() {
     return filteredTotal - (summary?.totalExpenses ?? 0)
   }, [filterProfessional, filteredTotal, summary])
 
-  const netColor = displayNetBalance >= 0 ? 'green' : 'red'
-
-  // La sesión está cerrada y bloquea edición
   const sessionLocked = session?.status === 'closed'
 
   // ── Handlers ─────────────────────────────────────────────────────────────
@@ -980,428 +996,327 @@ export default function CajaPage() {
 
   return (
     <Layout>
-      {/* ── MODALES ── */}
-      {showExpenseModal && (
-        <ExpenseModal
-          onClose={() => setShowExpenseModal(false)}
-          onSaved={async () => {
-             await fetchAll(date)
-             if (isToday) await fetchSession(date)
-          }}
-          sessionLocked={sessionLocked}
-          categories={businessSettings?.expense_categories || EXPENSE_CATEGORIES}
-        />
-      )}
-      {showCierreModal && session && (
-        <CierreCajaModal
-          session={session}
-          onClose={() => setShowCierreModal(false)}
-          onClosed={handleClosed}
-        />
-      )}
-      {drawerSale && (
-        <SaleDetailDrawer sale={drawerSale} onClose={() => setDrawerSale(null)} />
-      )}
-
-      {/* ── HEADER ── */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row items-baseline sm:items-center justify-between gap-4">
-          <div className="flex flex-col">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Resumen Financiero</h1>
-            <p className="text-sm text-slate-500 mt-1 font-medium">
-              {isToday ? 'Centro de control operativo y financiero' : fmtDate(date)}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 group">
-            <div className="bg-white border border-slate-100 rounded-2xl p-1 flex items-center shadow-sm hover:border-slate-200 transition-all">
-               <Button 
-                variant="ghost" 
-                className="h-9 px-3 gap-2 text-blue-600 hover:bg-blue-50/50 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+      <div className="max-w-6xl mx-auto px-4 py-2 sm:py-4 h-[calc(100vh-80px)] overflow-hidden flex flex-col">
+        
+        {/* ── COMPACT HEADER (Ghost Style) ── */}
+        <div className="mb-6 shrink-0 flex items-center justify-between border-b border-slate-50 pb-4">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-black text-slate-900 tracking-tighter uppercase whitespace-nowrap">Resumen</h1>
+            
+            <div className="flex items-center bg-slate-50/50 rounded-xl px-1.5 py-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400" onClick={() => handleDateSelect(new Date(addDays(date, -1)))}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <button 
                 onClick={() => setIsCalendarExpanded(true)}
+                className="px-2 text-[11px] font-black text-slate-600 uppercase tracking-wider hover:text-blue-600 transition-colors"
               >
-                <CalendarIcon className="w-4 h-4" />
-                <span>{isToday ? 'Cambiar Fecha' : fmtDateShort(date)}</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+                {isToday ? 'Hoy' : fmtDateShort(date)}
+              </button>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400" onClick={() => handleDateSelect(new Date(addDays(date, 1)))} disabled={isToday}>
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
+          </div>
 
+          <div className="flex items-center gap-1.5">
             <Button
-              variant="outline"
-              size="sm"
-              className="h-11 px-4 gap-2 text-slate-600 border-slate-100 bg-white hover:bg-slate-50 rounded-2xl shadow-sm transition-all"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
               onClick={() => printReport({
-                sales: filteredSales, summary, byMethod: byMethodFiltered,
+                sales, summary, byMethod: (summary?.byMethod || {}),
                 date, businessName: business.name, session, expenses,
                 professionals, commissionRate: businessSettings?.commission_rate || 0,
               })}
             >
               <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">Reporte PDF</span>
             </Button>
             
             <Button
-              variant="outline"
-              size="sm"
-              className="h-10 px-4 gap-2 text-slate-600 border-slate-100 bg-white hover:bg-slate-50 rounded-2xl shadow-sm transition-all text-xs font-bold"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
               onClick={handleShareWhatsApp}
             >
               <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">WhatsApp</span>
+            </Button>
+
+            <div className="w-px h-4 bg-slate-100 mx-1" />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-9 w-9 rounded-xl transition-all ${hidden ? 'text-blue-500 bg-blue-50/50' : 'text-slate-400 hover:bg-slate-50'}`}
+              onClick={() => setHidden(!hidden)}
+            >
+              {hidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>
           </div>
         </div>
 
-        {/* AGENDA STYLE DATE STRIP (Mobile / Tablets) */}
-        {!isCalendarExpanded && (
-          <div className="mt-6 -mx-4 px-4 border-t border-slate-50 pt-4">
-            <DateStrip 
-              selectedDate={calendarDate}
-              onSelect={handleDateSelect}
-              onExpand={() => setIsCalendarExpanded(true)}
-            />
-          </div>
-        )}
-      </div>
-
-      <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
-        <DialogContent className="sm:max-w-sm rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="p-6 bg-slate-900 text-white">
-            <DialogTitle>Seleccionar Fecha</DialogTitle>
-            <p className="text-slate-400 text-xs mt-1 leading-relaxed">Navegá por tus cierres históricos o revisá ventas pasadas.</p>
-          </DialogHeader>
-          <div className="p-4 bg-white">
-            <ShadcnCalendar
-              mode="single"
-              locale={es}
-              selected={calendarDate}
-              onSelect={handleDateSelect}
-              className="rounded-2xl border-none"
-              disabled={(date) => date > new Date()}
-            />
-          </div>
-          <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100">
-             <Button variant="ghost" className="w-full rounded-xl" onClick={() => setIsCalendarExpanded(false)}>Cerrar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── TOP STATS ROW (The 4 Smart Cards) ── */}
-      {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {/* Card 1: Bruto Ventas Breakdown */}
-          <SummaryCard
-            label="Bruto Ventas"
-            amount={summary?.totalIncome || 0}
-            color="green"
-            icon={TrendingUp}
-            display={display}
-            subtitle={`Efectivo: ${fmt(summary?.byMethod?.Efectivo || 0)} | Digital: ${fmt((summary?.totalIncome || 0) - (summary?.byMethod?.Efectivo || 0))}`}
-          />
-
-          {/* Card 2: Total Gastos */}
-          <SummaryCard
-            label="Total Gastos"
-            amount={summary?.totalExpenses || 0}
-            color="red"
-            icon={TrendingDown}
-            display={display}
-            subtitle="Salidas de caja del período"
-          />
-
-          {/* Card 3: Balance Neto Real (THE STAR) */}
-          <div className="relative group overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-md hover:shadow-lg transition-all ring-1 ring-slate-50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-200">
-                <Wallet className="w-4 h-4 text-white" />
-              </div>
-              <button 
-                onClick={() => setHidden(!hidden)} 
-                className="text-slate-300 hover:text-slate-600 transition-colors p-2 bg-slate-50 rounded-full"
-                title={hidden ? "Mostrar montos" : "Ocultar montos"}
-              >
-                {hidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-[0.2em] mb-1">Balance Neto Real</p>
-            <h3 className="text-4xl font-black text-slate-900 tabular-nums tracking-tighter leading-none mb-4">
-              {display(displayNetBalance)}
-            </h3>
-            <div className="flex items-center gap-2">
-               <p className="text-[10px] text-slate-500 flex items-center gap-1.5 font-bold uppercase tracking-wide">
-                  {displayNetBalance >= 0 ? <TrendingUp className="w-3 h-3 text-emerald-500" /> : <TrendingDown className="w-3 h-3 text-red-400" />}
-                  {filteredCount} movimientos
-               </p>
-            </div>
-          </div>
-
-          {/* Card 4: Efectivo en Cajón */}
-          <SummaryCard
-            label="Efectivo en Cajón"
-            amount={efectivoDisponible}
-            color="deepBlue"
-            icon={Wallet}
-            display={display}
-            subtitle="Fondos físicos disponibles"
-          />
-        </div>
-      )}
-
-      {/* ── MAIN DASHBOARD BODY ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* LEFT COLUMN: Activity Feed (70%) */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* ── PROGRESSIVE DASHBOARD GRID ── */}
+        <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full pb-10">
           
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest opacity-70">Actividad Reciente</h2>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Live Update</span>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <SummaryCard
+              label="Ingresos (Ventas)"
+              amount={summary?.totalIncome || 0}
+              color="green"
+              icon={TrendingUp}
+              display={display}
+              subtitle="Ver historial de cobros"
+              onClick={() => setShowSalesDrawer(true)}
+            />
+            <SummaryCard
+              label="Egresos (Gastos)"
+              amount={summary?.totalExpenses || 0}
+              color="red"
+              icon={TrendingDown}
+              display={display}
+              subtitle="Ver detalle de gastos"
+              onClick={() => setShowExpensesDrawer(true)}
+            />
           </div>
 
-          {/* Banner de Sesión / Arqueo */}
-          {isToday && !session && !sessionLoading && !loading && (
-            <AperturaBanner onOpen={handleOpenCaja} loading={sessionLoading} />
-          )}
-          <ArqueoBanner session={session} />
-
-          {/* Sales Feed Card */}
-          <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-            <CardHeader className="pb-3 border-b border-slate-50 bg-white">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xs uppercase tracking-widest text-slate-400 font-bold">
-                  Historial de Movimientos
-                </CardTitle>
-                {professionals.length > 0 && (
-                  <select 
-                    value={filterProfessional} 
-                    onChange={e => setFilterProfessional(e.target.value)}
-                    className="text-[11px] font-bold text-slate-600 bg-slate-50 border-none rounded-lg px-2 h-7 focus:ring-0 cursor-pointer"
-                  >
-                    <option value="all">Filtro: Todos</option>
-                    {professionals.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
-                  </select>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {loading ? (
-                <div className="p-6 space-y-4 animate-pulse">
-                  {[1,2,3,4].map(i => <div key={i} className="h-12 bg-slate-50 rounded-xl" />)}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <motion.div 
+              whileHover={{ scale: 0.995, borderColor: '#e2e8f0' }}
+              whileTap={{ scale: 0.98 }}
+              className="relative group overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 flex flex-col transition-all cursor-pointer ring-offset-background hover:border-slate-200 shadow-sm"
+              onClick={() => setShowSessionDrawer(true)}
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 mb-1">Balance Neto Real</p>
+              <h3 className="text-5xl font-black text-slate-900 tabular-nums tracking-tighter leading-none mb-6">
+                {display(displayNetBalance)}
+              </h3>
+              <div className="mt-auto flex items-center justify-between">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 leading-none transition-transform group-hover:translate-x-1">
+                   Gestionar Sesión <ChevronRight className="w-3 h-3 text-slate-200" />
+                </p>
+                <div className="flex items-center gap-2">
+                   <div className={`w-2 h-2 rounded-full ${session?.status === 'open' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-200'}`} />
+                   <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">{session?.status || 'Sin iniciar'}</span>
                 </div>
-              ) : filteredSales.length === 0 ? (
-                <div className="py-24 text-center flex flex-col items-center gap-4 bg-slate-50/20">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-dashed border-slate-200">
-                    <TrendingUp className="w-6 h-6 text-slate-200" />
+              </div>
+            </motion.div>
+
+            <SummaryCard
+              label="Staff & Comisiones"
+              amount={summary?.commissionTotal || 0}
+              color="deepBlue"
+              icon={User}
+              display={display}
+              subtitle="Rendición por profesional"
+              onClick={() => setShowStaffDrawer(true)}
+            />
+          </div>
+
+          {/* Minimal Status Indicator */}
+          <div className="mt-12 text-center flex flex-col items-center gap-3">
+             <div className="w-px h-8 bg-gradient-to-b from-slate-100 to-transparent" />
+             <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] opacity-60 flex items-center gap-2">
+               <Cloud className="w-3 h-3" /> Progressive Revelation Sync
+             </p>
+          </div>
+        </div>
+
+        {/* ── DRAWERS (REVELATION LAYER) ── */}
+
+        {/* Sales Detail Drawer */}
+        <AnimatePresence>
+          {showSalesDrawer && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSalesDrawer(false)}
+                          className="fixed inset-0 z-[60] bg-white/60 backdrop-blur-sm" />
+              <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                          className="fixed inset-y-0 right-0 z-[70] w-full max-w-md bg-white border-l border-slate-100 flex flex-col p-6 shadow-2xl shadow-slate-100">
+                <div className="flex items-center justify-between mb-8 shrink-0">
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 uppercase">Historial de Ventas</h2>
+                    <p className="text-xs text-slate-400 font-medium tracking-tight">{fmtDate(date)}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sin Movimientos hoy</p>
-                    <p className="text-xs font-medium text-slate-400 max-w-[200px] mx-auto leading-relaxed italic">
-                      Aún no hay movimientos. Registrá tu primer cobro desde la Agenda para ver la magia.
+                  <Button variant="ghost" size="icon" onClick={() => setShowSalesDrawer(false)} className="rounded-xl"><X className="w-5 h-5" /></Button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto -mx-2 px-2 pb-24 scrollbar-hide">
+                  {filteredSales.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center opacity-30 gap-4">
+                      <TrendingUp className="w-12 h-12" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-center">Sin ventas para<br/>esta fecha</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredSales.map(sale => (
+                        <button key={sale.id} onClick={() => setDrawerSale(sale)} className="w-full p-4 rounded-2xl border border-slate-50 hover:border-slate-100 hover:bg-slate-50/50 transition-all flex items-center justify-between group">
+                          <div className="text-left">
+                            <p className="text-sm font-black text-slate-900">{sale.client_name || 'Sin nombre'}</p>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{fmtTime(sale.created_at)} hs · {sale.payment_method}</span>
+                          </div>
+                          <span className="text-lg font-black text-slate-900 tracking-tight">{display(sale.amount)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="absolute bottom-6 left-6 right-6 p-5 rounded-3xl bg-slate-900 text-white flex justify-between items-center shadow-xl shadow-slate-200">
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Cierre de Ventas</span>
+                  <span className="text-xl font-black tracking-tighter">{display(filteredTotal)}</span>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Expenses Drawer */}
+        <AnimatePresence>
+          {showExpensesDrawer && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowExpensesDrawer(false)}
+                          className="fixed inset-0 z-[60] bg-white/60 backdrop-blur-sm" />
+              <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                          className="fixed inset-y-0 right-0 z-[70] w-full max-w-md bg-white border-l border-slate-100 flex flex-col p-6 shadow-2xl shadow-slate-100">
+                <div className="flex items-center justify-between mb-8 shrink-0">
+                  <div>
+                    <h2 className="text-xl font-black text-red-600 uppercase">Egresos & Gastos</h2>
+                    <p className="text-xs text-slate-400 font-medium tracking-tight">{fmtDate(date)}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => setShowExpenseModal(true)} className="text-red-500 hover:bg-red-50 rounded-xl"><PlusCircle className="w-5 h-5" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setShowExpensesDrawer(false)} className="rounded-xl"><X className="w-5 h-5" /></Button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
+                  <ExpensesList date={date} hidden={hidden} display={display} onDelete={handleDeleteExpense} deletingId={deletingId} sessionLocked={sessionLocked} />
+                </div>
+
+                <div className="absolute bottom-6 left-6 right-6 p-5 rounded-3xl bg-red-600 text-white flex justify-between items-center shadow-xl shadow-red-100">
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Total Egresado</span>
+                  <span className="text-xl font-black tracking-tighter">-{display(summary?.totalExpenses || 0)}</span>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Session Drawer */}
+        <AnimatePresence>
+          {showSessionDrawer && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowSessionDrawer(false)}
+                          className="fixed inset-0 z-[60] bg-white/60 backdrop-blur-sm" />
+              <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                          className="fixed inset-y-0 right-0 z-[70] w-full max-w-sm bg-white border-l border-slate-100 flex flex-col p-8 shadow-2xl shadow-slate-100">
+                <div className="mb-10 text-center">
+                  <h2 className="text-xl font-black text-slate-900 uppercase">Control de Sesión</h2>
+                  <p className="text-xs text-slate-400 font-medium tracking-wider">Arqueo y cierre de jornada</p>
+                </div>
+
+                <div className="flex-1 space-y-6 overflow-y-auto scrollbar-hide">
+                  {isToday && !session && !sessionLoading && <AperturaBanner onOpen={handleOpenCaja} loading={sessionLoading} />}
+                  <ArqueoBanner session={session} />
+                  
+                  <div className="space-y-3">
+                    {session?.status === 'open' ? (
+                      <Button onClick={() => setShowCierreModal(true)} className="w-full h-14 bg-slate-900 text-white rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] gap-2 shadow-xl hover:bg-slate-800 transition-all">
+                        <Lock className="w-4 h-4" /> Finalizar Jornada
+                      </Button>
+                    ) : isToday && (
+                      <Button onClick={() => setShowCierreModal(true)} className="w-full h-14 bg-emerald-600 text-white rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] gap-2 shadow-xl hover:bg-emerald-700 transition-all">
+                        <Unlock className="w-4 h-4" /> Iniciar Apertura
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="pt-10 flex flex-col items-center gap-4 border-t border-slate-50 mt-10">
+                    <Cloud className="w-6 h-6 text-slate-100" />
+                    <p className="text-[8px] font-black text-slate-300 uppercase tracking-[0.4em] leading-relaxed mx-10 text-center">
+                      Todos los arqueos se sincronizan periódicamente con el historial contable del negocio.
                     </p>
                   </div>
                 </div>
-              ) : (
-                <div className="divide-y divide-slate-50">
-                  {filteredSales.map(sale => (
-                    <button
-                      key={sale.id}
-                      onClick={() => setDrawerSale(sale)}
-                      className="w-full py-4 px-6 flex items-center gap-4 group hover:bg-slate-50/80 transition-all text-left"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-black text-slate-400 shrink-0 group-hover:border-slate-200 transition-colors">
-                        {(sale.client_name || '?').charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-900 truncate">{sale.client_name || 'Cliente sin nombre'}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{fmtTime(sale.created_at)}hs</span>
-                          <span className="text-[10px] text-slate-300">/</span>
-                          <span className="text-[10px] font-medium text-slate-500 truncate">{sale.professional_name || 'Servicio'}</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        <span className={`text-sm font-black text-slate-900 tabular-nums ${hidden ? 'blur-sm select-none' : ''}`}>
-                          {display(sale.amount)}
-                        </span>
-                        <Badge
-                          className={`text-[9px] font-bold border-none px-2 py-0.5 rounded-full ${METHOD_STYLE[sale.payment_method] || METHOD_STYLE['Otro']}`}
-                        >
-                          {sale.payment_method}
-                        </Badge>
-                      </div>
-                    </button>
-                  ))}
-                  
-                  {/* Totales del Feed */}
-                  <div className="bg-slate-50/50 p-4 border-t border-slate-50 flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Seccion</span>
-                    <span className={`text-base font-black text-slate-900 ${hidden ? 'blur-sm select-none' : ''}`}>{display(filteredTotal)}</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Expenses Card */}
-          {!loading && summary && summary.expensesCount > 0 && (
-            <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden mt-6">
-               <CardHeader className="pb-3 border-b border-slate-50 bg-white">
-                  <CardTitle className="text-xs uppercase tracking-widest text-red-400 font-bold flex items-center gap-2">
-                    <TrendingDown className="w-3.5 h-3.5" />
-                    Gastos del Período
-                  </CardTitle>
-               </CardHeader>
-               <CardContent className="p-0">
-                  <div className="px-6">
-                    <ExpensesList
-                      date={date}
-                      hidden={hidden}
-                      display={display}
-                      onDelete={handleDeleteExpense}
-                      deletingId={deletingId}
-                      sessionLocked={sessionLocked}
-                    />
-                  </div>
-                  <div className="bg-red-50/30 p-4 border-t border-red-50 flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Total Gastos</span>
-                    <span className={`text-base font-black text-red-600 ${hidden ? 'blur-sm select-none' : ''}`}>-{display(summary.totalExpenses)}</span>
-                  </div>
-               </CardContent>
-            </Card>
+                <Button variant="ghost" className="mt-8 w-full text-slate-300 font-black uppercase text-[10px] tracking-[0.2em] hover:text-slate-600" onClick={() => setShowSessionDrawer(false)}>Cerrar Panel</Button>
+              </motion.div>
+            </>
           )}
-        </div>
+        </AnimatePresence>
 
-        {/* RIGHT COLUMN: Summaries & Actions (30%) */}
-        <div className="space-y-6">
-           {/* Session Control Card */}
-           {isToday && !sessionLoading && (
-             <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden bg-white">
-                <CardHeader className="pb-3 border-b border-slate-50">
-                  <CardTitle className="text-xs uppercase tracking-widest text-slate-400 font-bold flex items-center gap-2">
-                    {session?.status === 'open' ? <Lock className="w-3.5 h-3.5 text-slate-400" /> : <Unlock className="w-3.5 h-3.5 text-emerald-500" />}
-                    Gestión de Sesión
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  {session?.status === 'open' ? (
-                    <Button
-                      onClick={() => setShowCierreModal(true)}
-                      className="w-full h-11 gap-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 transition-all font-bold uppercase tracking-wider text-xs"
-                    >
-                      <Lock className="w-4 h-4" />
-                      Cerrar Caja Hoy
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => setShowCierreModal(true)}
-                      className="w-full h-11 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-100 transition-all font-bold uppercase tracking-wider text-xs"
-                    >
-                      <Unlock className="w-4 h-4" />
-                      Abrir Nueva Caja
-                    </Button>
-                  )}
-                  
-                  <Button
-                    onClick={() => setShowExpenseModal(true)}
-                    variant="outline"
-                    className="w-full h-11 gap-2 text-red-500 border-red-100 hover:bg-red-50 rounded-xl transition-all font-bold uppercase tracking-wider text-xs"
-                  >
-                    <PlusCircle className="w-4 h-4" />
-                    Registrar Gasto
-                  </Button>
-                </CardContent>
-             </Card>
-           )}
-
-           {/* Zen Alert Tip */}
-           <div className="p-6 rounded-[1.5rem] bg-slate-50 border border-slate-100 shadow-sm">
-              <div className="w-8 h-8 rounded-xl bg-blue-100/50 flex items-center justify-center mb-4">
-                 <Info className="w-4 h-4 text-blue-500" />
-              </div>
-              <h4 className="text-xs font-black uppercase tracking-widest mb-2 text-slate-900">Control de Caja Zen</h4>
-              <p className="text-[11px] text-slate-500 leading-relaxed mb-5 font-medium">
-                ¿Sabías que podés exportar reportes directos a WhatsApp? Ideal para rendiciones rápidas con tu equipo.
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full bg-white border-slate-200 text-slate-600 hover:bg-slate-50 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all h-10"
-                onClick={() => window.location.href = '/panel/settings'}
-              >
-                Configurar Reglas
-              </Button>
-           </div>
-
-           {/* Professional Commissions Summary */}
-           <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-              <CardHeader className="pb-3 border-b border-slate-50">
-                <CardTitle className="text-xs uppercase tracking-widest text-slate-400 font-bold flex items-center gap-2">
-                  <User className="w-3.5 h-3.5 text-blue-400" />
-                  Staff & Comisiones
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-3">
-                {professionals.length === 0 ? (
-                  <p className="text-center py-6 text-xs text-slate-400 italic">Sin datos de profesionales</p>
-                ) : (
-                  <div className="space-y-2">
-                    {professionals.map(p => {
+        {/* Staff Drawer */}
+        <AnimatePresence>
+          {showStaffDrawer && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowStaffDrawer(false)}
+                          className="fixed inset-0 z-[60] bg-white/60 backdrop-blur-sm" />
+              <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                          className="fixed inset-y-0 right-0 z-[70] w-full max-w-md bg-white border-l border-slate-100 flex flex-col p-6 shadow-2xl shadow-slate-100">
+                <div className="flex items-center justify-between mb-8 shrink-0">
+                  <div>
+                    <h2 className="text-xl font-black text-blue-600 uppercase">Comisiones Staff</h2>
+                    <p className="text-xs text-slate-400 font-medium tracking-tight">Rendición total por profesional · {businessSettings?.commission_rate}%</p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setShowStaffDrawer(false)} className="rounded-xl"><X className="w-5 h-5" /></Button>
+                </div>
+                <div className="space-y-3 flex-1 overflow-y-auto pb-10 scrollbar-hide">
+                    {professionals.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center opacity-30 gap-4">
+                        <User className="w-12 h-12 text-slate-200" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sin ventas asignadas</p>
+                      </div>
+                    ) : professionals.map(p => {
                       const rate = businessSettings?.commission_rate || 0
                       const commission = p.total * rate / 100
                       return (
-                        <div key={p.name} className="p-3 rounded-xl bg-slate-50 border border-slate-50 hover:border-slate-100 transition-all">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-slate-700">{p.name}</span>
-                            <span className={`text-xs font-bold text-slate-900 ${hidden ? 'blur-sm' : ''}`}>{display(p.total)}</span>
+                        <div key={p.name} className="p-5 rounded-[1.5rem] border border-slate-50 bg-slate-50/20 group hover:border-blue-100 transition-all">
+                          <div className="flex items-baseline justify-between mb-4">
+                            <span className="text-sm font-black text-slate-800">{p.name}</span>
+                            <span className="text-xs font-bold text-slate-400 tracking-tight">{display(p.total)} Bruto</span>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] text-slate-400 font-medium">Comisión ({rate}%)</span>
-                            <span className={`text-[11px] font-black text-blue-600 ${hidden ? 'blur-sm' : ''}`}>{display(commission)}</span>
+                          <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100">
+                            <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none">Neto Profesional</span>
+                            <span className="text-lg font-black text-blue-600 leading-none tracking-tighter">{display(commission)}</span>
                           </div>
                         </div>
                       )
                     })}
-                  </div>
-                )}
-                <div className="mt-4 p-3 rounded-xl bg-blue-50/50 border border-blue-100/50">
-                   <p className="text-[10px] text-blue-600/70 leading-relaxed italic text-center">
-                     Las comisiones se calculan según la regla de negocio definida en Ajustes.
-                   </p>
                 </div>
-              </CardContent>
-           </Card>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
-           {/* Quick Tips / Info */}
-           <div className="p-5 rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-200">
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center mb-4">
-                 <Info className="w-4 h-4 text-white" />
-              </div>
-              <h4 className="text-sm font-bold mb-1">TurnoYa Tip</h4>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                ¿Sabías que podés exportar este reporte directo a WhatsApp para tu equipo? Usá el botón "Enviar" arriba.
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 text-[10px] font-bold uppercase tracking-wider"
-                onClick={() => window.location.href = '/panel/settings'}
-              >
-                Configurar Reglas
-              </Button>
-           </div>
-        </div>
+        {/* Calendar Picker (Minimal) */}
+        <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
+          <DialogContent className="sm:max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="p-6 bg-slate-900 text-white">
+              <DialogTitle className="text-center font-black uppercase tracking-widest text-xs">Selector de Fecha</DialogTitle>
+            </DialogHeader>
+            <div className="p-4 bg-white">
+              <ShadcnCalendar
+                mode="single"
+                locale={es}
+                selected={calendarDate}
+                onSelect={handleDateSelect}
+                className="rounded-2xl border-none"
+                disabled={(date) => date > new Date()}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Shared Detail Overlays */}
+        <AnimatePresence>
+          {drawerSale && <SaleDetailDrawer sale={drawerSale} onClose={() => setDrawerSale(null)} />}
+          {showExpenseModal && <ExpenseModal onClose={() => setShowExpenseModal(false)} categories={businessSettings?.expense_categories} onSaved={() => setDate(d => d)} sessionLocked={sessionLocked} />}
+          {showCierreModal && <CierreCajaModal session={session} onClose={() => setShowCierreModal(false)} onClosed={s => { setSession(s); setDate(d => d) }} />}
+        </AnimatePresence>
+
       </div>
-
-      {/* ── FOOTER ── */}
-      <div className="mt-16 mb-8 flex flex-col items-center gap-3">
-        <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
-          <Cloud className="w-3 h-3" />
-          Sesión de caja sincronizada en la nube
-        </div>
-        <div className="w-12 h-0.5 bg-slate-50 rounded-full" />
+      
+      {/* ── FOOTER (Absolute Minimal) ── */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300 opacity-60">
+        TurnoYa Cloud Session Active
       </div>
     </Layout>
   )
