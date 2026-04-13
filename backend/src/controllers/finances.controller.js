@@ -12,10 +12,21 @@ import {
 export const financesSummary = async (req, reply) => {
   try {
     const businessId = req.business.id
-    const { startDate, endDate, date } = req.query
+    let start = startDate || date || null
+    let end   = endDate   || date || null
 
-    const start = startDate || date || null
-    const end   = endDate   || date || null
+    // Si es "Hoy" (no hay rango ni fecha específica, o es la fecha de hoy), 
+    // priorizamos el opened_at de la sesión activa para evitar desfasajes de zona horaria.
+    const todayStr = new Date().toISOString().split('T')[0]
+    const isRequestingToday = (!startDate && !endDate && !date) || (date === todayStr)
+
+    if (isRequestingToday) {
+      const openSession = await getOpenSession(businessId)
+      if (openSession) {
+        start = openSession.opened_at
+        end   = null // El query usará created_at >= start
+      }
+    }
 
     const summary = await getFinancesSummary(businessId, start, end)
     reply.send(summary)

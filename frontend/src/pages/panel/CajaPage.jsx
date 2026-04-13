@@ -25,7 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, Printer, TrendingUp, TrendingDown,
   CreditCard, Wallet, ArrowLeftRight, HelpCircle, Eye, EyeOff,
-  PlusCircle, Trash2, X, DollarSign, User, Lock, Unlock,
+  PlusCircle, Trash2, X, User, Lock, Unlock,
   Share2, ChevronDown, ChevronUp, Scissors, Phone, Clock,
   AlertTriangle, CheckCircle2, Info, Cloud, CalendarDays as CalendarIcon,
 } from 'lucide-react'
@@ -686,7 +686,7 @@ function ExpenseModal({ onClose, onSaved, sessionLocked, categories: CUSTOM_CATE
 
 // ─── Summary Card ────────────────────────────────────────────────────────────
 
-function SummaryCard({ label, amount, color, icon: Icon, hidden, subtitle }) {
+function SummaryCard({ label, amount, color, icon: Icon, display, subtitle }) {
   const colors = {
     green:    { bg: 'bg-white', border: 'border-slate-100', text: 'text-emerald-600', icon: 'text-emerald-500', label: 'text-slate-400' },
     red:      { bg: 'bg-white', border: 'border-slate-100', text: 'text-red-500',     icon: 'text-red-400',     label: 'text-slate-400' },
@@ -705,10 +705,10 @@ function SummaryCard({ label, amount, color, icon: Icon, hidden, subtitle }) {
         </div>
         <span className={`text-[9px] font-bold uppercase tracking-[0.15em] ${c.label}`}>{label}</span>
       </div>
-      <span className={`text-2xl font-bold tabular-nums tracking-tighter text-slate-900 ${hidden ? 'blur-md select-none opacity-20' : ''}`}>
-        {hidden ? '$ •••••' : fmt(amount)}
-      </span>
-      {subtitle && <span className="text-[10px] text-slate-400 font-medium leading-none mt-1.5 opacity-80">{subtitle}</span>}
+      <div className="text-2xl font-bold tabular-nums tracking-tighter text-slate-900">
+        {display(amount)}
+      </div>
+      {subtitle && <div className="text-xs text-slate-500 font-medium leading-none mt-2 opacity-80">{subtitle}</div>}
     </div>
   )
 }
@@ -776,7 +776,14 @@ export default function CajaPage() {
   const [summary, setSummary]         = useState(null)
   const [expenses, setExpenses]       = useState([])
   const [loading, setLoading]         = useState(true)
-  const [hidden, setHidden]           = useState(false)
+  const [hidden, setHidden]           = useState(() => {
+    return localStorage.getItem('turno_ya_privacy_mode') === 'true'
+  })
+
+  // Persistir estado de privacidad
+  useEffect(() => {
+    localStorage.setItem('turno_ya_privacy_mode', hidden)
+  }, [hidden])
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showCierreModal, setShowCierreModal]   = useState(false)
   const [drawerSale, setDrawerSale]   = useState(null)
@@ -963,7 +970,11 @@ export default function CajaPage() {
       .catch(() => toast.error('No se pudo copiar el resumen'))
   }
 
-  const display = (amount) => hidden ? '$ •••••' : fmt(amount)
+  const display = (amount, customClass = '') => (
+    <span className={`${hidden ? 'blur-md select-none opacity-50' : ''} ${customClass} transition-all duration-300`}>
+      {fmt(amount)}
+    </span>
+  )
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -996,9 +1007,9 @@ export default function CajaPage() {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row items-baseline sm:items-center justify-between gap-4">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Caja</h1>
-            <p className="text-sm text-slate-500 mt-1">
-              {isToday ? 'Centro de control financiero de hoy' : fmtDate(date)}
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Resumen Financiero</h1>
+            <p className="text-sm text-slate-500 mt-1 font-medium">
+              {isToday ? 'Centro de control operativo y financiero' : fmtDate(date)}
             </p>
           </div>
 
@@ -1032,7 +1043,7 @@ export default function CajaPage() {
             <Button
               variant="outline"
               size="sm"
-              className="h-11 px-4 gap-2 text-slate-600 border-slate-100 bg-white hover:bg-slate-50 rounded-2xl shadow-sm transition-all"
+              className="h-10 px-4 gap-2 text-slate-600 border-slate-100 bg-white hover:bg-slate-50 rounded-2xl shadow-sm transition-all text-xs font-bold"
               onClick={handleShareWhatsApp}
             >
               <Share2 className="w-4 h-4" />
@@ -1075,43 +1086,63 @@ export default function CajaPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── TOP STATS ROW ── */}
+      {/* ── TOP STATS ROW (The 4 Smart Cards) ── */}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="relative group overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:border-slate-200 transition-all">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-200">
-                <TrendingUp className="w-5 h-5 text-white" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          {/* Card 1: Bruto Ventas Breakdown */}
+          <SummaryCard
+            label="Bruto Ventas"
+            amount={summary?.totalIncome || 0}
+            color="green"
+            icon={TrendingUp}
+            display={display}
+            subtitle={`Efectivo: ${fmt(summary?.byMethod?.Efectivo || 0)} | Digital: ${fmt((summary?.totalIncome || 0) - (summary?.byMethod?.Efectivo || 0))}`}
+          />
+
+          {/* Card 2: Total Gastos */}
+          <SummaryCard
+            label="Total Gastos"
+            amount={summary?.totalExpenses || 0}
+            color="red"
+            icon={TrendingDown}
+            display={display}
+            subtitle="Salidas de caja del período"
+          />
+
+          {/* Card 3: Balance Neto Real (THE STAR) */}
+          <div className="relative group overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-md hover:shadow-lg transition-all ring-1 ring-slate-50">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-200">
+                <Wallet className="w-4 h-4 text-white" />
               </div>
-              <button onClick={() => setHidden(!hidden)} className="text-slate-300 hover:text-slate-500 transition-colors p-2">
+              <button 
+                onClick={() => setHidden(!hidden)} 
+                className="text-slate-300 hover:text-slate-600 transition-colors p-2 bg-slate-50 rounded-full"
+                title={hidden ? "Mostrar montos" : "Ocultar montos"}
+              >
                 {hidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             <p className="text-[10px] uppercase font-bold text-slate-400 tracking-[0.2em] mb-1">Balance Neto Real</p>
-            <h3 className={`text-3xl font-black text-slate-900 tabular-nums tracking-tighter ${hidden ? 'blur-xl opacity-10' : ''}`}>
+            <h3 className="text-4xl font-black text-slate-900 tabular-nums tracking-tighter leading-none mb-4">
               {display(displayNetBalance)}
             </h3>
-            <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
                <p className="text-[10px] text-slate-500 flex items-center gap-1.5 font-bold uppercase tracking-wide">
                   {displayNetBalance >= 0 ? <TrendingUp className="w-3 h-3 text-emerald-500" /> : <TrendingDown className="w-3 h-3 text-red-400" />}
                   {filteredCount} movimientos
                </p>
-               <Badge variant="outline" className="text-[9px] border-slate-100 text-slate-400 font-bold tracking-widest">REALTIME</Badge>
             </div>
           </div>
 
+          {/* Card 4: Efectivo en Cajón */}
           <SummaryCard
             label="Efectivo en Cajón"
             amount={efectivoDisponible}
-            color="deepBlue" icon={Wallet} hidden={hidden}
-            subtitle="Dinero físico esperado hoy"
-          />
-
-          <SummaryCard
-            label="Total Digital"
-            amount={totalDigital}
-            color="deepBlue" icon={CreditCard} hidden={hidden}
-            subtitle="Transferencias y Tarjetas"
+            color="deepBlue"
+            icon={Wallet}
+            display={display}
+            subtitle="Fondos físicos disponibles"
           />
         </div>
       )}
@@ -1161,11 +1192,16 @@ export default function CajaPage() {
                   {[1,2,3,4].map(i => <div key={i} className="h-12 bg-slate-50 rounded-xl" />)}
                 </div>
               ) : filteredSales.length === 0 ? (
-                <div className="py-20 text-center flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center">
+                <div className="py-24 text-center flex flex-col items-center gap-4 bg-slate-50/20">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-dashed border-slate-200">
                     <TrendingUp className="w-6 h-6 text-slate-200" />
                   </div>
-                  <p className="text-sm font-medium text-slate-400">Sin movimientos para mostrar</p>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sin Movimientos hoy</p>
+                    <p className="text-xs font-medium text-slate-400 max-w-[200px] mx-auto leading-relaxed italic">
+                      Aún no hay movimientos. Registrá tu primer cobro desde la Agenda para ver la magia.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-50">
@@ -1280,27 +1316,23 @@ export default function CajaPage() {
              </Card>
            )}
 
-           {/* Summary Stats Mini Cards */}
-           <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
-              <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-slate-200 transition-all group">
-                <div className="flex items-center justify-between mb-4">
-                   <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                      <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                   </div>
-                   <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">Bruto Ventas</span>
-                </div>
-                <p className={`text-xl font-bold text-slate-900 tabular-nums tracking-tight ${hidden ? 'blur-md' : ''}`}>{display(summary?.totalIncome || 0)}</p>
+           {/* Zen Alert Tip */}
+           <div className="p-6 rounded-[1.5rem] bg-slate-50 border border-slate-100 shadow-sm">
+              <div className="w-8 h-8 rounded-xl bg-blue-100/50 flex items-center justify-center mb-4">
+                 <Info className="w-4 h-4 text-blue-500" />
               </div>
-
-              <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-slate-200 transition-all group">
-                <div className="flex items-center justify-between mb-4">
-                   <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
-                      <TrendingDown className="w-3.5 h-3.5 text-red-400" />
-                   </div>
-                   <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">Total Gastos</span>
-                </div>
-                <p className={`text-xl font-bold text-slate-900 tabular-nums tracking-tight ${hidden ? 'blur-md' : ''}`}>{display(summary?.totalExpenses || 0)}</p>
-              </div>
+              <h4 className="text-xs font-black uppercase tracking-widest mb-2 text-slate-900">Control de Caja Zen</h4>
+              <p className="text-[11px] text-slate-500 leading-relaxed mb-5 font-medium">
+                ¿Sabías que podés exportar reportes directos a WhatsApp? Ideal para rendiciones rápidas con tu equipo.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full bg-white border-slate-200 text-slate-600 hover:bg-slate-50 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all h-10"
+                onClick={() => window.location.href = '/panel/settings'}
+              >
+                Configurar Reglas
+              </Button>
            </div>
 
            {/* Professional Commissions Summary */}
@@ -1364,9 +1396,12 @@ export default function CajaPage() {
       </div>
 
       {/* ── FOOTER ── */}
-      <div className="mt-12 mb-4 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300">
-        <Cloud className="w-3.5 h-3.5" />
-        Security Layer Active · Sincronización Realtime
+      <div className="mt-16 mb-8 flex flex-col items-center gap-3">
+        <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
+          <Cloud className="w-3 h-3" />
+          Sesión de caja sincronizada en la nube
+        </div>
+        <div className="w-12 h-0.5 bg-slate-50 rounded-full" />
       </div>
     </Layout>
   )
