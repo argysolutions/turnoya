@@ -8,15 +8,13 @@ import { getSettings } from '@/api/business'
 import { getAppointment } from '@/api/appointments'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar"
 import { es } from 'date-fns/locale'
 import { format as fnsFormat } from 'date-fns'
@@ -111,7 +109,41 @@ const generateWhatsAppText = ({ dateLabel, summary, byMethod, session }) => {
 // SUB-COMPONENTS
 // ════════════════════════════════════════════════════════════════════════════
 
-// ─── Apertura de Caja Component ──────────────────────────────────────────────
+function SessionBanner({ session, onOpen, onOpenCierre, loading }) {
+  if (loading) return null
+  
+  if (!session || session.status === 'closed') {
+    return (
+      <div className="rounded-2xl border border-amber-100 bg-amber-50/30 px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Unlock className="w-3.5 h-3.5 text-amber-600" />
+          <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider">Caja Cerrada</span>
+        </div>
+        <Button onClick={onOpen} variant="ghost" className="h-7 px-3 text-[9px] font-black uppercase bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg">Abrir Sesión</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-black uppercase text-emerald-900 tracking-wider">Sesión Abierta</span>
+        </div>
+        <div className="h-3 w-px bg-emerald-100 hidden sm:block" />
+        <span className="text-[10px] font-bold text-emerald-600 hidden sm:block">Inicio: {fmt(session.initial_amount)}</span>
+      </div>
+      <Button 
+        onClick={onOpenCierre} 
+        variant="ghost" 
+        className="h-7 px-3 text-[9px] font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
+      >
+        Cerrar Caja
+      </Button>
+    </div>
+  )
+}
 
 function AperturaBanner({ onOpen }) {
   const [amount, setAmount] = useState('')
@@ -120,7 +152,7 @@ function AperturaBanner({ onOpen }) {
 
   const handleOpen = async () => {
     const v = parseFloat(amount)
-    if (isNaN(v) || v < 0) return toast.error('Ingresá un monto válido')
+    if (isNaN(v) || v < 0) return toast.error('Monto inicial inválido')
     setSaving(true)
     try {
       await onOpen(v)
@@ -132,30 +164,32 @@ function AperturaBanner({ onOpen }) {
   }
 
   return (
-    <div className="rounded-2xl border border-amber-100 bg-amber-50/30 p-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-            <Unlock className="w-4 h-4 text-amber-600" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-amber-900">Caja Cerrada</p>
-            <p className="text-[10px] text-amber-600">Iniciá sesión para arqueo automático.</p>
-          </div>
+    <div className="rounded-[2rem] border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center">
+          <Unlock className="w-6 h-6 text-amber-600" />
         </div>
-        {open ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              className="w-24 h-8 rounded-lg border border-amber-200 px-2 text-xs"
-              placeholder="Fondo inicial"
-            />
-            <Button onClick={handleOpen} disabled={saving} className="h-8 px-3 bg-amber-500 text-white text-[10px]">Abrir</Button>
-          </div>
+        <div className="text-center">
+          <p className="text-xs font-black uppercase text-amber-900 tracking-widest">Iniciar Sesión</p>
+          <p className="text-[10px] text-amber-600 font-bold">Fijar fondo inicial de efectivo</p>
+        </div>
+        
+        {!open ? (
+          <Button onClick={() => setOpen(true)} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl">Configurar Apertura</Button>
         ) : (
-          <Button onClick={() => setOpen(true)} variant="outline" className="h-8 text-[10px] border-amber-200 text-amber-600">Configurar</Button>
+          <div className="flex flex-col w-full gap-2">
+            <input 
+              type="number" 
+              placeholder="0.00" 
+              className="w-full h-12 rounded-2xl border border-amber-200 bg-white px-4 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" 
+              value={amount} 
+              onChange={e => setAmount(e.target.value)} 
+            />
+            <div className="flex gap-2">
+              <Button onClick={() => setOpen(false)} variant="ghost" className="flex-1 h-10 text-[10px] font-black uppercase tracking-widest">Cancelar</Button>
+              <Button onClick={handleOpen} disabled={saving} className="flex-[2] h-10 bg-amber-900 text-white font-black uppercase text-[10px] rounded-xl tracking-widest">Confirmar</Button>
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -164,7 +198,7 @@ function AperturaBanner({ onOpen }) {
 
 // ─── Cierre de Caja Modal ────────────────────────────────────────────────────
 
-function CierreCajaModal({ session, onClose, onClosed }) {
+function CierreCajaModal({ session, summary, onClose, onClosed }) {
   const [counted, setCounted] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -186,17 +220,36 @@ function CierreCajaModal({ session, onClose, onClosed }) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-sm rounded-[2rem]">
-        <DialogHeader><DialogTitle className="uppercase tracking-widest text-xs font-black">Cierre de Caja</DialogTitle></DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <div className="flex justify-between text-xs py-1"><span className="text-slate-400">Esperado en Caja</span><span className="font-bold text-slate-800">{fmt(session?.expected_cash)}</span></div>
+      <DialogContent className="sm:max-w-sm rounded-[2.5rem]">
+        <DialogHeader><DialogTitle className="uppercase tracking-widest text-[10px] font-black text-slate-400">Resumen de Cierre</DialogTitle></DialogHeader>
+        <div className="space-y-6 py-2">
+          <div className="grid grid-cols-2 gap-3">
+             <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
+               <span className="text-[8px] font-black uppercase text-emerald-600 block mb-1">Ventas Brutas</span>
+               <span className="text-sm font-black text-emerald-900">{fmt(summary?.totalIncome)}</span>
+             </div>
+             <div className="p-4 rounded-2xl bg-red-50 border border-red-100">
+               <span className="text-[8px] font-black uppercase text-red-600 block mb-1">Egresos Totales</span>
+               <span className="text-sm font-black text-red-900">{fmt(summary?.totalExpenses)}</span>
+             </div>
           </div>
+
+          <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-xl flex justify-between items-center">
+             <div>
+               <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Efectivo Esperado</p>
+               <p className="text-xl font-black">{fmt(session?.expected_cash)}</p>
+             </div>
+             <div className="text-right">
+               <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Cant. Cobros</p>
+               <p className="text-xl font-black">{summary?.salesCount || 0}</p>
+             </div>
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-[10px] uppercase font-black text-slate-400 px-1">Efectivo contado físico</label>
             <input type="number" value={counted} onChange={e => setCounted(e.target.value)} className="w-full h-12 rounded-2xl border border-slate-200 px-4 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" placeholder="0,00" />
           </div>
-          <Button onClick={handleClose} disabled={saving} className="w-full h-12 bg-slate-900 text-white uppercase font-black text-xs tracking-widest rounded-2xl">{saving ? 'Cerrando...' : 'Confirmar Cierre'}</Button>
+          <Button onClick={handleClose} disabled={saving} className="w-full h-12 bg-slate-900 text-white uppercase font-black text-xs tracking-widest rounded-2xl">{saving ? 'Cerrando...' : 'Confirmar Cierre y Guardar'}</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -205,29 +258,44 @@ function CierreCajaModal({ session, onClose, onClosed }) {
 
 // ─── Summary Card ────────────────────────────────────────────────────────────
 
-function SummaryCard({ label, amount, icon: Icon, color, onClick, display, subtitle }) {
-  const colors = {
-    green: 'text-emerald-500 bg-emerald-50 border-emerald-100',
-    red: 'text-red-500 bg-red-50 border-red-100',
-    blue: 'text-blue-500 bg-blue-50 border-blue-100'
-  }
+function HeroBalanceCard({ summary, hidden, onOpenSales, onOpenExpenses }) {
+  const byMethod = summary?.byMethod || {}
+  const efectivo = byMethod['Efectivo']?.total ?? 0
+  const digital = (byMethod['Transferencia']?.total ?? 0) + (byMethod['Tarjeta']?.total ?? 0)
+
+  const fmtValue = (val) => (
+    <span className={hidden ? 'blur-lg select-none opacity-40' : ''}>{fmt(val)}</span>
+  )
+
   return (
-    <motion.button 
-      whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
-      onClick={onClick}
-      className="w-full p-5 rounded-[2rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-1 text-left group"
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col">
-          <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">{label}</span>
-          <span className="text-2xl font-black text-slate-900 tabular-nums">{display(amount)}</span>
+    <div className="w-full bg-white rounded-[2.5rem] border border-slate-100 p-8 sm:p-12 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden group">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 opacity-20" />
+      
+      <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.3em] text-slate-400 mb-4">Balance Neto Estimado</span>
+      
+      <div className="relative mb-6">
+        <h1 className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tighter transition-all">
+          {fmtValue(summary?.netBalance)}
+        </h1>
+      </div>
+
+      <div className="flex items-center gap-3 text-[11px] sm:text-xs font-bold text-slate-400">
+        <div className="flex items-center gap-1.5 hover:text-slate-600 transition-colors cursor-pointer" onClick={onOpenSales}>
+          <Wallet className="w-3.5 h-3.5" />
+          <span>Efectivo: {fmtValue(efectivo)}</span>
         </div>
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${colors[color]}`}>
-          <Icon className="w-5 h-5" />
+        <div className="w-1 h-1 rounded-full bg-slate-200" />
+        <div className="flex items-center gap-1.5 hover:text-slate-600 transition-colors cursor-pointer" onClick={onOpenSales}>
+          <CreditCard className="w-3.5 h-3.5" />
+          <span>Digital: {fmtValue(digital)}</span>
         </div>
       </div>
-      {subtitle && <p className="text-[10px] font-bold text-slate-400 opacity-60 uppercase">{subtitle}</p>}
-    </motion.button>
+      
+      <div className="mt-8 flex gap-4">
+        <button onClick={onOpenSales} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">Ventas</button>
+        <button onClick={onOpenExpenses} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">Egresos</button>
+      </div>
+    </div>
   )
 }
 
@@ -282,8 +350,8 @@ export default function CajaPage() {
   const [showSessionDrawer, setShowSessionDrawer] = useState(false)
   const [showStaffDrawer, setShowStaffDrawer] = useState(false)
   const [showCierreModal, setShowCierreModal] = useState(false)
-  const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [drawerSale, setDrawerSale] = useState(null)
+  const [isTrendExpanded, setIsTrendExpanded] = useState(false)
 
   useEffect(() => { localStorage.setItem('turno_ya_privacy_mode', hidden) }, [hidden])
 
@@ -350,131 +418,150 @@ export default function CajaPage() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-4 py-3 h-[calc(100vh-80px)] flex flex-col overflow-hidden">
-        
-        {/* Superior Command Strip */}
-        <div className="mb-4 flex items-center justify-between gap-4 bg-white/80 backdrop-blur border border-slate-100 p-2 rounded-[2rem] shadow-sm shrink-0">
-          <div className="flex items-center gap-4">
-             <div className="flex items-center bg-slate-50 rounded-2xl p-1">
-               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), -1))}><ChevronLeft className="w-4 h-4" /></Button>
-               <button onClick={() => setIsCalendarExpanded(true)} className="px-4 text-[10px] font-black uppercase tracking-widest">{isToday ? 'Hoy' : fmtDateShort(date)}</button>
-               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), 1))} disabled={isToday}><ChevronRight className="w-4 h-4" /></Button>
-             </div>
-             <div className="hidden sm:flex bg-slate-50 p-1 rounded-2xl gap-1">
-               {['daily', 'weekly', 'monthly', 'quarterly', 'yearly'].map(r => (
-                 <button key={r} onClick={() => setViewRange(r)} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${viewRange === r ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-                   {r === 'daily' ? 'Día' : r === 'weekly' ? 'Sem' : r === 'monthly' ? 'Mes' : r === 'quarterly' ? 'Trim' : 'Año'}
-                 </button>
-               ))}
-             </div>
-          </div>
+      <TooltipProvider>
+        <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col gap-6 h-full overflow-y-auto scrollbar-hide">
+          
+          {/* Operative Header & Filters */}
+          <div className="flex flex-col gap-4 sticky top-0 z-20 bg-slate-50/80 backdrop-blur-md -mx-4 px-4 pb-2 pt-1 border-b border-slate-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h1 className="text-sm font-black uppercase tracking-widest text-slate-400">Caja</h1>
+                <Tabs value={viewRange} onValueChange={setViewRange} className="bg-slate-100/50 p-1 rounded-xl">
+                  <TabsList className="bg-transparent gap-0">
+                    <TabsTrigger value="daily" className="text-[9px] px-3 py-1 uppercase font-black tracking-tighter h-6">Día</TabsTrigger>
+                    <TabsTrigger value="weekly" className="text-[9px] px-3 py-1 uppercase font-black tracking-tighter h-6">Sem</TabsTrigger>
+                    <TabsTrigger value="monthly" className="text-[9px] px-3 py-1 uppercase font-black tracking-tighter h-6">Mes</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
 
-          <div className="flex items-center gap-3 pr-2">
-             {viewRange === 'daily' && isToday && (
-                <div className="flex gap-2">
-                  {session?.status === 'open' ? (
-                    <Button onClick={() => setShowSessionDrawer(true)} className="h-9 px-4 bg-emerald-50 text-emerald-600 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"/> Caja abierta
-                    </Button>
-                  ) : (
-                    <Button onClick={() => setShowSessionDrawer(true)} className="h-9 px-4 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest gap-2">
-                      <Zap className="w-3.5 h-3.5" /> Iniciar Apertura
-                    </Button>
-                  )}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-white border border-slate-100 rounded-lg p-0.5">
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), -1))}><ChevronLeft className="w-3 h-3" /></Button>
+                  <button onClick={() => setIsCalendarExpanded(true)} className="px-2 text-[9px] font-black uppercase tracking-tight">{isToday ? 'Hoy' : fmtDateShort(date)}</button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), 1))} disabled={isToday}><ChevronRight className="w-3 h-3" /></Button>
                 </div>
-             )}
-             <Button variant="ghost" size="icon" className={`h-9 w-9 rounded-xl ${hidden ? 'text-blue-500' : 'text-slate-400'}`} onClick={() => setHidden(!hidden)}>
-               {hidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-             </Button>
+                <Button variant="ghost" size="icon" className={`h-8 w-8 rounded-lg ${hidden ? 'text-blue-500 bg-blue-50' : 'text-slate-400'}`} onClick={() => setHidden(!hidden)}>
+                  {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </Button>
+              </div>
+            </div>
+
+            <SessionBanner 
+              session={session} 
+              onOpen={() => setShowSessionDrawer(true)} 
+              onOpenCierre={() => setShowCierreModal(true)} 
+              loading={sessionLoading} 
+            />
           </div>
-        </div>
 
-        {/* Hybrid Center Grid */}
-        <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 mb-4">
-           
-           {/* LEFT: Chart View */}
-           <div className="flex-[1.8] flex flex-col">
-              <Card className="flex-1 flex flex-col border-slate-100 rounded-[2.5rem] overflow-hidden bg-white/50 backdrop-blur-xl">
-                 <CardHeader className="py-5 px-8 flex flex-row items-center justify-between shrink-0">
-                    <div>
-                      <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">Tendencia Financiera</CardTitle>
-                      <CardDescription className="text-[10px] font-medium">Ingresos vs Gastos del periodo</CardDescription>
-                    </div>
-                    <div className="flex gap-4 text-[9px] font-black uppercase tracking-widest">
-                       <div className="flex items-center gap-1.5 text-emerald-600"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Ingresos</div>
-                       <div className="flex items-center gap-1.5 text-red-500"><div className="w-2 h-2 rounded-full bg-red-400" /> Egresos</div>
-                    </div>
-                 </CardHeader>
-                 <CardContent className="flex-1 p-0 relative">
-                    {loading ? (
-                      <div className="absolute inset-0 flex items-center justify-center"><Activity className="w-8 h-8 text-slate-200 animate-spin" /></div>
-                    ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
-                          <defs>
-                            <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
-                            <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.1}/><stop offset="95%" stopColor="#ef4444" stopOpacity={0}/></linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="date" hide /> <YAxis hide domain={['auto', 'auto']} />
-                          <Tooltip content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              return (
-                                <div className="bg-slate-900 p-3 rounded-2xl shadow-2xl">
-                                  <p className="text-[9px] font-black text-slate-500 uppercase mb-2">{payload[0].payload.date}</p>
-                                  <p className="text-xs font-black text-emerald-400">Ing: {fmt(payload[0].value)}</p>
-                                  <p className="text-xs font-black text-red-400">Egr: {fmt(payload[1].value)}</p>
-                                </div>
-                              )
-                            }
-                            return null
-                          }} />
-                          <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorInc)" />
-                          <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorExp)" />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    )}
-                 </CardContent>
-                 <div className="px-8 py-4 border-t border-slate-50 bg-white/30 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    <div className="flex gap-6">
-                       <span>Bruto: <span className="text-slate-900">{display(summary?.totalIncome)}</span></span>
-                       <span>Egresos: <span className="text-red-500">-{display(summary?.totalExpenses)}</span></span>
-                    </div>
-                    <span>Neto Estimado: <span className="text-slate-900 text-sm">{display(summary?.netBalance)}</span></span>
-                 </div>
-              </Card>
-           </div>
+          {/* Main Operative View */}
+          <div className="flex flex-col gap-6">
+            <HeroBalanceCard 
+              summary={summary} 
+              hidden={hidden} 
+              onOpenSales={() => setShowSalesDrawer(true)} 
+              onOpenExpenses={() => setShowExpensesDrawer(true)} 
+            />
 
-           {/* RIGHT: Quick Summary */}
-           <div className="flex-1 flex flex-col gap-4">
-              <SummaryCard label="Ventas Período" amount={summary?.totalIncome || 0} icon={TrendingUp} color="green" onClick={() => setShowSalesDrawer(true)} display={display} subtitle="Ver historial de cobros" />
-              <SummaryCard label="Egresos Período" amount={summary?.totalExpenses || 0} icon={TrendingDown} color="red" onClick={() => setShowExpensesDrawer(true)} display={display} subtitle="Auditar gastos registrados" />
-              
-              {/* Commissions Conditional Card */}
+            {/* Quick Actions Strip */}
+            <div className="flex items-center justify-center gap-6 py-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={() => setShowExpenseModal(true)} className="w-12 h-12 rounded-full border border-slate-100 bg-white flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all shadow-sm">
+                    <PlusCircle className="w-5 h-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-slate-900 text-white text-[10px] uppercase font-black px-3 py-1 rounded-xl">Registrar Gasto</TooltipContent>
+              </Tooltip>
+
               {businessSettings?.showCommissions && (
-                <div className="flex-1 flex flex-col min-h-0">
-                   <Card className="flex-1 shadow-sm border-blue-50 bg-blue-50/20 rounded-[2rem] overflow-hidden flex flex-col">
-                      <CardHeader className="p-4 shrink-0 border-b border-blue-100"><CardTitle className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600">Comisiones Staff</CardTitle></CardHeader>
-                      <CardContent className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
-                         {professionals.map(p => {
-                            const rate = businessSettings?.commission_rate || 0
-                            return (
-                              <div key={p.name} className="flex justify-between items-center bg-white p-3 rounded-2xl border border-blue-100 group hover:border-blue-400 transition-all cursor-pointer" onClick={() => setShowStaffDrawer(true)}>
-                                <span className="text-xs font-black text-slate-800 uppercase truncate">{p.name}</span>
-                                <div className="text-right"><p className="text-xs font-black text-blue-600 leading-none">{display(p.total * rate / 100)}</p><span className="text-[8px] font-black text-blue-300 uppercase tracking-widest">{rate}%</span></div>
-                              </div>
-                            )
-                         })}
-                      </CardContent>
-                   </Card>
-                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button onClick={() => setShowStaffDrawer(true)} className="w-12 h-12 rounded-full border border-slate-100 bg-white flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-600 transition-all shadow-sm">
+                      <Scissors className="w-5 h-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-slate-900 text-white text-[10px] uppercase font-black px-3 py-1">Ver Comisiones</TooltipContent>
+                </Tooltip>
               )}
 
-              <div className="grid grid-cols-2 gap-3 shrink-0">
-                <Button variant="outline" className="h-12 rounded-2xl border-slate-200 uppercase font-black text-[9px] gap-2 tracking-widest" onClick={() => setShowExpenseModal(true)}><PlusCircle className="w-3.5 h-3.5" /> Gasto</Button>
-                <Button variant="outline" className="h-12 rounded-2xl border-slate-200 uppercase font-black text-[9px] gap-2 tracking-widest"><Share2 className="w-3.5 h-3.5" /> Exportar</Button>
-              </div>
-           </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="w-12 h-12 rounded-full border border-slate-100 bg-white flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all shadow-sm">
+                    <Share2 className="w-5 h-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-slate-900 text-white text-[10px] uppercase font-black px-3 py-1">Exportar Reporte</TooltipContent>
+              </Tooltip>
+            </div>
+            
+            {/* Trend Analysis Accordion */}
+            <div className="border border-slate-100 rounded-3xl overflow-hidden bg-white/30">
+              <button 
+                onClick={() => setIsTrendExpanded(!isTrendExpanded)}
+                className="w-full px-6 py-4 flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-slate-900 transition-colors">Análisis de Tendencia</span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-300 transition-transform duration-300 ${isTrendExpanded ? 'rotate-180' : ''}`} />
+              </button>
+              
+              <AnimatePresence>
+                {isTrendExpanded && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 pb-6 pt-2">
+                       <div className="h-[200px] w-full">
+                          {loading ? (
+                            <div className="w-full h-full flex items-center justify-center"><Activity className="w-6 h-6 text-slate-200 animate-spin" /></div>
+                          ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                  <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
+                                  <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.1}/><stop offset="95%" stopColor="#ef4444" stopOpacity={0}/></linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="date" hide /> <YAxis hide domain={['auto', 'auto']} />
+                                <Tooltip content={({ active, payload }) => {
+                                  if (active && payload && payload.length) {
+                                    return (
+                                      <div className="bg-slate-900 p-2 rounded-xl shadow-xl">
+                                        <p className="text-[8px] font-black text-slate-500 uppercase mb-1">{payload[0].payload.date}</p>
+                                        <p className="text-[10px] font-black text-emerald-400">+{fmt(payload[0].value)}</p>
+                                        <p className="text-[10px] font-black text-red-400">-{fmt(payload[1].value)}</p>
+                                      </div>
+                                    )
+                                  }
+                                  return null
+                                }} />
+                                <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorInc)" />
+                                <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExp)" />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          )}
+                       </div>
+                       <div className="mt-4 flex justify-between items-center text-[8px] font-black uppercase text-slate-400 tracking-wider">
+                          <div className="flex gap-4">
+                            <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Ingresos</span>
+                            <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-red-400" /> Egresos</span>
+                          </div>
+                          <span>Proyectado al cierre del periodo</span>
+                       </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+          </div>
         </div>
 
         {/* Global Overlays */}
@@ -577,7 +664,7 @@ export default function CajaPage() {
 
           {drawerSale && <SaleDetailDrawer sale={drawerSale} onClose={() => setDrawerSale(null)} />}
           {showExpenseModal && <ExpenseModal onClose={() => setShowExpenseModal(false)} onSaved={fetchData} sessionLocked={session?.status === 'closed'} categories={businessSettings?.expense_categories} />}
-          {showCierreModal && <CierreCajaModal session={session} onClose={() => setShowCierreModal(false)} onClosed={s => { setSession(s); fetchData() }} />}
+          {showCierreModal && <CierreCajaModal session={session} summary={summary} onClose={() => setShowCierreModal(false)} onClosed={s => { setSession(s); fetchData() }} />}
         </AnimatePresence>
 
         <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
@@ -593,10 +680,11 @@ export default function CajaPage() {
           </DialogContent>
         </Dialog>
 
-      </div>
-    </Layout>
-  )
-}
+          </div>
+        </TooltipProvider>
+      </Layout>
+    )
+  }
 
 function ExpenseModal({ onClose, onSaved, sessionLocked, categories }) {
   const cats = categories?.length > 0 ? categories : EXPENSE_CATEGORIES
