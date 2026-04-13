@@ -30,6 +30,7 @@ export const getFinancesSummary = async (businessId, startDate, endDate) => {
     expWhere = dateFilter
     salParams.push(startDate, endDate)
     expParams.push(startDate, endDate)
+  } else {
     // default: hoy en Argentina
     const todayFilter = ` AND (created_at AT TIME ZONE ${tz})::date = (CURRENT_TIMESTAMP AT TIME ZONE ${tz})::date`
     salWhere = todayFilter

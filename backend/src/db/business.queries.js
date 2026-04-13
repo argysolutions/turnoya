@@ -36,13 +36,34 @@ export const findBusinessById = async (id) => {
 
 
 export const updateBusinessSettings = async (id, settings) => {
-  const { cancellation_policy, anticipation_margin, buffer_time, whatsapp_enabled } = settings
+  const { 
+    cancellation_policy, 
+    anticipation_margin, 
+    buffer_time, 
+    whatsapp_enabled,
+    commission_rate,
+    expense_categories 
+  } = settings
+
   const result = await pool.query(
     `UPDATE businesses 
-     SET cancellation_policy = $1, anticipation_margin = $2, buffer_time = $3, whatsapp_enabled = $4
-     WHERE id = $5
+     SET cancellation_policy = $1, 
+         anticipation_margin = $2, 
+         buffer_time = $3, 
+         whatsapp_enabled = $4,
+         commission_rate = $5,
+         expense_categories = $6
+     WHERE id = $7
      RETURNING *`,
-    [cancellation_policy, anticipation_margin, buffer_time, whatsapp_enabled, id]
+    [
+      cancellation_policy, 
+      anticipation_margin, 
+      buffer_time, 
+      whatsapp_enabled,
+      commission_rate || 0,
+      expense_categories || ['General', 'Insumos', 'Servicios', 'Alquiler', 'Personal', 'Marketing', 'Otro'],
+      id
+    ]
   )
   return result.rows[0]
 }

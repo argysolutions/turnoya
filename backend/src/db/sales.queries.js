@@ -6,11 +6,9 @@ import { pool } from '../config/db.js'
  */
 export const getSalesByBusiness = async (businessId, date) => {
   const params = [businessId]
-  let whereDate = ''
-
+  const tz = `'America/Argentina/Buenos_Aires'`
   if (date) {
-    whereDate = `AND s.created_at AT TIME ZONE 'America/Argentina/Buenos_Aires' >= ($2::date)::timestamptz AT TIME ZONE 'America/Argentina/Buenos_Aires'
-                 AND s.created_at AT TIME ZONE 'America/Argentina/Buenos_Aires' <  ($2::date + interval '1 day')::timestamptz AT TIME ZONE 'America/Argentina/Buenos_Aires'`
+    whereDate = `AND (s.created_at AT TIME ZONE ${tz})::date = $2::date`
     params.push(date)
   }
 
@@ -29,13 +27,12 @@ export const getSalesByBusiness = async (businessId, date) => {
   const totalParams = [businessId]
   let totalWhere = ''
   if (date) {
-    totalWhere = `AND s.created_at AT TIME ZONE 'America/Argentina/Buenos_Aires' >= ($2::date)::timestamptz AT TIME ZONE 'America/Argentina/Buenos_Aires'
-                  AND s.created_at AT TIME ZONE 'America/Argentina/Buenos_Aires' <  ($2::date + interval '1 day')::timestamptz AT TIME ZONE 'America/Argentina/Buenos_Aires'`
+    totalWhere = `AND (s.created_at AT TIME ZONE ${tz})::date = $2::date`
     totalParams.push(date)
   }
 
   const { rows: totals } = await pool.query(
-    `SELECT COALESCE(SUM(s.amount), 0) AS total,
+    `SELECT COALESCE(SUM(COALESCE(s.amount, 0)), 0) AS total,
             COUNT(*)::int                AS count
      FROM sales s
      WHERE s.business_id = $1

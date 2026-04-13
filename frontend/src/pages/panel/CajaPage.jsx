@@ -4,6 +4,7 @@ import {
   getSales, postExpense, deleteExpense, getFinancesSummary, getExpenses,
   getCashSession, openCashSession, closeCashSession,
 } from '@/api/sales'
+import { getSettings } from '@/api/business'
 import { getAppointment } from '@/api/appointments'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,7 +19,6 @@ import {
 } from 'lucide-react'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-
 const today = () => new Date().toISOString().split('T')[0]
 
 const fmt = (amount) =>
@@ -42,9 +42,6 @@ const addDays = (dateStr, n) => {
   d.setDate(d.getDate() + n)
   return d.toISOString().split('T')[0]
 }
-
-// Comisiones siguen siendo preferencias de UI (no datos financieros)
-const COMMISSION_RATE_KEY = (name) => `commission_rate_${name}`
 
 const METHOD_ICON = {
   Efectivo:      <Wallet className="w-3.5 h-3.5" />,
@@ -593,8 +590,9 @@ function SaleDetailDrawer({ sale, onClose }) {
 
 // ─── Expense Modal ────────────────────────────────────────────────────────────
 
-function ExpenseModal({ onClose, onSaved, sessionLocked }) {
-  const [form, setForm] = useState({ description: '', amount: '', category: 'General', created_at: today() })
+function ExpenseModal({ onClose, onSaved, sessionLocked, categories: CUSTOM_CATEGORIES }) {
+  const categories = CUSTOM_CATEGORIES?.length > 0 ? CUSTOM_CATEGORIES : EXPENSE_CATEGORIES
+  const [form, setForm] = useState({ description: '', amount: '', category: categories[0] || 'General', created_at: today() })
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e) => {
@@ -657,10 +655,9 @@ function ExpenseModal({ onClose, onSaved, sessionLocked }) {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Categoría</label>
             <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
               className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
-              {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="flex gap-3 pt-1">
@@ -702,87 +699,8 @@ function SummaryCard({ label, amount, color, icon: Icon, hidden, subtitle }) {
   )
 }
 
-// ─── Profesionales + Comisiones ──────────────────────────────────────────────
-
-function ProfesionalesSection({ professionals, hidden, defaultRate }) {
-  const [collapsed, setCollapsed] = useState(false)
-  const [rates, setRates] = useState(() => {
-    const r = {}
-    professionals.forEach(p => {
-      const stored = localStorage.getItem(COMMISSION_RATE_KEY(p.name))
-      r[p.name] = stored !== null ? parseFloat(stored) : defaultRate
-    })
-    return r
-  })
-
-  const updateRate = (name, val) => {
-    const v = Math.min(100, Math.max(0, parseFloat(val) || 0))
-    setRates(r => ({ ...r, [name]: v }))
-    localStorage.setItem(COMMISSION_RATE_KEY(name), v)
-  }
-
-  if (professionals.length === 0) return null
-
-  return (
-    <Card className="shadow-sm border-slate-100 mt-4">
-      <CardHeader className="pb-2 border-b border-slate-100">
-        <button
-          className="w-full flex items-center justify-between"
-          onClick={() => setCollapsed(c => !c)}
-        >
-          <CardTitle className="text-sm uppercase tracking-wide text-slate-400 flex items-center gap-2">
-            <User className="w-4 h-4 text-blue-400" />
-            Resumen por profesional · Comisiones
-          </CardTitle>
-          {collapsed ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronUp className="w-4 h-4 text-slate-400" />}
-        </button>
-      </CardHeader>
-      {!collapsed && (
-        <CardContent className="pt-3 pb-4">
-          <div className="space-y-3">
-            {professionals.map(p => {
-              const rate = rates[p.name] ?? defaultRate
-              const commission = p.total * rate / 100
-              return (
-                <div key={p.name} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
-                        {p.name.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="text-sm font-semibold text-slate-800">{p.name}</span>
-                      <span className="text-xs text-slate-400">({p.count} cobro{p.count !== 1 ? 's' : ''})</span>
-                    </div>
-                    <span className={`text-sm font-bold text-slate-900 ${hidden ? 'blur-sm select-none' : ''}`}>
-                      {hidden ? '•••' : fmt(p.total)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-500 shrink-0">Comisión</span>
-                    <div className="flex items-center gap-1 flex-1">
-                      <input
-                        type="range" min="0" max="100" step="5"
-                        value={rate}
-                        onChange={e => updateRate(p.name, e.target.value)}
-                        className="flex-1 accent-slate-900 h-1.5"
-                      />
-                      <span className="text-xs font-bold text-slate-700 w-8 text-right">{rate}%</span>
-                    </div>
-                    <span className={`text-sm font-bold text-blue-700 w-20 text-right tabular-nums ${hidden ? 'blur-sm select-none' : ''}`}>
-                      {hidden ? '•••' : fmt(commission)}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-3 text-center flex items-center justify-center gap-1">
-            <Info className="w-3 h-3" />
-            Preview estimativo — configurable en Ajustes en una próxima versión
-          </p>
-        </CardContent>
-      )}
-    </Card>
+      </div>
+    </>
   )
 }
 
@@ -900,19 +818,23 @@ export default function CajaPage() {
   }, [])
 
   // ── Fetch datos financieros ──────────────────────────────────────────────
+  const [businessSettings, setBusinessSettings] = useState(null)
+
   const fetchAll = useCallback(async (d) => {
     setLoading(true)
     try {
-      const [salesRes, summaryRes, expRes] = await Promise.all([
+      const [salesRes, summaryRes, expRes, settingsRes] = await Promise.all([
         getSales(d),
         getFinancesSummary({ date: d }),
         getExpenses({ date: d }),
+        getSettings()
       ])
       setSales(salesRes.data.sales || [])
       setTotal(salesRes.data.total || 0)
       setCount(salesRes.data.count || 0)
       setSummary(summaryRes.data)
       setExpenses(expRes.data.expenses || [])
+      setBusinessSettings(settingsRes.data)
     } catch (err) { 
       // Falla silenciosa con fallback a 0.00 como pidió el usuario
       console.warn('API Error (Silent Fallback):', err.message)
@@ -921,6 +843,7 @@ export default function CajaPage() {
       setCount(0)
       setSummary({ totalIncome: 0, totalExpenses: 0, netBalance: 0, byMethod: {} })
       setExpenses([])
+      setBusinessSettings({ commission_rate: 0, expense_categories: EXPENSE_CATEGORIES })
     }
     finally { setLoading(false) }
   }, [])
@@ -1037,6 +960,7 @@ export default function CajaPage() {
              if (isToday) await fetchSession(date)
           }}
           sessionLocked={sessionLocked}
+          categories={businessSettings?.expense_categories || EXPENSE_CATEGORIES}
         />
       )}
       {showCierreModal && session && (
@@ -1051,298 +975,336 @@ export default function CajaPage() {
       )}
 
       {/* ── HEADER ── */}
-      <div className="mb-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Caja</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
-              {isToday ? 'Gestión financiera del día' : fmtDate(date)}
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Caja</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {isToday ? 'Centro de control financiero de hoy' : fmtDate(date)}
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Cierre de caja — solo si hay sesión abierta */}
-            {session?.status === 'open' && (
-              <Button
-                onClick={() => setShowCierreModal(true)}
-                className="h-10 gap-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-sm"
-              >
-                <Lock className="w-4 h-4" />
-                Cerrar Caja
+
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Date Selector Pill (Agenda Style) */}
+            <div className="bg-white border border-slate-200 rounded-full px-2 py-1 flex items-center gap-1 shadow-sm mr-2 hover:border-slate-300 transition-colors">
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-slate-50"
+                onClick={() => setDate(d => addDays(d, -1))}>
+                <ChevronLeft className="w-3.5 h-3.5" />
               </Button>
-            )}
-            <Button
-              onClick={() => setShowExpenseModal(true)}
-              className="h-10 gap-2 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-sm"
-            >
-              <TrendingDown className="w-4 h-4" />
-              Gasto
-            </Button>
+              <div className="px-2 relative">
+                 <input type="date" value={date} max={today()}
+                    onChange={e => e.target.value && setDate(e.target.value)}
+                    className="opacity-0 absolute inset-0 cursor-pointer w-full" />
+                 <span className="text-[11px] font-bold text-slate-700 pointer-events-none flex items-center gap-1.5 uppercase tracking-wide">
+                   {isToday ? 'Hoy' : fmtDateShort(date)}
+                   <ChevronDown className="w-3 h-3 text-slate-400" />
+                 </span>
+              </div>
+              <Button variant="ghost" size="icon" disabled={isToday}
+                className="h-7 w-7 rounded-full hover:bg-slate-50 disabled:opacity-20"
+                onClick={() => setDate(d => addDays(d, 1))}>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+
             <Button
               variant="outline"
-              className="h-10 gap-2 text-slate-600 border-slate-200 hover:bg-slate-100 rounded-xl"
-              onClick={handleShareWhatsApp}
-              title="Copiar resumen para WhatsApp"
-            >
-              <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Compartir</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-10 gap-2 text-slate-600 border-slate-200 hover:bg-slate-100 rounded-xl"
+              size="sm"
+              className="h-9 px-3 gap-2 text-slate-600 border-slate-200 hover:bg-slate-100 rounded-xl transition-all"
               onClick={() => printReport({
                 sales: filteredSales, summary, byMethod: byMethodFiltered,
                 date, businessName: business.name, session, expenses,
-                professionals, commissionRate: 30,
+                professionals, commissionRate: businessSettings?.commission_rate || 0,
               })}
             >
               <Printer className="w-4 h-4" />
               <span className="hidden sm:inline">PDF</span>
             </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-3 gap-2 text-slate-600 border-slate-200 hover:bg-slate-100 rounded-xl transition-all"
+              onClick={handleShareWhatsApp}
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Enviar</span>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* ── APERTURA DE CAJA (si no hay sesión hoy y no está cargando) ── */}
-      {isToday && !session && !sessionLoading && !loading && (
-        <AperturaBanner onOpen={handleOpenCaja} loading={sessionLoading} />
+      {/* ── TOP STATS ROW ── */}
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="relative group overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:border-slate-200 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shadow-sm">
+                <TrendingUp className="w-4 h-4 text-white" />
+              </div>
+              <button onClick={() => setHidden(!hidden)} className="text-slate-300 hover:text-slate-500 transition-colors">
+                {hidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">Balance Neto Real</p>
+            <h3 className={`text-2xl font-black text-slate-900 tabular-nums tracking-tighter ${hidden ? 'blur-md opacity-20' : ''}`}>
+              {display(displayNetBalance)}
+            </h3>
+            <p className="text-[10px] text-slate-500 mt-2 flex items-center gap-1.5 font-medium">
+               {displayNetBalance >= 0 ? <TrendingUp className="w-3 h-3 text-emerald-500" /> : <TrendingDown className="w-3 h-3 text-red-400" />}
+               {filteredCount} movimientos registrados
+            </p>
+          </div>
+
+          <SummaryCard
+            label="Efectivo en Caja"
+            amount={efectivoDisponible}
+            color="deepBlue" icon={Wallet} hidden={hidden}
+            subtitle="Dinero físico calculado"
+          />
+
+          <SummaryCard
+            label="Caja Digital"
+            amount={totalDigital}
+            color="deepBlue" icon={CreditCard} hidden={hidden}
+            subtitle="Transferencias y Tarjetas"
+          />
+        </div>
       )}
 
-      {/* ── SESIÓN ABIERTA INFO ── */}
-      {session?.status === 'open' && (
-        <div className="mb-4 rounded-2xl bg-white border border-slate-100 p-4 flex items-center justify-between shadow-sm">
+      {/* ── MAIN DASHBOARD BODY ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* LEFT COLUMN: Activity Feed (70%) */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Action Buttons Row */}
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
-               <Unlock className="w-5 h-5 text-emerald-600" />
-             </div>
-             <div>
-               <p className="text-sm font-bold text-slate-800">Caja abierta multidispositivo</p>
-               <p className="text-xs text-slate-500">
-                 Apertura: {fmtTime(session.opened_at)} hs · Fondo: <strong>{fmt(session.initial_amount)}</strong>
-               </p>
-             </div>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
-            <Cloud className="w-3.5 h-3.5" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Respaldo en la Nube Activado ☁️</span>
-          </div>
-        </div>
-      )}
+             <Button
+                onClick={() => setShowExpenseModal(true)}
+                variant="outline"
+                className="h-11 flex-1 gap-2 text-red-500 border-red-100 hover:bg-red-50 rounded-2xl transition-all"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Registrar Gasto
+              </Button>
 
-      {/* ── ARQUEO DE CAJA — Banner de sesión cerrada ── */}
-      <ArqueoBanner session={session} />
-
-      {/* ── SECCIÓN SUPERIOR: BALANCE & FONDOS ── */}
-      {!loading && (
-        <div className="space-y-8 mb-12">
-          {/* Balance Neto Central (Smaller & Cleaner) */}
-          <div className="flex justify-center">
-            <div className="w-full max-w-xl bg-white border border-slate-100 rounded-2xl p-8 sm:p-10 shadow-sm flex flex-col items-center text-center gap-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Balance Neto Real</p>
-              <div className="flex items-center gap-5">
-                <span className={`text-5xl font-bold tracking-tighter text-slate-900 tabular-nums ${hidden ? 'blur-xl select-none opacity-10' : ''}`}>
-                  {display(displayNetBalance)}
-                </span>
-                <button onClick={() => setHidden(h => !h)} className="text-slate-300 hover:text-slate-500 transition-colors p-1">
-                  {hidden ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
-                </button>
-              </div>
-              <div className="flex items-center gap-3 text-xs font-semibold">
-                <span className={displayNetBalance >= 0 ? 'text-emerald-500' : 'text-red-400'}>
-                   {displayNetBalance >= 0 ? '+' : '-'} {display(Math.abs(displayNetBalance))}
-                </span>
-                <span className="text-slate-200">|</span>
-                <span className="text-slate-400">{filteredCount} transacciones hoy</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Cards de Fondos (White & Minimal) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2 sm:px-0">
-            <SummaryCard
-              label="Efectivo Disponible"
-              amount={efectivoDisponible}
-              color="deepBlue" icon={Wallet} hidden={hidden}
-              subtitle="Dinero físico calculado en caja"
-            />
-            <SummaryCard
-              label="Total Digital"
-              amount={totalDigital}
-              color="deepBlue" icon={CreditCard} hidden={hidden}
-              subtitle="Transferencias / Tarjetas / MP"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ── NAVEGACIÓN DE FECHA ── */}
-      <div className="mb-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="bg-white border border-slate-200 rounded-full px-2 py-1.5 flex items-center gap-1 shadow-sm">
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-50"
-            onClick={() => setDate(d => addDays(d, -1))}>
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </Button>
-          <div className="px-2 relative">
-             <input type="date" value={date} max={today()}
-                onChange={e => e.target.value && setDate(e.target.value)}
-                className="opacity-0 absolute inset-0 cursor-pointer w-full" />
-             <span className="text-xs font-bold text-slate-700 pointer-events-none flex items-center gap-2">
-               {isToday ? 'Hoy' : fmtDateShort(date)}
-               <ChevronDown className="w-3 h-3 text-slate-400" />
-             </span>
-          </div>
-          <Button variant="ghost" size="icon" disabled={isToday}
-            className="h-8 w-8 rounded-full hover:bg-slate-50 disabled:opacity-20"
-            onClick={() => setDate(d => addDays(d, 1))}>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-
-        {professionals.length > 0 && (
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl px-3 h-10">
-            <User className="w-3.5 h-3.5 text-slate-400" />
-            <select value={filterProfessional} onChange={e => setFilterProfessional(e.target.value)}
-              className="bg-transparent text-xs font-bold text-slate-600 focus:outline-none cursor-pointer">
-              <option value="all">Todos los profesionales</option>
-              {professionals.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
-            </select>
-          </div>
-        )}
-      </div>
-
-      {/* ── SALES LIST ── */}
-      <Card className="shadow-sm border-slate-100">
-        <CardHeader className="pb-2 border-b border-slate-100">
-          <CardTitle className="text-sm uppercase tracking-wide text-slate-400 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-emerald-500" />
-            {filterProfessional !== 'all'
-              ? `Cobros de ${filterProfessional} — ${isToday ? 'hoy' : fmtDate(date)}`
-              : isToday ? 'Ventas de hoy' : `Ventas del ${fmtDate(date)}`
-            }
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-2 pb-0">
-          {loading ? (
-            <div className="space-y-3 py-3">
-              {[1,2,3].map(i => (
-                <div key={i} className="flex items-center gap-4 animate-pulse">
-                  <div className="h-8 w-8 bg-slate-100 rounded-full shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3 bg-slate-100 rounded w-1/3" />
-                    <div className="h-2.5 bg-slate-100 rounded w-1/4" />
-                  </div>
-                  <div className="h-5 w-20 bg-slate-100 rounded-full" />
-                </div>
-              ))}
-            </div>
-          ) : filteredSales.length === 0 ? (
-            <div className="py-10 text-center flex flex-col items-center gap-2">
-              <TrendingUp className="w-8 h-8 text-slate-200" />
-              <p className="text-sm font-medium text-slate-500">
-                {filterProfessional !== 'all'
-                  ? `${filterProfessional} no tiene cobros para esta fecha`
-                  : isToday ? 'Todavía no registraste cobros hoy' : 'Sin ventas para esta fecha'
-                }
-              </p>
-              {isToday && filterProfessional === 'all' && (
-                <p className="text-xs text-slate-400">Finalizá un turno para que aparezca acá.</p>
-              )}
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-50">
-              {filteredSales.map(sale => (
-                <button
-                  key={sale.id}
-                  onClick={() => setDrawerSale(sale)}
-                  className="w-full py-3.5 flex items-center gap-4 group hover:bg-slate-50/80 -mx-6 px-6 transition-colors text-left"
+              {session?.status === 'open' ? (
+                <Button
+                  onClick={() => setShowCierreModal(true)}
+                  className="h-11 flex-1 gap-2 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl shadow-sm transition-all"
                 >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-sm font-bold text-slate-500 shrink-0 shadow-sm">
-                    {(sale.client_name || '?').charAt(0).toUpperCase()}
+                  <Lock className="w-4 h-4" />
+                  Cerrar Caja
+                </Button>
+              ) : isToday && !sessionLoading && !loading && (
+                <Button
+                  onClick={() => setShowCierreModal(true)}
+                  className="h-11 flex-1 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-sm transition-all"
+                >
+                  <Unlock className="w-4 h-4" />
+                  Abrir Caja
+                </Button>
+              )}
+          </div>
+
+          {/* Banner de Sesión / Arqueo */}
+          {isToday && !session && !sessionLoading && !loading && (
+            <AperturaBanner onOpen={handleOpenCaja} loading={sessionLoading} />
+          )}
+          <ArqueoBanner session={session} />
+
+          {/* Sales Feed Card */}
+          <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
+            <CardHeader className="pb-3 border-b border-slate-50 bg-white">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xs uppercase tracking-widest text-slate-400 font-bold">
+                  Historial de Movimientos
+                </CardTitle>
+                {professionals.length > 0 && (
+                  <select 
+                    value={filterProfessional} 
+                    onChange={e => setFilterProfessional(e.target.value)}
+                    className="text-[11px] font-bold text-slate-600 bg-slate-50 border-none rounded-lg px-2 h-7 focus:ring-0 cursor-pointer"
+                  >
+                    <option value="all">Filtro: Todos</option>
+                    {professionals.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
+                  </select>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="p-6 space-y-4 animate-pulse">
+                  {[1,2,3,4].map(i => <div key={i} className="h-12 bg-slate-50 rounded-xl" />)}
+                </div>
+              ) : filteredSales.length === 0 ? (
+                <div className="py-20 text-center flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-slate-200" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 truncate">{sale.client_name || 'Cliente'}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-xs text-slate-400">{fmtTime(sale.created_at)} hs</span>
-                      {sale.professional_name && <span className="text-xs text-slate-400">· {sale.professional_name}</span>}
-                      {sale.phone && <span className="text-xs text-slate-400 truncate">· {sale.phone}</span>}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1.5 shrink-0">
-                    <span className={`text-sm font-bold text-slate-900 tabular-nums transition-all ${hidden ? 'blur-sm select-none' : ''}`}>
-                      {display(sale.amount)}
-                    </span>
-                    <Badge
-                      className={`text-[10px] font-semibold border px-2 py-0.5 flex items-center gap-1 ${METHOD_STYLE[sale.payment_method] || METHOD_STYLE['Otro']}`}
-                      variant="outline"
+                  <p className="text-sm font-medium text-slate-400">Sin movimientos para mostrar</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-50">
+                  {filteredSales.map(sale => (
+                    <button
+                      key={sale.id}
+                      onClick={() => setDrawerSale(sale)}
+                      className="w-full py-4 px-6 flex items-center gap-4 group hover:bg-slate-50/80 transition-all text-left"
                     >
-                      {METHOD_ICON[sale.payment_method] || METHOD_ICON['Otro']}
-                      {sale.payment_method}
-                    </Badge>
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-black text-slate-400 shrink-0 group-hover:border-slate-200 transition-colors">
+                        {(sale.client_name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">{sale.client_name || 'Cliente sin nombre'}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{fmtTime(sale.created_at)}hs</span>
+                          <span className="text-[10px] text-slate-300">/</span>
+                          <span className="text-[10px] font-medium text-slate-500 truncate">{sale.professional_name || 'Servicio'}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <span className={`text-sm font-black text-slate-900 tabular-nums ${hidden ? 'blur-sm select-none' : ''}`}>
+                          {display(sale.amount)}
+                        </span>
+                        <Badge
+                          className={`text-[9px] font-bold border-none px-2 py-0.5 rounded-full ${METHOD_STYLE[sale.payment_method] || METHOD_STYLE['Otro']}`}
+                        >
+                          {sale.payment_method}
+                        </Badge>
+                      </div>
+                    </button>
+                  ))}
+                  
+                  {/* Totales del Feed */}
+                  <div className="bg-slate-50/50 p-4 border-t border-slate-50 flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Seccion</span>
+                    <span className={`text-base font-black text-slate-900 ${hidden ? 'blur-sm select-none' : ''}`}>{display(filteredTotal)}</span>
                   </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Expenses Card */}
+          {!loading && summary && summary.expensesCount > 0 && (
+            <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden mt-6">
+               <CardHeader className="pb-3 border-b border-slate-50 bg-white">
+                  <CardTitle className="text-xs uppercase tracking-widest text-red-400 font-bold flex items-center gap-2">
+                    <TrendingDown className="w-3.5 h-3.5" />
+                    Gastos del Período
+                  </CardTitle>
+               </CardHeader>
+               <CardContent className="p-0">
+                  <div className="px-6">
+                    <ExpensesList
+                      date={date}
+                      hidden={hidden}
+                      display={display}
+                      onDelete={handleDeleteExpense}
+                      deletingId={deletingId}
+                      sessionLocked={sessionLocked}
+                    />
+                  </div>
+                  <div className="bg-red-50/30 p-4 border-t border-red-50 flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Total Gastos</span>
+                    <span className={`text-base font-black text-red-600 ${hidden ? 'blur-sm select-none' : ''}`}>-{display(summary.totalExpenses)}</span>
+                  </div>
+               </CardContent>
+            </Card>
           )}
+        </div>
 
-          {!loading && filteredSales.length > 0 && (
-            <div className="flex justify-between items-center py-4 mt-1 border-t border-slate-100 bg-slate-50/50 -mx-6 px-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                {filterProfessional !== 'all' ? `Total — ${filterProfessional}` : 'Total del período'}
-              </span>
-              <span className={`text-lg font-extrabold text-slate-900 tabular-nums ${hidden ? 'blur-sm select-none' : ''}`}>
-                {display(filteredTotal)}
-              </span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* RIGHT COLUMN: Summaries (30%) */}
+        <div className="space-y-6">
+           {/* Summary Stats Mini Cards */}
+           <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
+              <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                   <div className="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                   </div>
+                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Ingresos</span>
+                </div>
+                <p className={`text-xl font-bold text-slate-900 tabular-nums ${hidden ? 'blur-sm' : ''}`}>{display(summary?.totalIncome || 0)}</p>
+              </div>
 
-      {/* ── GASTOS DEL DÍA ── */}
-      {!loading && summary && summary.expensesCount > 0 && (
-        <Card className="shadow-sm border-slate-100 mt-4">
-          <CardHeader className="pb-2 border-b border-slate-100">
-            <CardTitle className="text-sm uppercase tracking-wide text-slate-400 flex items-center gap-2">
-              <TrendingDown className="w-4 h-4 text-red-400" />
-              Gastos del día
-              {sessionLocked && <Lock className="w-3.5 h-3.5 text-slate-300 ml-auto" title="Período cerrado — solo lectura" />}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2 pb-0">
-            <ExpensesList
-              date={date}
-              hidden={hidden}
-              display={display}
-              onDelete={handleDeleteExpense}
-              deletingId={deletingId}
-              sessionLocked={sessionLocked}
-            />
-          </CardContent>
-        </Card>
-      )}
+              <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                   <div className="w-6 h-6 rounded-lg bg-red-50 flex items-center justify-center">
+                      <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+                   </div>
+                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Gastos</span>
+                </div>
+                <p className={`text-xl font-bold text-slate-900 tabular-nums ${hidden ? 'blur-sm' : ''}`}>{display(summary?.totalExpenses || 0)}</p>
+              </div>
+           </div>
 
-      {/* ── CTA primero gasto ── */}
-      {!loading && summary && summary.expensesCount === 0 && (
-        <button
-          onClick={() => setShowExpenseModal(true)}
-          className="mt-3 w-full py-3 rounded-2xl border-2 border-dashed border-slate-200 text-sm text-slate-400 hover:border-slate-300 hover:text-slate-500 transition-colors flex items-center justify-center gap-2"
-        >
-          <PlusCircle className="w-4 h-4" />
-          Registrar el primer gasto del día
-        </button>
-      )}
+           {/* Professional Commissions Summary */}
+           <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
+              <CardHeader className="pb-3 border-b border-slate-50">
+                <CardTitle className="text-xs uppercase tracking-widest text-slate-400 font-bold flex items-center gap-2">
+                  <User className="w-3.5 h-3.5 text-blue-400" />
+                  Staff & Comisiones
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3">
+                {professionals.length === 0 ? (
+                  <p className="text-center py-6 text-xs text-slate-400 italic">Sin datos de profesionales</p>
+                ) : (
+                  <div className="space-y-2">
+                    {professionals.map(p => {
+                      const rate = businessSettings?.commission_rate || 0
+                      const commission = p.total * rate / 100
+                      return (
+                        <div key={p.name} className="p-3 rounded-xl bg-slate-50 border border-slate-50 hover:border-slate-100 transition-all">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-slate-700">{p.name}</span>
+                            <span className={`text-xs font-bold text-slate-900 ${hidden ? 'blur-sm' : ''}`}>{display(p.total)}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-slate-400 font-medium">Comisión ({rate}%)</span>
+                            <span className={`text-[11px] font-black text-blue-600 ${hidden ? 'blur-sm' : ''}`}>{display(commission)}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                <div className="mt-4 p-3 rounded-xl bg-blue-50/50 border border-blue-100/50">
+                   <p className="text-[10px] text-blue-600/70 leading-relaxed italic text-center">
+                     Las comisiones se calculan según la regla de negocio definida en Ajustes.
+                   </p>
+                </div>
+              </CardContent>
+           </Card>
 
-      {/* ── COMISIONES POR PROFESIONAL ── */}
-      {!loading && (
-        <ProfesionalesSection
-          professionals={professionals}
-          hidden={hidden}
-          defaultRate={30}
-        />
-      )}
+           {/* Quick Tips / Info */}
+           <div className="p-5 rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-200">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center mb-4">
+                 <Info className="w-4 h-4 text-white" />
+              </div>
+              <h4 className="text-sm font-bold mb-1">TurnoYa Tip</h4>
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                ¿Sabías que podés exportar este reporte directo a WhatsApp para tu equipo? Usá el botón "Enviar" arriba.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 text-[10px] font-bold uppercase tracking-wider"
+                onClick={() => window.location.href = '/panel/settings'}
+              >
+                Configurar Reglas
+              </Button>
+           </div>
+        </div>
+      </div>
 
       {/* ── FOOTER ── */}
-      <div className="mt-6 mb-2 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-        <Cloud className="w-3 h-3" />
-        Sesión de caja sincronizada en la nube · multidispositivo
+      <div className="mt-12 mb-4 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300">
+        <Cloud className="w-3.5 h-3.5" />
+        Security Layer Active · Sincronización Realtime
       </div>
     </Layout>
   )
