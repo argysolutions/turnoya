@@ -38,3 +38,32 @@ export const getFinancesSummary = ({ date, startDate, endDate } = {}) => {
   const qs = params.toString()
   return client.get(`/finances/summary${qs ? `?${qs}` : ''}`)
 }
+
+// ─── Sesión de Caja ───────────────────────────────────────────────────────────
+
+/**
+ * Obtiene la sesión de caja activa del negocio.
+ * Si se pasa una fecha, devuelve la sesión cerrada de ese día (si existe).
+ * Responde: { session: SessionObject | null }
+ */
+export const getCashSession = (date) => {
+  const qs = date ? `?date=${date}` : ''
+  return client.get(`/finances/session${qs}`)
+}
+
+/**
+ * Abre una nueva sesión de caja.
+ * @param {number} initialAmount - Fondo inicial en caja
+ * Responde: { session: SessionObject }
+ */
+export const openCashSession = (initialAmount) =>
+  client.post('/finances/session/open', { initial_amount: initialAmount })
+
+/**
+ * Cierra la sesión de caja activa.
+ * El servidor calcula la diferencia: counted_amount - expected_cash.
+ * @param {number} countedAmount - Efectivo contado físicamente
+ * Responde: { session, difference, expected_cash }
+ */
+export const closeCashSession = (countedAmount) =>
+  client.post('/finances/session/close', { counted_amount: countedAmount })

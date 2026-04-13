@@ -5,9 +5,21 @@ import { Label } from '@/components/ui/label'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import client from '@/api/client'
-import { CheckCircle2, Info } from 'lucide-react'
+import { getGoogleAuthUrl, getGoogleStatus, unlinkGoogle } from '@/api/google'
+import { 
+  CheckCircle2, 
+  Info, 
+  Settings2, 
+  Share2, 
+  ShieldCheck, 
+  Cloud, 
+  Loader2,
+  ExternalLink,
+  Trash2
+} from 'lucide-react'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -18,90 +30,103 @@ export default function SettingsPage() {
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  
-  const [business, setBusiness] = useState(() => JSON.parse(localStorage.getItem('business') || '{}'))
-  const [googleLinked, setGoogleLinked] = useState(false)
+  const [linkingGoogle, setLinkingGoogle] = useState(false)
+  const [googleStatus, setGoogleStatus] = useState({ linked: false, updated_at: null })
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await client.get('/settings')
+        const [settingsRes, googleRes] = await Promise.all([
+          client.get('/settings'),
+          getGoogleStatus()
+        ])
+        
         setSettings({
-          cancellation_policy: data.cancellation_policy || '',
-          anticipation_margin: data.anticipation_margin || 0,
-          buffer_time: data.buffer_time || 0,
-          whatsapp_enabled: data.whatsapp_enabled || false
+          cancellation_policy: settingsRes.data.cancellation_policy || '',
+          anticipation_margin: settingsRes.data.anticipation_margin || 0,
+          buffer_time: settingsRes.data.buffer_time || 0,
+          whatsapp_enabled: settingsRes.data.whatsapp_enabled || false
         })
+        
+        setGoogleStatus(googleRes.data)
       } catch (error) {
         toast.error('Error al cargar la configuración')
       } finally {
         setLoading(false)
       }
     }
-    fetchSettings()
+    fetchData()
   }, [])
 
   useEffect(() => {
+    const handleFocus = async () => {
+      // Re-verificar estado al volver a la pestaña (por si cerró el popup)
+      if (linkingGoogle) {
+        try {
+          const { data } = await getGoogleStatus()
+          setGoogleStatus(data)
+          if (data.linked) {
+            setLinkingGoogle(false)
+            toast.success('¡Google vinculado!')
+          }
+        } catch {}
+      }
+    }
+
     const handleMessage = (event) => {
       if (event.data === 'GOOGLE_AUTH_SUCCESS') {
-        const updatedBusiness = { ...business, google_linked: true }
-        localStorage.setItem('business', JSON.stringify(updatedBusiness))
-        setBusiness(updatedBusiness)
-        setGoogleLinked(true)
+        setGoogleStatus(prev => ({ ...prev, linked: true }))
+        setLinkingGoogle(false)
         toast.success('¡Cuenta de Google vinculada con éxito!')
       } else if (event.data === 'GOOGLE_AUTH_ERROR') {
+        setLinkingGoogle(false)
         toast.error('Hubo un error al vincular tu cuenta de Google')
       }
     }
+
     window.addEventListener('message', handleMessage)
-    if (business.google_refresh_token || business.google_linked) {
-      setGoogleLinked(true)
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+      window.removeEventListener('focus', handleFocus)
     }
-    return () => window.removeEventListener('message', handleMessage)
-  }, [business])
+  }, [linkingGoogle])
 
   const handleLinkGoogle = async () => {
+    setLinkingGoogle(true)
     try {
-      const res = await client.get('/admin/auth/google/url')
-      if (res.data.url) {
-        window.open(res.data.url, 'GoogleAuth', 'width=500,height=600')
+      const { data } = await getGoogleAuthUrl()
+      if (data.url) {
+        window.open(data.url, 'GoogleAuth', 'width=500,height=600')
       } else {
-        toast.error('No se pudo establecer conexión con Google')
+        setLinkingGoogle(false)
+        toast.error('No se pudo obtener la URL de conexión')
       }
     } catch {
-      toast.error('Error al intentar abrir autenticación de Google')
+      setLinkingGoogle(false)
+      toast.error('Error al iniciar conexión con Google')
     }
   }
 
   const handleUnlinkGoogle = async () => {
+    if (!window.confirm('¿Estás seguro de desvincular Google? Se perderá el acceso a contactos y backups.')) return
     try {
-      const res = await client.delete('/admin/auth/google')
-      if (res.status === 200 || res.status === 204) {
-        const updatedBusiness = { ...business, google_linked: false, google_refresh_token: null }
-        localStorage.setItem('business', JSON.stringify(updatedBusiness))
-        setBusiness(updatedBusiness)
-        setGoogleLinked(false)
-        toast.success('Google Contacts se ha desvinculado.')
-      }
+      await unlinkGoogle()
+      setGoogleStatus({ linked: false, updated_at: null })
+      toast.success('Cuenta desvinculada')
     } catch {
-      toast.error('Error al intentar desvincular la cuenta.')
+      toast.error('Error al desvincular')
     }
   }
 
   const handleSave = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     setSaving(true)
     try {
-      const { data } = await client.put('/settings', settings)
-      setSettings({
-        cancellation_policy: data.cancellation_policy || '',
-        anticipation_margin: data.anticipation_margin || 0,
-        buffer_time: data.buffer_time || 0,
-        whatsapp_enabled: data.whatsapp_enabled || false
-      })
-      toast.success('Configuración guardada correctamente')
+      await client.put('/settings', settings)
+      toast.success('Configuración guardada')
     } catch {
-      toast.error('Error al guardar la configuración')
+      toast.error('Error al guardar')
     } finally {
       setSaving(false)
     }
@@ -109,145 +134,184 @@ export default function SettingsPage() {
 
   return (
     <Layout>
-      <div className="sticky top-14 z-20 bg-slate-50 py-4 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-b border-slate-200/50">
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Ajustes del Negocio</h1>
-          <p className="text-sm text-slate-500 mt-1">Configurá las reglas de reserva y tus integraciones.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Configuración</h1>
+          <p className="text-sm text-slate-500 mt-1">Gestioná las reglas de tu negocio e integraciones.</p>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto h-11 sm:h-10 shadow-md">
-          {saving ? 'Guardando...' : 'Guardar cambios'}
+        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto shadow-md">
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Guardar cambios
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3 border-b border-slate-100">
-            <CardTitle className="text-base">Reglas de Reserva</CardTitle>
-            <CardDescription>Establecé los márgenes de tiempo permitidos</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            {loading ? (
-              <p className="text-sm text-slate-400">Cargando...</p>
-            ) : (
-              <form onSubmit={handleSave} className="space-y-4">
+      <Tabs defaultValue="reglas" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 rounded-xl h-12">
+          <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Settings2 className="w-4 h-4 mr-2" /> Reglas de Negocio
+          </TabsTrigger>
+          <TabsTrigger value="integraciones" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Share2 className="w-4 h-4 mr-2" /> Integraciones
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="reglas" className="animate-in fade-in slide-in-from-bottom-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="shadow-sm border-slate-200">
+              <CardHeader>
+                <CardTitle className="text-lg">Tiempos y Márgenes</CardTitle>
+                <CardDescription>Controlá cuándo pueden reservar tus clientes.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>Margen de anticipación (minutos)</Label>
+                    <Label className="text-slate-700">Margen de anticipación (minutos)</Label>
                     <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-4 w-4 text-slate-400 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Cuántas horas antes el cliente puede reservar (ej: 2hs)</p>
-                      </TooltipContent>
+                      <TooltipTrigger><Info className="h-4 w-4 text-slate-400" /></TooltipTrigger>
+                      <TooltipContent>Mínimo tiempo antes del turno para reservar.</TooltipContent>
                     </Tooltip>
                   </div>
-                  <p className="text-xs text-slate-500">Cuánto tiempo antes como mínimo pueden sacar un turno.</p>
                   <input 
                     type="number" 
-                    min="0"
                     value={settings.anticipation_margin}
                     onChange={(e) => setSettings({...settings, anticipation_margin: parseInt(e.target.value) || 0})}
-                    className="flex h-11 md:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
+                    className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
                   />
                 </div>
-                
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>Tiempo buffer (minutos)</Label>
+                    <Label className="text-slate-700">Tiempo buffer (minutos)</Label>
                     <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-4 w-4 text-slate-400 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Tiempo de limpieza entre turnos (ej: 15 min)</p>
-                      </TooltipContent>
+                      <TooltipTrigger><Info className="h-4 w-4 text-slate-400" /></TooltipTrigger>
+                      <TooltipContent>Descanso/limpieza entre turnos.</TooltipContent>
                     </Tooltip>
                   </div>
-                  <p className="text-xs text-slate-500">Tiempo de margen luego de un turno antes de permitir otro.</p>
                   <input 
                     type="number" 
-                    min="0"
                     value={settings.buffer_time}
                     onChange={(e) => setSettings({...settings, buffer_time: parseInt(e.target.value) || 0})}
-                    className="flex h-11 md:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
+                    className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
                   />
                 </div>
+              </CardContent>
+            </Card>
 
+            <Card className="shadow-sm border-slate-200">
+              <CardHeader>
+                <CardTitle className="text-lg">Políticas y Comunicaciones</CardTitle>
+                <CardDescription>Configurá qué ven tus clientes.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Política de cancelación</Label>
-                  <p className="text-xs text-slate-500">Texto que verá el cliente al momento de reservar.</p>
+                  <Label className="text-slate-700">Política de cancelación</Label>
                   <textarea 
                     value={settings.cancellation_policy}
                     onChange={(e) => setSettings({...settings, cancellation_policy: e.target.value})}
-                    rows={3}
-                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 min-h-[44px] text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
-                    placeholder="Ej: Solo es posible cancelar con 12 hs de anticipación."
+                    rows={4}
+                    className="flex w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
+                    placeholder="Ej: Cancelaciones con 24hs de anticipación."
                   />
                 </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3 border-b border-slate-100">
-            <CardTitle className="text-base">Sincronización de Agenda Libreta</CardTitle>
-            <CardDescription>Conectá tu cuenta de Google Contacts</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">
-              Conectá tu cuenta de Google para agendar a todos los pacientes automáticamente en los contactos de tu celular en tiempo real, sin escribir sus números a mano.
-            </p>
-            
-            {!googleLinked ? (
-              <Button 
-                className="w-full bg-[#4285F4] hover:bg-[#3367D6] text-white shadow-sm flex items-center justify-center gap-2 h-11 transition-all" 
-                onClick={handleLinkGoogle}
-              >
-                <div className="bg-white p-1 rounded-full w-6 h-6 flex items-center justify-center text-[#4285F4] font-bold text-xs">G</div>
-                Vincular Google Contacts
-              </Button>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-lg border border-emerald-200">
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-semibold text-sm">Cuenta de Google Vinculada</span>
-                </div>
-                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-100 self-start" onClick={handleUnlinkGoogle}>
-                  Desvincular cuenta
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3 border-b border-slate-100">
-            <CardTitle className="text-base">Notificaciones</CardTitle>
-            <CardDescription>Avisá automáticamente a tus clientes</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between border border-emerald-100 bg-emerald-50/30 p-4 rounded-xl">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm font-semibold text-slate-900">Recordatorios por WhatsApp</Label>
-                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded shadow-sm">PRÓXIMAMENTE</span>
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-semibold">Recordatorios por WhatsApp</Label>
+                    <p className="text-xs text-slate-500">Próximamente activación automática.</p>
                   </div>
-                  <p className="text-xs text-slate-500">
-                    Enviaremos un mensaje a tu cliente 1 día antes para recordarle el turno.
-                  </p>
+                  <Switch 
+                    checked={settings.whatsapp_enabled}
+                    onCheckedChange={(checked) => setSettings({...settings, whatsapp_enabled: checked})}
+                  />
                 </div>
-                <Switch 
-                  checked={settings.whatsapp_enabled}
-                  onCheckedChange={(checked) => setSettings({...settings, whatsapp_enabled: checked})}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="integraciones" className="animate-in fade-in slide-in-from-bottom-2">
+          <div className="max-w-2xl">
+            <Card className="shadow-sm border-slate-200 overflow-hidden">
+              <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+                      <Cloud className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Google Pack Integration</CardTitle>
+                      <CardDescription>Agenda, Backup y Notificaciones.</CardDescription>
+                    </div>
+                  </div>
+                  {googleStatus.linked && (
+                    <span className="flex items-center gap-1.5 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Encriptado & Seguro
+                    </span>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2">
+                    <Loader2 className="w-5 h-5 text-blue-500" />
+                    <p className="text-xs font-bold">Contactos</p>
+                    <p className="text-[10px] text-slate-500">Agendar pacientes automáticamente.</p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2">
+                    <Cloud className="w-5 h-5 text-emerald-500" />
+                    <p className="text-xs font-bold">Drive Backup</p>
+                    <p className="text-[10px] text-slate-500">Respaldos diarios de tu base selectiva.</p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2">
+                    <ExternalLink className="w-5 h-5 text-purple-500" />
+                    <p className="text-xs font-bold">Gmail SMS</p>
+                    <p className="text-[10px] text-slate-500">Notificaciones vía SMTP de Google.</p>
+                  </div>
+                </div>
+
+                {!googleStatus.linked ? (
+                  <Button 
+                    variant="outline"
+                    className="w-full h-12 border-slate-200 hover:bg-slate-50 gap-3 font-semibold text-slate-700"
+                    onClick={handleLinkGoogle}
+                    disabled={linkingGoogle}
+                  >
+                    {linkingGoogle ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                    )}
+                    {linkingGoogle ? 'Esperando confirmación...' : 'Vincular Google Workspace / Gmail'}
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-emerald-900">Google Pack Vinculado</p>
+                        <p className="text-xs text-emerald-600">Sincronización activa multidispositivo.</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-emerald-400 hover:text-red-500 hover:bg-red-50"
+                      onClick={handleUnlinkGoogle}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </Layout>
   )
 }

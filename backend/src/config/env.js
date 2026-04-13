@@ -13,6 +13,7 @@ export const ENV = {
         password: process.env.DB_PASSWORD,
       },
   JWT_SECRET: process.env.JWT_SECRET,
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
   GREEN_API: {
     INSTANCE_ID: process.env.GREEN_API_INSTANCE_ID,
     TOKEN: process.env.GREEN_API_TOKEN,

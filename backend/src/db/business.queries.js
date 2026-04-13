@@ -34,13 +34,6 @@ export const findBusinessById = async (id) => {
   return result.rows[0]
 }
 
-export const updateGoogleRefreshToken = async (id, token) => {
-  const result = await pool.query(
-    'UPDATE businesses SET google_refresh_token = $1 WHERE id = $2 RETURNING *',
-    [token, id]
-  )
-  return result.rows[0]
-}
 
 export const updateBusinessSettings = async (id, settings) => {
   const { cancellation_policy, anticipation_margin, buffer_time, whatsapp_enabled } = settings

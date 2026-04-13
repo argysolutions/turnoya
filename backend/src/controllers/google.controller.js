@@ -1,13 +1,12 @@
 import { getGoogleAuthUrl, handleGoogleCallback } from '../services/google.service.js'
+import { findConnection, removeConnection } from '../db/connections.queries.js'
 
 export const getGoogleAuthUrlHandler = async (req, reply) => {
-  // Verificamos que el usuario esté logueado como dueño del negocio (el middleware nos debió dejar req.business)
   if (!req.business || !req.business.id) {
-    return reply.status(401).send({ error: 'No autorizado, debe iniciar sesión en el panel' })
+    return reply.status(401).send({ error: 'No autorizado' })
   }
 
   const url = getGoogleAuthUrl(req.business.id)
-  
   reply.send({ url })
 }
 
@@ -15,50 +14,69 @@ export const googleCallbackHandler = async (req, reply) => {
   const { code, state } = req.query
 
   if (!code || !state) {
-    return reply.status(400).send({ error: 'Faltan parámetros requeridos de Google' })
+    return reply.status(400).send({ error: 'Faltan parámetros' })
   }
 
-  // El state enviamos el businessId
   const businessId = parseInt(state)
 
   try {
     await handleGoogleCallback(code, businessId)
-    // Tras guardarlo exitosamente en la DB, enviamos un HTML que cierra la ventana
-    // y notifica a la ventana principal, o redirige si no era un popup.
+    
+    // HTML de éxito para cerrar el popup
     const html = `
       <html>
-        <body>
+        <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #f8fafc;">
           <script>
             if (window.opener) {
               window.opener.postMessage('GOOGLE_AUTH_SUCCESS', '*');
               window.close();
             } else {
-              window.location.href = '/dashboard?google_auth=success';
+              window.location.href = '/dashboard/settings?google_auth=success';
             }
           </script>
-          <p>Autenticación completada. Cerrando ventana...</p>
+          <div style="text-align: center;">
+            <p style="color: #0f172a; font-weight: bold;">Autenticación completada con éxito.</p>
+            <p style="color: #64748b; font-size: 14px;">Cerrando esta ventana...</p>
+          </div>
         </body>
       </html>
     `
     reply.type('text/html').send(html)
   } catch (error) {
-    console.error('Error durante el callback de Google:', error)
+    console.error('Error Google Callback:', error)
     const errorHtml = `
       <html>
-        <body>
+        <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #fff1f2;">
           <script>
             if (window.opener) {
               window.opener.postMessage('GOOGLE_AUTH_ERROR', '*');
               window.close();
-            } else {
-              window.location.href = '/dashboard?google_auth=error';
             }
           </script>
-          <p>Hubo un error. Cerrando ventana...</p>
+          <p style="color: #be123c; font-weight: bold;">Hubo un error al vincular tu cuenta.</p>
         </body>
       </html>
     `
     reply.type('text/html').send(errorHtml)
+  }
+}
+
+/**
+ * Devuelve el estado de la conexión Google para el negocio
+ */
+export const getGoogleStatusHandler = async (req, reply) => {
+  if (!req.business || !req.business.id) {
+    return reply.status(401).send({ error: 'No autorizado' })
+  }
+
+  try {
+    const connection = await findConnection(req.business.id, 'google')
+    reply.send({
+      linked: !!(connection && connection.refresh_token),
+      updated_at: connection?.updated_at || null
+    })
+  } catch (err) {
+    reply.status(500).send({ error: 'Error al obtener estado de Google' })
   }
 }
 
@@ -67,13 +85,10 @@ export const removeGoogleAuthHandler = async (req, reply) => {
     return reply.status(401).send({ error: 'No autorizado' })
   }
   
-  // Borramos el token de la DB usando el update que ya existe pasándole null
   try {
-    const { updateGoogleRefreshToken } = await import('../db/business.queries.js');
-    await updateGoogleRefreshToken(req.business.id, null);
+    await removeConnection(req.business.id, 'google')
     reply.send({ success: true, message: 'Google desvinculado exitosamente' })
   } catch (err) {
-    console.error(err)
     reply.status(500).send({ error: 'Error al desvincular la cuenta' })
   }
 }

@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import Layout from '@/components/shared/Layout'
-import { getSales, postExpense, deleteExpense, getFinancesSummary, getExpenses } from '@/api/sales'
+import {
+  getSales, postExpense, deleteExpense, getFinancesSummary, getExpenses,
+  getCashSession, openCashSession, closeCashSession,
+} from '@/api/sales'
 import { getAppointment } from '@/api/appointments'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +14,7 @@ import {
   CreditCard, Wallet, ArrowLeftRight, HelpCircle, Eye, EyeOff,
   PlusCircle, Trash2, X, DollarSign, User, Lock, Unlock,
   Share2, ChevronDown, ChevronUp, Scissors, Phone, Clock,
-  AlertTriangle, CheckCircle2, Info,
+  AlertTriangle, CheckCircle2, Info, Cloud,
 } from 'lucide-react'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -40,7 +43,7 @@ const addDays = (dateStr, n) => {
   return d.toISOString().split('T')[0]
 }
 
-const CAJA_SESSION_KEY = (businessId, date) => `caja_session_${businessId}_${date}`
+// Comisiones siguen siendo preferencias de UI (no datos financieros)
 const COMMISSION_RATE_KEY = (name) => `commission_rate_${name}`
 
 const METHOD_ICON = {
@@ -74,15 +77,9 @@ const generateWhatsAppText = ({ date, summary, byMethod, session, expenses }) =>
   const gastos = summary?.totalExpenses ?? 0
   const neto = (summary?.totalIncome ?? 0) - gastos
 
-  const expEfectivo = expenses.reduce(
-    (acc, e) => acc + (e.category !== 'Digital' ? parseFloat(e.amount || 0) : 0), 0
-  )
-  const montoInicial = session?.initialAmount ?? 0
-  const efectivoEsperado = montoInicial + efectivo - expEfectivo
-
   let arqueoLine = ''
-  if (session?.closedAt) {
-    const diff = (session.countedAmount ?? 0) - efectivoEsperado
+  if (session?.status === 'closed' && session?.difference != null) {
+    const diff = session.difference
     const sign = diff >= 0 ? '🟢 Sobrante' : '🔴 Faltante'
     arqueoLine = `\n📋 *Arqueo*: ${sign} ${fmt(Math.abs(diff))}`
   }
@@ -112,9 +109,7 @@ const printReport = ({ sales, summary, byMethod, date, businessName, session, ex
   const transTotal      = byMethod['Transferencia']?.total ?? 0
   const tarjetaTotal    = byMethod['Tarjeta']?.total ?? 0
   const digitalTotal    = transTotal + tarjetaTotal
-  const expEfectivo     = expenses.reduce((a, e) => a + parseFloat(e.amount || 0), 0)
-  const montoInicial    = session?.initialAmount ?? 0
-  const efectivoEsperado = montoInicial + efectivoTotal - expEfectivo
+  const expectedCash    = session?.expected_cash ?? (session?.initial_amount ?? 0)
 
   const salesRows = sales.map(s => `
     <tr>
@@ -134,18 +129,18 @@ const printReport = ({ sales, summary, byMethod, date, businessName, session, ex
     </tr>`).join('')
 
   let arqueoHtml = ''
-  if (session?.closedAt) {
-    const diff = (session.countedAmount ?? 0) - efectivoEsperado
+  if (session?.status === 'closed' && session?.difference != null) {
+    const diff = session.difference
     const diffColor = diff >= 0 ? '#059669' : '#dc2626'
     const diffLabel = diff >= 0 ? 'Sobrante' : 'Faltante'
     arqueoHtml = `
       <h2 style="margin:24px 0 8px">Arqueo de Caja</h2>
       <table>
-        <tr><td>Monto Inicial</td><td style="text-align:right">${fmt(montoInicial)}</td></tr>
-        <tr><td>+ Ventas Efectivo</td><td style="text-align:right">${fmt(efectivoTotal)}</td></tr>
-        <tr><td>− Gastos Efectivo</td><td style="text-align:right">${fmt(expEfectivo)}</td></tr>
-        <tr style="font-weight:700"><td>Efectivo Esperado</td><td style="text-align:right">${fmt(efectivoEsperado)}</td></tr>
-        <tr><td>Efectivo Contado</td><td style="text-align:right">${fmt(session.countedAmount)}</td></tr>
+        <tr><td>Monto Inicial</td><td style="text-align:right">${fmt(session.initial_amount)}</td></tr>
+        <tr><td>+ Ventas Efectivo</td><td style="text-align:right">${fmt(session.cash_sales ?? efectivoTotal)}</td></tr>
+        <tr><td>− Gastos Efectivo</td><td style="text-align:right">${fmt(session.cash_expenses ?? 0)}</td></tr>
+        <tr style="font-weight:700"><td>Efectivo Esperado</td><td style="text-align:right">${fmt(expectedCash)}</td></tr>
+        <tr><td>Efectivo Contado</td><td style="text-align:right">${fmt(session.counted_amount)}</td></tr>
         <tr style="font-weight:700;color:${diffColor}"><td>${diffLabel}</td><td style="text-align:right">${fmt(Math.abs(diff))}</td></tr>
       </table>`
   }
@@ -204,30 +199,44 @@ const printReport = ({ sales, summary, byMethod, date, businessName, session, ex
 
 // ─── Apertura de Caja ────────────────────────────────────────────────────────
 
-function AperturaBanner({ onOpen }) {
+function AperturaBanner({ onOpen, loading: parentLoading }) {
   const [amount, setAmount] = useState('')
   const [open, setOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  const handleOpen = () => {
+  const handleOpen = async () => {
     const v = parseFloat(amount)
     if (isNaN(v) || v < 0) return toast.error('Ingresá un monto válido (puede ser 0)')
-    onOpen(v)
-    toast.success('Caja abierta')
+    setSaving(true)
+    try {
+      await onOpen(v)
+      setOpen(false)
+      setAmount('')
+    } catch {
+      // error ya manejado por padre
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <div className="mb-5 rounded-2xl border-2 border-dashed border-amber-200 bg-amber-50 p-5">
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
-          <Lock className="w-4 h-4 text-amber-600" />
+    <div className="mb-5 rounded-2xl border-2 border-dashed border-amber-200 bg-amber-50/50 p-5 group hover:bg-amber-50 transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5 shadow-sm group-hover:scale-105 transition-transform">
+          <Lock className="w-5 h-5 text-amber-600" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-bold text-amber-800">Caja cerrada</p>
-          <p className="text-xs text-amber-600 mt-0.5">
-            Registrá el fondo inicial para habilitar el arqueo al cierre del día.
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-amber-800 uppercase tracking-tight">Caja cerrada hoy</p>
+            <span className="text-[10px] font-bold bg-amber-200/50 text-amber-700 px-1.5 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-1">
+              <Cloud className="w-2.5 h-2.5" /> Nube Activa
+            </span>
+          </div>
+          <p className="text-xs text-amber-600/80 mt-1 leading-relaxed">
+            Registrá el fondo inicial para habilitar el arqueo automático. Todos los ingresos y gastos se sincronizarán en tiempo real.
           </p>
           {open ? (
-            <div className="mt-3 flex items-center gap-2 max-w-xs">
+            <div className="mt-4 flex items-center gap-2 max-w-sm animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="relative flex-1">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-sm font-medium">$</span>
                 <input
@@ -237,22 +246,25 @@ function AperturaBanner({ onOpen }) {
                   placeholder="Ej: 5000"
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleOpen()}
+                  onKeyDown={e => e.key === 'Enter' && !saving && handleOpen()}
                   autoFocus
-                  className="w-full h-10 rounded-xl border border-amber-200 bg-white pl-7 pr-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+                  disabled={saving}
+                  className="w-full h-11 rounded-xl border border-amber-200 bg-white pl-7 pr-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all shadow-sm disabled:opacity-50"
                 />
               </div>
               <Button
                 onClick={handleOpen}
-                className="h-10 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shrink-0"
+                disabled={saving}
+                className="h-11 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold shrink-0 shadow-md active:scale-95 transition-all"
               >
-                Abrir Caja
+                {saving ? 'Abriendo…' : 'Abrir Caja'}
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 rounded-xl shrink-0 text-amber-500"
+                className="h-11 w-11 rounded-xl shrink-0 text-amber-400 hover:text-amber-600 hover:bg-amber-100/50"
                 onClick={() => setOpen(false)}
+                disabled={saving}
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -260,9 +272,10 @@ function AperturaBanner({ onOpen }) {
           ) : (
             <button
               onClick={() => setOpen(true)}
-              className="mt-3 text-xs font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors"
+              disabled={parentLoading}
+              className="mt-4 flex items-center gap-2 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors disabled:opacity-50"
             >
-              Ingresar monto inicial →
+              Fondo inicial de apertura <ArrowLeftRight className="w-3 h-3" />
             </button>
           )}
         </div>
@@ -273,30 +286,41 @@ function AperturaBanner({ onOpen }) {
 
 // ─── Cierre de Caja Modal ────────────────────────────────────────────────────
 
-function CierreCajaModal({ session, efectivoVentas, expenses, onClose, onClose2 }) {
-  const expEfectivo = expenses.reduce((a, e) => a + parseFloat(e.amount || 0), 0)
-  const efectivoEsperado = (session?.initialAmount ?? 0) + efectivoVentas - expEfectivo
+function CierreCajaModal({ session, onClose, onClosed }) {
+  const expectedCash   = session?.expected_cash   ?? 0
+  const initialAmount  = session?.initial_amount  ?? 0
+  const cashSales      = session?.cash_sales      ?? 0
+  const cashExpenses   = session?.cash_expenses   ?? 0
 
   const [counted, setCounted] = useState('')
-  const [result, setResult] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [saving, setSaving]   = useState(false)
 
-  const calcular = () => {
+  // Preview local (antes de confirmar)
+  const calcularPreview = () => {
     const v = parseFloat(counted)
     if (isNaN(v) || v < 0) return toast.error('Ingresá un monto válido')
-    const diff = v - efectivoEsperado
-    setResult({ counted: v, difference: diff })
+    setPreview({ counted: v, difference: v - expectedCash })
   }
 
-  const confirmar = () => {
-    if (!result) return
-    onClose2({ countedAmount: result.counted, difference: result.difference })
-    toast.success('Caja cerrada correctamente')
-    onClose()
+  const confirmar = async () => {
+    if (!preview) return
+    setSaving(true)
+    try {
+      const { data } = await closeCashSession(preview.counted)
+      toast.success('Caja cerrada correctamente')
+      onClosed(data.session)
+      onClose()
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Error al cerrar la caja')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={!saving ? onClose : undefined} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -306,32 +330,38 @@ function CierreCajaModal({ session, efectivoVentas, expenses, onClose, onClose2 
             </div>
             <h2 className="text-base font-bold text-slate-900">Cerrar Caja</h2>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+          <button onClick={onClose} disabled={saving} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-30">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
-          {/* Cálculo esperado */}
+          {/* Cálculo esperado (calculado en el servidor) */}
           <div className="rounded-xl bg-slate-50 border border-slate-100 divide-y divide-slate-100 text-sm">
             <div className="flex justify-between items-center px-4 py-2.5">
               <span className="text-slate-500">Monto Inicial</span>
-              <span className="font-semibold text-slate-800">{fmt(session?.initialAmount ?? 0)}</span>
+              <span className="font-semibold text-slate-800">{fmt(initialAmount)}</span>
             </div>
             <div className="flex justify-between items-center px-4 py-2.5">
               <span className="text-slate-500">+ Ventas en Efectivo</span>
-              <span className="font-semibold text-emerald-700">{fmt(efectivoVentas)}</span>
+              <span className="font-semibold text-emerald-700">{fmt(cashSales)}</span>
             </div>
             <div className="flex justify-between items-center px-4 py-2.5">
               <span className="text-slate-500">− Gastos en Efectivo</span>
-              <span className="font-semibold text-red-600">{fmt(expEfectivo)}</span>
+              <span className="font-semibold text-red-600">{fmt(cashExpenses)}</span>
             </div>
             <div className="flex justify-between items-center px-4 py-2.5 bg-slate-100 rounded-b-xl">
               <span className="font-bold text-slate-900">Efectivo Esperado</span>
-              <span className="font-extrabold text-slate-900 text-base">{fmt(efectivoEsperado)}</span>
+              <span className="font-extrabold text-slate-900 text-base">{fmt(expectedCash)}</span>
             </div>
           </div>
+
+          {/* Nota de precisión */}
+          <p className="text-[11px] text-slate-400 flex items-center gap-1.5 -mt-1">
+            <Cloud className="w-3 h-3 shrink-0" />
+            Calculado desde la apertura · {fmtTime(session?.opened_at)} hs
+          </p>
 
           {/* Input conteo */}
           <div>
@@ -346,28 +376,30 @@ function CierreCajaModal({ session, efectivoVentas, expenses, onClose, onClose2 
                 step="100"
                 placeholder="0,00"
                 value={counted}
-                onChange={e => { setCounted(e.target.value); setResult(null) }}
-                onKeyDown={e => e.key === 'Enter' && calcular()}
+                onChange={e => { setCounted(e.target.value); setPreview(null) }}
+                onKeyDown={e => e.key === 'Enter' && !saving && calcularPreview()}
                 autoFocus
-                className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 pl-7 pr-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                disabled={saving}
+                className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 pl-7 pr-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all disabled:opacity-50"
               />
             </div>
           </div>
 
           {/* Resultado */}
-          {result && (
-            <div className={`rounded-xl border-2 p-4 flex items-center gap-3 ${result.difference >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
-              {result.difference >= 0
+          {preview && (
+            <div className={`rounded-xl border-2 p-4 flex items-center gap-3 ${preview.difference >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+              {preview.difference >= 0
                 ? <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                 : <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
               }
               <div>
-                <p className={`text-sm font-bold ${result.difference >= 0 ? 'text-emerald-800' : 'text-red-700'}`}>
-                  {result.difference >= 0 ? 'Sobrante' : 'Faltante'}: {fmt(Math.abs(result.difference))}
+                <p className={`text-sm font-bold ${preview.difference >= 0 ? 'text-emerald-800' : 'text-red-700'}`}>
+                  {preview.difference >= 0 ? 'Sobrante' : 'Faltante'}:{' '}
+                  {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Math.abs(preview.difference))}
                 </p>
-                <p className={`text-xs mt-0.5 ${result.difference >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                  {result.difference === 0 ? 'Caja cuadrada perfectamente.' :
-                    result.difference > 0 ? 'Hay más dinero del esperado.' : 'Falta dinero respecto al esperado.'}
+                <p className={`text-xs mt-0.5 ${preview.difference >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {preview.difference === 0 ? 'Caja cuadrada perfectamente.' :
+                    preview.difference > 0 ? 'Hay más dinero del esperado.' : 'Falta dinero respecto al esperado.'}
                 </p>
               </div>
             </div>
@@ -375,18 +407,97 @@ function CierreCajaModal({ session, efectivoVentas, expenses, onClose, onClose2 
 
           {/* Buttons */}
           <div className="flex gap-3 pt-1">
-            {!result ? (
+            {!preview ? (
               <>
-                <Button variant="outline" className="flex-1 h-10 rounded-xl border-slate-200 text-slate-600" onClick={onClose}>Cancelar</Button>
-                <Button className="flex-1 h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800" onClick={calcular}>Calcular</Button>
+                <Button variant="outline" className="flex-1 h-10 rounded-xl border-slate-200 text-slate-600" onClick={onClose} disabled={saving}>Cancelar</Button>
+                <Button className="flex-1 h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800" onClick={calcularPreview} disabled={saving}>Calcular</Button>
               </>
             ) : (
               <>
-                <Button variant="outline" className="flex-1 h-10 rounded-xl border-slate-200 text-slate-600" onClick={() => setResult(null)}>Recalcular</Button>
-                <Button className="flex-1 h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800" onClick={confirmar}>Confirmar Cierre</Button>
+                <Button variant="outline" className="flex-1 h-10 rounded-xl border-slate-200 text-slate-600" onClick={() => setPreview(null)} disabled={saving}>Recalcular</Button>
+                <Button className="flex-1 h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800" onClick={confirmar} disabled={saving}>
+                  {saving ? 'Cerrando…' : 'Confirmar Cierre'}
+                </Button>
               </>
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Sesión Cerrada — Banner de Arqueo ────────────────────────────────────────
+
+function ArqueoBanner({ session }) {
+  if (!session || session.status !== 'closed' || session.difference == null) return null
+
+  const diff = session.difference
+  const isPositive = diff >= 0
+  const fmtDiff = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Math.abs(diff))
+
+  return (
+    <div className={`mb-5 rounded-2xl border-2 overflow-hidden shadow-lg transition-all duration-500 animate-in zoom-in-95 ${isPositive ? 'bg-emerald-50 border-emerald-200 shadow-emerald-100' : 'bg-red-50 border-red-200 shadow-red-100'}`}>
+      {/* Header */}
+      <div className={`px-5 py-4 flex items-center gap-4 ${isPositive ? 'bg-emerald-500 text-white' : 'bg-red-600 text-white'}`}>
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner ${isPositive ? 'bg-emerald-400' : 'bg-red-500'}`}>
+          <CheckCircle2 className="w-7 h-7" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-bold uppercase tracking-widest opacity-80">Resultado del Arqueo</p>
+          <p className="text-lg font-black leading-tight">Caja cerrada: {fmtTime(session.closed_at)} hs</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2 py-0.5 rounded-full inline-block mb-1">
+            {isPositive ? 'Sobrante' : 'Faltante'}
+          </p>
+          <p className="text-2xl font-black tabular-nums">{isPositive ? '+' : '-'}{fmtDiff}</p>
+        </div>
+      </div>
+
+      {/* Info Bar */}
+      <div className={`px-5 py-2.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider ${isPositive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+        <span className="flex items-center gap-1.5"><Cloud className="w-3 h-3" /> Respaldo en la nube activado</span>
+        <span>Apertura: {fmtTime(session.opened_at)} hs</span>
+      </div>
+
+      {/* Detalle de arqueo */}
+      <div className="px-5 py-5 grid grid-cols-3 gap-6 bg-white/40">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Efectivo Esperado</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-xs text-slate-400">$</span>
+            <p className="text-lg font-black text-slate-800 tabular-nums">
+              {new Intl.NumberFormat('es-AR').format(session.expected_cash ?? 0)}
+            </p>
+          </div>
+          <p className="text-[9px] text-slate-400 mt-0.5 font-medium">Cálculo del Servidor</p>
+        </div>
+        <div className="relative">
+          <div className="absolute inset-y-0 -left-3 w-px bg-slate-100" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Efectivo Contado</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-xs text-slate-400">$</span>
+            <p className="text-lg font-black text-slate-800 tabular-nums">
+              {new Intl.NumberFormat('es-AR').format(session.counted_amount ?? 0)}
+            </p>
+          </div>
+          <p className="text-[9px] text-slate-400 mt-0.5 font-medium">Ingreso Manual</p>
+        </div>
+        <div className="relative">
+          <div className="absolute inset-y-0 -left-3 w-px bg-slate-100" />
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+            Diferencia Caja
+          </p>
+          <div className="flex items-baseline gap-1">
+            <span className={`text-xs font-bold ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>{isPositive ? '+' : '-'} $</span>
+            <p className={`text-lg font-black tabular-nums ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+              {new Intl.NumberFormat('es-AR').format(Math.abs(diff))}
+            </p>
+          </div>
+          <p className={`text-[9px] font-medium ${isPositive ? 'text-emerald-500/70' : 'text-red-500/70'}`}>
+            {isPositive ? 'Dinero de más' : 'Dinero de menos'}
+          </p>
         </div>
       </div>
     </div>
@@ -539,7 +650,7 @@ function SaleDetailDrawer({ sale, onClose }) {
 
 // ─── Expense Modal ────────────────────────────────────────────────────────────
 
-function ExpenseModal({ onClose, onSaved }) {
+function ExpenseModal({ onClose, onSaved, sessionLocked }) {
   const [form, setForm] = useState({ description: '', amount: '', category: 'General', created_at: today() })
   const [saving, setSaving] = useState(false)
 
@@ -572,6 +683,12 @@ function ExpenseModal({ onClose, onSaved }) {
             <X className="w-5 h-5" />
           </button>
         </div>
+        {sessionLocked && (
+          <div className="mx-6 mt-4 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-700 flex items-center gap-2">
+            <Lock className="w-3.5 h-3.5 shrink-0" />
+            La caja está cerrada. El gasto se registrará fuera del período de la sesión.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Descripción *</label>
@@ -727,7 +844,7 @@ function ProfesionalesSection({ professionals, hidden, defaultRate }) {
 
 // ─── Expenses List ────────────────────────────────────────────────────────────
 
-function ExpensesList({ date, hidden, display, onDelete, deletingId }) {
+function ExpensesList({ date, hidden, display, onDelete, deletingId, sessionLocked }) {
   const [expenses, setExpenses] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -761,10 +878,15 @@ function ExpensesList({ date, hidden, display, onDelete, deletingId }) {
           <span className={`text-sm font-bold text-red-600 tabular-nums ${hidden ? 'blur-sm select-none' : ''}`}>
             -{display(exp.amount)}
           </span>
-          <button onClick={() => onDelete(exp.id)} disabled={deletingId === exp.id}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 disabled:opacity-30">
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {!sessionLocked && (
+            <button onClick={() => onDelete(exp.id)} disabled={deletingId === exp.id}
+              className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 disabled:opacity-30">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {sessionLocked && (
+            <Lock className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
         </div>
       ))}
     </div>
@@ -790,34 +912,50 @@ export default function CajaPage() {
   const [deletingId, setDeletingId]   = useState(null)
   const [filterProfessional, setFilterProfessional] = useState('all')
 
+  // ── Sesión de caja (desde DB) ────────────────────────────────────────────
+  const [session, setSession]         = useState(null)
+  const [sessionLoading, setSessionLoading] = useState(true)
+
   const business = useMemo(() => JSON.parse(localStorage.getItem('business') || '{}'), [])
 
-  // ── Sesión de caja ──────────────────────────────────────────────────────
-  const sessionKey = useMemo(() => CAJA_SESSION_KEY(business.id, date), [business.id, date])
+  const isToday = date === today()
 
-  const [session, setSession] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(sessionKey)) } catch { return null }
-  })
+  // ── Fetch sesión ─────────────────────────────────────────────────────────
+  const fetchSession = useCallback(async (forDate) => {
+    setSessionLoading(true)
+    try {
+      const { data } = await getCashSession(forDate)
+      setSession(data.session)
+    } catch {
+      setSession(null)
+    } finally {
+      setSessionLoading(false)
+    }
+  }, [])
 
-  // Resincronizar sesión cuando cambia la fecha
+  // Al cambiar de fecha, recargar sesión
   useEffect(() => {
-    try { setSession(JSON.parse(localStorage.getItem(sessionKey))) }
-    catch { setSession(null) }
-  }, [sessionKey])
+    fetchSession(date)
+  }, [date, fetchSession])
 
-  const openCaja = useCallback((initialAmount) => {
-    const s = { openedAt: new Date().toISOString(), initialAmount }
-    localStorage.setItem(sessionKey, JSON.stringify(s))
-    setSession(s)
-  }, [sessionKey])
+  // ── Handlers de sesión ───────────────────────────────────────────────────
+  const handleOpenCaja = useCallback(async (initialAmount) => {
+    try {
+      const { data } = await openCashSession(initialAmount)
+      setSession(data.session)
+      toast.success('¡Caja abierta!')
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'Error al abrir la caja'
+      toast.error(msg)
+      throw err
+    }
+  }, [])
 
-  const closeCaja = useCallback(({ countedAmount, difference }) => {
-    const s = { ...session, closedAt: new Date().toISOString(), countedAmount, difference }
-    localStorage.setItem(sessionKey, JSON.stringify(s))
-    setSession(s)
-  }, [session, sessionKey])
+  const handleClosed = useCallback((newSession) => {
+    setSession(newSession)
+  }, [])
 
-  // ── Fetch data ──────────────────────────────────────────────────────────
+  // ── Fetch datos financieros ──────────────────────────────────────────────
   const fetchAll = useCallback(async (d) => {
     setLoading(true)
     try {
@@ -837,9 +975,19 @@ export default function CajaPage() {
 
   useEffect(() => { fetchAll(date) }, [date, fetchAll])
 
-  const isToday = date === today()
+  // Re-fetch al recuperar el foco (para "Actualización Instantánea" al volver de otras páginas/pestañas)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (!loading && !sessionLoading) {
+        fetchAll(date)
+        fetchSession(date)
+      }
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [date, fetchAll, fetchSession, loading, sessionLoading])
 
-  // ── Derivados ────────────────────────────────────────────────────────────
+  // ── Derivados ─────────────────────────────────────────────────────────────
 
   const professionals = useMemo(() => {
     const map = {}
@@ -873,13 +1021,17 @@ export default function CajaPage() {
     return acc
   }, [filteredSales])
 
-  // Efectivo disponible (cajón físico) y Total Digital
+  // Efectivo disponible: usa datos del servidor si hay sesión activa
   const efectivoDisponible = useMemo(() => {
-    const ventasEfectivo   = byMethodFiltered['Efectivo']?.total ?? 0
-    const gastosEfectivo   = expenses.reduce((a, e) => a + parseFloat(e.amount || 0), 0)
-    const montoInicial     = session?.initialAmount ?? 0
-    return montoInicial + ventasEfectivo - gastosEfectivo
-  }, [byMethodFiltered, expenses, session])
+    if (session?.status === 'open') {
+      // Usa stats calculadas en tiempo real por el servidor
+      return session.expected_cash ?? 0
+    }
+    // Fallback: cálculo local por día
+    const ventasEfectivo = byMethodFiltered['Efectivo']?.total ?? 0
+    const gastosEfectivo = expenses.reduce((a, e) => a + parseFloat(e.amount || 0), 0)
+    return ventasEfectivo - gastosEfectivo
+  }, [session, byMethodFiltered, expenses])
 
   const totalDigital = useMemo(() =>
     (byMethodFiltered['Transferencia']?.total ?? 0) + (byMethodFiltered['Tarjeta']?.total ?? 0),
@@ -892,9 +1044,13 @@ export default function CajaPage() {
 
   const netColor = displayNetBalance >= 0 ? 'green' : 'red'
 
+  // La sesión está cerrada y bloquea edición
+  const sessionLocked = session?.status === 'closed'
+
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleDeleteExpense = async (id) => {
+    if (sessionLocked) return toast.error('La caja está cerrada. No se pueden eliminar gastos del período.')
     if (!window.confirm('¿Eliminar este gasto?')) return
     setDeletingId(id)
     try {
@@ -922,15 +1078,20 @@ export default function CajaPage() {
     <Layout>
       {/* ── MODALES ── */}
       {showExpenseModal && (
-        <ExpenseModal onClose={() => setShowExpenseModal(false)} onSaved={() => fetchAll(date)} />
+        <ExpenseModal
+          onClose={() => setShowExpenseModal(false)}
+          onSaved={async () => {
+             await fetchAll(date)
+             if (isToday) await fetchSession(date)
+          }}
+          sessionLocked={sessionLocked}
+        />
       )}
-      {showCierreModal && (
+      {showCierreModal && session && (
         <CierreCajaModal
           session={session}
-          efectivoVentas={byMethodFiltered['Efectivo']?.total ?? 0}
-          expenses={expenses}
           onClose={() => setShowCierreModal(false)}
-          onClose2={closeCaja}
+          onClosed={handleClosed}
         />
       )}
       {drawerSale && (
@@ -947,8 +1108,8 @@ export default function CajaPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Cierre de caja — solo si hay sesión abierta y no cerrada */}
-            {session?.openedAt && !session?.closedAt && (
+            {/* Cierre de caja — solo si hay sesión abierta */}
+            {session?.status === 'open' && (
               <Button
                 onClick={() => setShowCierreModal(true)}
                 className="h-10 gap-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-sm"
@@ -989,36 +1150,34 @@ export default function CajaPage() {
         </div>
       </div>
 
-      {/* ── APERTURA DE CAJA (si no hay sesión hoy) ── */}
-      {isToday && !session && !loading && (
-        <AperturaBanner onOpen={openCaja} />
+      {/* ── APERTURA DE CAJA (si no hay sesión hoy y no está cargando) ── */}
+      {isToday && !session && !sessionLoading && !loading && (
+        <AperturaBanner onOpen={handleOpenCaja} loading={sessionLoading} />
       )}
 
-      {/* ── SESIÓN CERRADA BADGE ── */}
-      {session?.closedAt && (
-        <div className="mb-4 rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-3 flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-emerald-800">Caja cerrada</p>
-            <p className="text-xs text-emerald-600">
-              Cierre a las {fmtTime(session.closedAt)} hs · Diferencia: {' '}
-              <strong className={session.difference >= 0 ? 'text-emerald-700' : 'text-red-600'}>
-                {session.difference >= 0 ? '+' : ''}{fmt(session.difference)}
-              </strong>
-            </p>
+      {/* ── SESIÓN ABIERTA INFO ── */}
+      {session?.status === 'open' && (
+        <div className="mb-4 rounded-2xl bg-white border border-slate-100 p-4 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
+               <Unlock className="w-5 h-5 text-emerald-600" />
+             </div>
+             <div>
+               <p className="text-sm font-bold text-slate-800">Caja abierta multidispositivo</p>
+               <p className="text-xs text-slate-500">
+                 Apertura: {fmtTime(session.opened_at)} hs · Fondo: <strong>{fmt(session.initial_amount)}</strong>
+               </p>
+             </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
+            <Cloud className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Respaldo en la Nube Activado ☁️</span>
           </div>
         </div>
       )}
 
-      {/* Sesión abierta info */}
-      {session?.openedAt && !session?.closedAt && (
-        <div className="mb-4 rounded-2xl bg-amber-50 border border-amber-100 px-4 py-2.5 flex items-center gap-2">
-          <Unlock className="w-4 h-4 text-amber-500 shrink-0" />
-          <p className="text-xs text-amber-700 flex-1">
-            Caja abierta a las {fmtTime(session.openedAt)} hs · Fondo inicial: <strong>{fmt(session.initialAmount)}</strong>
-          </p>
-        </div>
-      )}
+      {/* ── ARQUEO DE CAJA — Banner de sesión cerrada ── */}
+      <ArqueoBanner session={session} />
 
       {/* ── HERO TOTAL CARD ── */}
       <div className="mb-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-8 shadow-xl overflow-hidden relative">
@@ -1097,7 +1256,7 @@ export default function CajaPage() {
               label="Efectivo Disponible"
               amount={efectivoDisponible}
               color="amber" icon={Wallet} hidden={hidden}
-              subtitle="Dinero físico en el cajón"
+              subtitle={session?.status === 'open' ? `Desde ${fmtTime(session.opened_at)} hs` : 'Dinero físico en el cajón'}
             />
             <SummaryCard
               label="Total Digital"
@@ -1262,10 +1421,18 @@ export default function CajaPage() {
             <CardTitle className="text-sm uppercase tracking-wide text-slate-400 flex items-center gap-2">
               <TrendingDown className="w-4 h-4 text-red-400" />
               Gastos del día
+              {sessionLocked && <Lock className="w-3.5 h-3.5 text-slate-300 ml-auto" title="Período cerrado — solo lectura" />}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-2 pb-0">
-            <ExpensesList date={date} hidden={hidden} display={display} onDelete={handleDeleteExpense} deletingId={deletingId} />
+            <ExpensesList
+              date={date}
+              hidden={hidden}
+              display={display}
+              onDelete={handleDeleteExpense}
+              deletingId={deletingId}
+              sessionLocked={sessionLocked}
+            />
           </CardContent>
         </Card>
       )}
@@ -1290,10 +1457,10 @@ export default function CajaPage() {
         />
       )}
 
-      {/* ── FOOTER AVISO PRIVACIDAD ── */}
+      {/* ── FOOTER ── */}
       <div className="mt-6 mb-2 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-        <Info className="w-3 h-3" />
-        Sesión de caja guardada localmente en este navegador
+        <Cloud className="w-3 h-3" />
+        Sesión de caja sincronizada en la nube · multidispositivo
       </div>
     </Layout>
   )
