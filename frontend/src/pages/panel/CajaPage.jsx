@@ -7,8 +7,11 @@ import {
 import { getSettings } from '@/api/business'
 import { getAppointment } from '@/api/appointments'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   Tooltip,
   TooltipContent,
