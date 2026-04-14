@@ -1,6 +1,8 @@
 import { getGoogleAuthUrl, handleGoogleCallback } from '../services/google.service.js'
 import { findConnection, removeConnection } from '../db/connections.queries.js'
 
+const FRONTEND_ORIGIN = process.env.FRONTEND_URL || 'http://localhost:5173'
+
 export const getGoogleAuthUrlHandler = async (req, reply) => {
   if (!req.business || !req.business.id) {
     return reply.status(401).send({ error: 'No autorizado' })
@@ -28,7 +30,7 @@ export const googleCallbackHandler = async (req, reply) => {
         <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #f8fafc;">
           <script>
             if (window.opener) {
-              window.opener.postMessage('GOOGLE_AUTH_SUCCESS', '*');
+              window.opener.postMessage('GOOGLE_AUTH_SUCCESS', '${FRONTEND_ORIGIN}');
               window.close();
             } else {
               window.location.href = '/dashboard/settings?google_auth=success';
@@ -49,7 +51,7 @@ export const googleCallbackHandler = async (req, reply) => {
         <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #fff1f2;">
           <script>
             if (window.opener) {
-              window.opener.postMessage('GOOGLE_AUTH_ERROR', '*');
+              window.opener.postMessage('GOOGLE_AUTH_ERROR', '${FRONTEND_ORIGIN}');
               window.close();
             }
           </script>

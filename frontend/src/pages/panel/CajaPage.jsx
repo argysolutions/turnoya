@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Layout from '@/components/shared/Layout'
+import { useAuth } from '@/context/AuthContext'
 import {
   getSales, postExpense, getFinancesSummary, getExpenses,
   getCashSession, openCashSession, closeCashSession,
@@ -95,7 +96,7 @@ const generateWhatsAppText = ({ dateLabel, summary, byMethod, session }) => {
 // SUB-COMPONENTS
 // ════════════════════════════════════════════════════════════════════════════
 
-function SessionBanner({ session, onOpenCierre, loading }) {
+function SessionBanner({ session, onOpenCierre, loading, onOpen }) {
   if (loading) return null
 
   // Sesión abierta → banner verde
@@ -122,7 +123,7 @@ function SessionBanner({ session, onOpenCierre, loading }) {
   }
 
   // Sin sesión o sesión cerrada → banner ámbar (apertura desde el banner)
-  return <AperturaBanner inline />
+  return <AperturaBanner inline onOpen={onOpen} />
 }
 
 function AperturaBanner({ onOpen, inline = false }) {
@@ -522,6 +523,7 @@ export default function CajaPage() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [businessSettings, setBusinessSettings] = useState(null)
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
+  const { loading: authLoading } = useAuth()
 
   // UI States
   const [showManagementDrawer, setShowManagementDrawer] = useState(false)
@@ -534,6 +536,7 @@ export default function CajaPage() {
   useEffect(() => { localStorage.setItem('turno_ya_privacy_mode', hidden) }, [hidden])
 
   const fetchData = useCallback(async () => {
+    if (authLoading) return
     setLoading(true)
     try {
       const [summaryRes, salesRes, sessionRes, settingsRes, expensesRes] = await Promise.all([
@@ -549,7 +552,7 @@ export default function CajaPage() {
       setBusinessSettings(settingsRes.data)
       setExpenses(expensesRes.data.expenses || [])
     } finally { setLoading(false); setSessionLoading(false) }
-  }, [date])
+  }, [date, authLoading])
 
   useEffect(() => { fetchData() }, [fetchData])
 

@@ -36,10 +36,10 @@ export default function App() {
           <ProtectedRoute><AvailabilityPage /></ProtectedRoute>
         } />
         <Route path="/dashboard/configuracion" element={
-          <ProtectedRoute><SettingsPage /></ProtectedRoute>
+          <ProtectedRoute requiredRole="dueño"><SettingsPage /></ProtectedRoute>
         } />
         <Route path="/dashboard/caja" element={
-          <ProtectedRoute><CajaPage /></ProtectedRoute>
+          <ProtectedRoute requiredRole="dueño"><CajaPage /></ProtectedRoute>
         } />
       </Routes>
       </BrowserRouter>

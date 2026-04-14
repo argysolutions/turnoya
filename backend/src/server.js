@@ -16,7 +16,7 @@ import { financesRoutes } from './routes/finances.routes.js'
 const app = Fastify({ logger: true })
 
 await app.register(cors, {
-  origin: true,
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 })

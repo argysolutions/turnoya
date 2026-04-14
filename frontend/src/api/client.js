@@ -10,4 +10,20 @@ client.interceptors.request.use((config) => {
   return config
 })
 
+// Auto-limpieza de sesión cuando el backend rechaza el token
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('business')
+      // Solo redirigir si no estamos ya en /login o /register
+      if (!['/login', '/register'].some(p => window.location.pathname.startsWith(p))) {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
 export default client

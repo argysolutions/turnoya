@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Layout from '@/components/shared/Layout'
+import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react'
 
 export default function SettingsPage() {
+  const [googleStatus, setGoogleStatus] = useState({ linked: false, updated_at: null })
   const [settings, setSettings] = useState({
     cancellation_policy: '',
     anticipation_margin: 0,
@@ -34,10 +36,11 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [linkingGoogle, setLinkingGoogle] = useState(false)
-  const [googleStatus, setGoogleStatus] = useState({ linked: false, updated_at: null })
+  const { loading: authLoading } = useAuth()
 
   useEffect(() => {
     const fetchData = async () => {
+      if (authLoading) return
       try {
         const [settingsRes, googleRes] = await Promise.all([
           client.get('/settings'),
@@ -61,7 +64,7 @@ export default function SettingsPage() {
       }
     }
     fetchData()
-  }, [])
+  }, [authLoading])
 
   useEffect(() => {
     const handleFocus = async () => {

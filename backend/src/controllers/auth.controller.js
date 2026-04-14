@@ -35,12 +35,14 @@ export const register = async (req, reply) => {
   })
 
   const token = jwt.sign(
-    { id: business.id, email: business.email },
+    { id: business.id, role: 'dueño' },
     ENV.JWT_SECRET,
     { expiresIn: '7d' }
   )
 
-  reply.send({ token, business })
+  const { password: _, ...businessData } = business
+
+  reply.send({ token, business: businessData })
 }
 
 export const login = async (req, reply) => {
@@ -61,7 +63,7 @@ export const login = async (req, reply) => {
   }
 
   const token = jwt.sign(
-    { id: business.id, email: business.email },
+    { id: business.id, role: 'dueño' },
     ENV.JWT_SECRET,
     { expiresIn: '7d' }
   )
