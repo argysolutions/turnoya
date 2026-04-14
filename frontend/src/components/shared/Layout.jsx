@@ -9,8 +9,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu"
-import { Settings, HelpCircle, Share2, LogOut, User } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { LogOut, User, Settings, HelpCircle, Share2, RefreshCcw } from 'lucide-react'
 
 const navItems = [
   { label: 'Agenda', path: '/dashboard' },
@@ -24,13 +24,17 @@ export default function Layout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { logout } = useAuth()
+  const { logout, activeProfile, clearActiveProfile } = useAuth()
 
   const handleLogout = (forget = false) => {
-    // Optionally ignore standard business obj cleanup, or just do it.
     localStorage.removeItem('business') 
     logout(forget)
     navigate('/login')
+  }
+
+  const handleChangeProfile = () => {
+    clearActiveProfile()
+    navigate('/dashboard/caja')
   }
 
   const [business] = useState(() => JSON.parse(localStorage.getItem('business') || '{}'))
@@ -72,12 +76,20 @@ export default function Layout({ children }) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-1 shadow-sm rounded-xl">
                 <div className="flex flex-col space-y-1 p-2">
-                  <p className="text-sm font-medium leading-none text-slate-900">{business.name || 'Mi Negocio'}</p>
-                  <p className="text-xs leading-none text-slate-500">
-                    Administrador
+                  <p className="text-sm font-bold leading-none text-slate-900 truncate max-w-full">
+                    {activeProfile ? activeProfile.name : (business.name || 'Mi Negocio')}
+                  </p>
+                  <p className="text-[10px] leading-none text-slate-500 font-medium uppercase tracking-wider mt-1">
+                    {activeProfile ? (activeProfile.role === 'dueño' ? 'Administrador' : 'Staff') : 'Terminal'}
                   </p>
                 </div>
                 <DropdownMenuSeparator />
+                {activeProfile && (
+                  <DropdownMenuItem className="cursor-pointer py-2 text-indigo-600 focus:text-indigo-700 focus:bg-indigo-50" onClick={handleChangeProfile}>
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    <span className="font-bold">Cambiar de perfil</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem className="cursor-pointer py-2" onClick={() => navigate('/dashboard/configuracion')}>
                   <Settings className="mr-2 h-4 w-4 text-slate-500" />
                   <span>Ajustes del negocio</span>

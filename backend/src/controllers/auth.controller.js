@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { ENV } from '../config/env.js'
 import { findBusinessByEmail, findBusinessBySlug, createBusiness, findBusinessById } from '../db/business.queries.js'
-import { findStaffByBusinessAndPin } from '../db/staff.queries.js'
+import { findStaffByBusinessAndPin, getStaffByBusiness } from '../db/staff.queries.js'
 import { pool } from '../config/db.js'
 
 const generateSlug = (name) =>
@@ -134,28 +134,151 @@ export const staffLogin = async (req, reply) => {
   reply.send({ token, staff: { name: matchedStaff.name } })
 }
 
-// ─── Temp Dev ─────────────────────────────────────────────────────────────
+// ─── Kiosco: Perfiles disponibles ─────────────────────────────────────────
 
-export const fixStaffPin = async (req, reply) => {
+/**
+ * GET /api/auth/profiles (requiere verifyToken)
+ * Devuelve la lista de perfiles (dueño + staff) para el Lock Screen.
+ */
+export const getProfiles = async (req, reply) => {
+  const businessId = req.business.id
+
   try {
-    const res = await pool.query("SELECT id, name FROM businesses WHERE email = 'pruebas@gmail.com'")
-    if (res.rows.length === 0) {
-      return reply.send({ error: 'Business not found' })
+    const business = await findBusinessById(businessId)
+    if (!business) return reply.status(404).send({ error: 'Negocio no encontrado' })
+
+    const staffList = await getStaffByBusiness(businessId)
+
+    const profiles = [
+      {
+        id: 'owner',
+        name: business.name,
+        role: 'dueño',
+        staff_id: null,
+        has_pin: !!business.owner_pin_hash,
+      },
+      ...staffList
+        .filter(s => s.is_active)
+        .map(s => ({
+          id: `staff-${s.id}`,
+          name: s.name,
+          role: s.role,
+          staff_id: s.id,
+          has_pin: true, // Staff siempre tiene PIN
+        })),
+    ]
+
+    reply.send({ profiles })
+  } catch (err) {
+    console.error('Error getProfiles:', err)
+    reply.status(500).send({ error: 'Error al obtener perfiles' })
+  }
+}
+
+// ─── Kiosco: Verificar PIN ────────────────────────────────────────────────
+
+/**
+ * POST /api/auth/verify-pin (requiere verifyToken)
+ * Body: { profile_id: 'owner' | 'staff-{id}', pin: '1234' }
+ *
+ * Valida el PIN sin emitir un nuevo JWT.
+ * Devuelve: { valid: true, role, staff_id, name }
+ */
+export const verifyPin = async (req, reply) => {
+  const businessId = req.business.id
+  const { profile_id, pin } = req.body
+
+  if (!profile_id || !pin) {
+    return reply.status(400).send({ error: 'profile_id y pin son requeridos' })
+  }
+
+  if (!/^\d{4}$/.test(String(pin))) {
+    return reply.status(400).send({ error: 'El PIN debe ser de 4 dígitos' })
+  }
+
+  try {
+    if (profile_id === 'owner') {
+      // Verificar PIN del dueño
+      const business = await findBusinessById(businessId)
+      if (!business) return reply.status(404).send({ error: 'Negocio no encontrado' })
+
+      if (!business.owner_pin_hash) {
+        return reply.status(400).send({ error: 'El dueño no tiene PIN configurado. Configuralo en Ajustes.' })
+      }
+
+      const pepperedPin = `owner:${businessId}:${pin}`
+      const valid = await bcrypt.compare(pepperedPin, business.owner_pin_hash)
+
+      if (!valid) return reply.status(401).send({ error: 'PIN incorrecto' })
+
+      return reply.send({
+        valid: true,
+        role: 'dueño',
+        staff_id: null,
+        name: business.name,
+        profile_id: 'owner',
+      })
     }
-    const b = res.rows[0]
-    const pin = '1234'
-    const pepperedPin = b.id + ':' + pin
+
+    // Staff PIN
+    const staffIdMatch = profile_id.match(/^staff-(\d+)$/)
+    if (!staffIdMatch) {
+      return reply.status(400).send({ error: 'profile_id inválido' })
+    }
+
+    const staffId = parseInt(staffIdMatch[1], 10)
+    const staffList = await findStaffByBusinessAndPin(businessId, pin)
+    const member = staffList.find(s => s.id === staffId)
+
+    if (!member) {
+      return reply.status(401).send({ error: 'Empleado no encontrado' })
+    }
+
+    const pepperedPin = `${businessId}:${pin}`
+    const valid = await bcrypt.compare(pepperedPin, member.pin_hash)
+
+    if (!valid) return reply.status(401).send({ error: 'PIN incorrecto' })
+
+    return reply.send({
+      valid: true,
+      role: member.role,
+      staff_id: member.id,
+      name: member.name,
+      professional_name: member.professional_name,
+      profile_id,
+    })
+  } catch (err) {
+    console.error('Error verifyPin:', err)
+    reply.status(500).send({ error: 'Error al verificar PIN' })
+  }
+}
+
+// ─── Dueño: Configurar Owner PIN ──────────────────────────────────────────
+
+/**
+ * PUT /api/settings/owner-pin (requiere verifyToken + requireRole('dueño'))
+ * Body: { pin: '1234' }
+ */
+export const updateOwnerPin = async (req, reply) => {
+  const businessId = req.business.id
+  const { pin } = req.body
+
+  if (!pin || !/^\d{4}$/.test(String(pin))) {
+    return reply.status(400).send({ error: 'El PIN debe ser exactamente 4 dígitos numéricos' })
+  }
+
+  try {
+    const pepperedPin = `owner:${businessId}:${pin}`
     const hash = await bcrypt.hash(pepperedPin, 10)
-    
-    const staffRes = await pool.query('SELECT * FROM staff WHERE business_id = $1 LIMIT 1', [b.id])
-    if (staffRes.rows.length === 0) {
-      await pool.query('INSERT INTO staff (business_id, name, pin_hash, role) VALUES ($1, $2, $3, $4)', [b.id, 'Empleado de Pruebas', hash, 'empleado'])
-      reply.send({ success: true, message: 'Created new staff Empleado de Pruebas with PIN 1234', business_id: b.id })
-    } else {
-      await pool.query('UPDATE staff SET pin_hash = $1 WHERE id = $2', [hash, staffRes.rows[0].id])
-      reply.send({ success: true, message: 'Updated existing staff ' + staffRes.rows[0].name + ' to have PIN 1234', business_id: b.id })
-    }
-  } catch (error) {
-    reply.status(500).send({ error: error.message })
+
+    await pool.query(
+      'UPDATE businesses SET owner_pin_hash = $1 WHERE id = $2',
+      [hash, businessId]
+    )
+
+    reply.send({ message: 'PIN de dueño actualizado correctamente' })
+  } catch (err) {
+    console.error('Error updateOwnerPin:', err)
+    reply.status(500).send({ error: 'Error al actualizar el PIN' })
   }
 }

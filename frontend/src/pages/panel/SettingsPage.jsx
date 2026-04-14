@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { getSettings, updateSettings, updateStaffPin } from '@/api/business'
+import { getSettings, updateSettings, updateStaffPin, updateOwnerPin } from '@/api/business'
 import { getGoogleAuthUrl, getGoogleStatus, unlinkGoogle } from '@/api/google'
 import { 
   CheckCircle2, 
@@ -34,10 +34,11 @@ export default function SettingsPage() {
   })
   const [newCategory, setNewCategory] = useState('')
   const [staffPin, setStaffPin] = useState('')
+  const [ownerPin, setOwnerPin] = useState('')
   const [updatingPin, setUpdatingPin] = useState(false)
   const [saving, setSaving] = useState(false)
   const [linkingGoogle, setLinkingGoogle] = useState(false)
-  const { loading: authLoading } = useAuth()
+  const { role, loading: authLoading } = useAuth()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -155,6 +156,36 @@ export default function SettingsPage() {
     } finally {
       setUpdatingPin(false)
     }
+  }
+
+  const handleSaveOwnerPin = async () => {
+    if (!ownerPin || ownerPin.length !== 4 || isNaN(ownerPin)) {
+      return toast.error('El PIN debe ser exactamente 4 dígitos numéricos')
+    }
+    setUpdatingPin(true)
+    try {
+      await updateOwnerPin(ownerPin)
+      toast.success('PIN de dueño actualizado')
+      setOwnerPin('')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al actualizar PIN')
+    } finally {
+      setUpdatingPin(false)
+    }
+  }
+
+  if (role !== 'dueño' && !authLoading) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+            <ShieldCheck className="w-8 h-8 text-red-600" />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900">Acceso Restringido</h1>
+          <p className="text-slate-500 max-w-xs">No tenés permisos de administrador para ver o modificar la configuración de este negocio.</p>
+        </div>
+      </Layout>
+    )
   }
 
   return (
@@ -286,15 +317,55 @@ export default function SettingsPage() {
 
             <Card className="shadow-sm border-slate-200">
               <CardHeader>
-                <CardTitle className="text-lg">Acceso de Personal</CardTitle>
-                <CardDescription>Configurá el PIN de 4 dígitos que usarán los empleados para ingresar a la plataforma por <span className="font-bold">/staff-login</span>.</CardDescription>
+                <CardTitle className="text-lg">Seguridad Kiosco (POS)</CardTitle>
+                <CardDescription>Configurá los PINs de acceso para la Caja.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-slate-700">Nuevo PIN (4 dígitos)</Label>
+              <CardContent className="space-y-6">
+                {/* PIN DUEÑO */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-slate-700 font-bold">PIN de Dueño (Tu PIN)</Label>
+                    <Tooltip>
+                      <TooltipTrigger><Info className="h-4 w-4 text-slate-400" /></TooltipTrigger>
+                      <TooltipContent>Tu PIN personal para operar la caja sin usar tu contraseña.</TooltipContent>
+                    </Tooltip>
+                  </div>
                   <div className="flex gap-2">
                     <input 
-                      type="password"
+                      type="password" 
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={ownerPin}
+                      onChange={(e) => setOwnerPin(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Ej: 0000"
+                      className="flex h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={handleSaveOwnerPin}
+                      disabled={updatingPin || ownerPin.length !== 4}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white min-w-[100px]"
+                    >
+                      {updatingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Establecer'}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Este PIN se usará junto con los demás perfiles en el Lock Screen.</p>
+                </div>
+
+                <div className="h-px bg-slate-100" />
+
+                {/* PIN STAFF */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-slate-700">PIN de Empleados</Label>
+                    <Tooltip>
+                      <TooltipTrigger><Info className="h-4 w-4 text-slate-400" /></TooltipTrigger>
+                      <TooltipContent>PIN compartido para que tus empleados operen la caja.</TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="flex gap-2">
+                    <input 
+                      type="password" 
                       inputMode="numeric"
                       maxLength={4}
                       value={staffPin}
@@ -311,7 +382,7 @@ export default function SettingsPage() {
                       {updatingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Establecer'}
                     </Button>
                   </div>
-                  <p className="text-[11px] text-slate-500">Este PIN cifrado funciona para todos los empleados de la sucursal.</p>
+                  <p className="text-[11px] text-slate-500">Este PIN funciona para todos los empleados de la sucursal.</p>
                 </div>
               </CardContent>
             </Card>

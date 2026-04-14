@@ -31,6 +31,9 @@ export function AuthProvider({ children }) {
     return { token, payload }
   })
 
+  // ── Perfil activo del Kiosco (no persiste, en memoria) ──────────────────
+  const [activeProfile, setActiveProfile] = useState(null)
+
   /**
    * Persiste el token y actualiza el estado en memoria.
    * Solo guarda el token en localStorage — el payload vive solo en React state.
@@ -39,12 +42,14 @@ export function AuthProvider({ children }) {
     if (!token) {
       localStorage.removeItem('token')
       setAuth(null)
+      setActiveProfile(null)
       return
     }
     const payload = decodeJWT(token)
     if (!payload) {
       localStorage.removeItem('token')
       setAuth(null)
+      setActiveProfile(null)
       return
     }
     localStorage.setItem('token', token)
@@ -53,13 +58,10 @@ export function AuthProvider({ children }) {
 
   /**
    * Cierra sesión: limpia token, payload en memoria y cualquier pref cifrada.
-   * Las prefs cifradas quedan inaccesibles automáticamente (clave derivada del token).
-   * @param {boolean} forgetIdentity - Si es true, olvida tambíen la última cuenta iniciada.
    */
   const logout = useCallback((forgetIdentity = false) => {
     localStorage.removeItem('token')
     localStorage.removeItem('business')
-    // Limpiar también las prefs cifradas al salir
     Object.keys(localStorage)
       .filter(k => k.startsWith('enc_pref_'))
       .forEach(k => localStorage.removeItem(k))
@@ -70,6 +72,14 @@ export function AuthProvider({ children }) {
     }
 
     setAuth(null)
+    setActiveProfile(null)
+  }, [])
+
+  /**
+   * Limpia el perfil activo del kiosco (vuelve al lock screen).
+   */
+  const clearActiveProfile = useCallback(() => {
+    setActiveProfile(null)
   }, [])
 
   // Si el token expira mientras la app está abierta, limpiar automáticamente
@@ -81,19 +91,25 @@ export function AuthProvider({ children }) {
     return () => clearTimeout(timer)
   }, [auth?.payload?.exp, logout])
 
+  // El rol efectivo depende del perfil activo del kiosco
+  const effectiveRole = activeProfile?.role ?? auth?.payload?.role ?? (auth?.payload ? 'dueño' : null)
+
   const value = {
     // Estado
     isAuthenticated: !!auth,
     token: auth?.token ?? null,
-    // Compatibilidad para tokens antiguos que no tenían rol (solo existían dueños)
-    role: auth?.payload?.role ?? (auth?.payload ? 'dueño' : null),
+    role: effectiveRole,
     businessId: auth?.payload?.business_id ?? null,
-    staffId: auth?.payload?.staff_id ?? null,
+    staffId: activeProfile?.staff_id ?? auth?.payload?.staff_id ?? null,
     // Shortcuts
-    isOwner: (auth?.payload?.role ?? 'dueño') === 'dueño',
-    isEmployee: auth?.payload?.role === 'empleado',
-    // Backward compat: some components use `loading` — always false since we init sync
+    isOwner: effectiveRole === 'dueño',
+    isEmployee: effectiveRole === 'empleado',
+    // Backward compat
     loading: false,
+    // Kiosco
+    activeProfile,
+    setActiveProfile,
+    clearActiveProfile,
     // Actions
     setToken,
     logout,

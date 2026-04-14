@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Layout from '@/components/shared/Layout'
+import LockScreen from '@/components/shared/LockScreen'
 import { useAuth } from '@/context/AuthContext'
 import {
   getSales, postExpense, getFinancesSummary, getExpenses,
@@ -525,8 +526,22 @@ function ManagementDrawer({ onClose, ...contentProps }) {
 // ════════════════════════════════════════════════════════════════════════════
 export default function CajaPage() {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const { isOwner } = useAuth()
+  const { isOwner, activeProfile, clearActiveProfile, loading: authLoading } = useAuth()
   const prefs = useEncryptedPrefs()
+
+  // Limpiar perfil activo al desmontar (pide PIN cada vez que se entra a Caja)
+  useEffect(() => {
+    return () => clearActiveProfile()
+  }, [clearActiveProfile])
+
+  // Si no hay perfil activo, mostrar Lock Screen
+  if (!activeProfile) {
+    return (
+      <Layout>
+        <LockScreen onUnlock={() => {}} />
+      </Layout>
+    )
+  }
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [date, setDate] = useState(today())
@@ -540,7 +555,6 @@ export default function CajaPage() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [businessSettings, setBusinessSettings] = useState(null)
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
-  const { loading: authLoading } = useAuth()
 
   // UI States
   const [showManagementDrawer, setShowManagementDrawer] = useState(false)
@@ -618,8 +632,15 @@ export default function CajaPage() {
   const isToday = date === today()
 
   const ledgerEntries = useMemo(() => {
+    // Si es empleado, filtrar para ver solo sus movimientos
+    const filteredSales = isOwner 
+      ? sales 
+      : sales.filter(s => s.professional_name === activeProfile?.professional_name)
+    
+    const filteredExpenses = isOwner ? expenses : [] // Empleados no suelen ver gastos generales
+
     const entries = [
-      ...sales.map(s => ({
+      ...filteredSales.map(s => ({
         type: 'income', id: `s-${s.id}`,
         description: s.client_name || 'Venta',
         amount: parseFloat(s.amount),
@@ -627,7 +648,7 @@ export default function CajaPage() {
         time: s.created_at,
         raw: s,
       })),
-      ...expenses.map(e => ({
+      ...filteredExpenses.map(e => ({
         type: 'expense', id: `e-${e.id}`,
         description: e.description || 'Gasto',
         amount: parseFloat(e.amount),
@@ -642,7 +663,7 @@ export default function CajaPage() {
       return entries.filter(e => e.description?.toLowerCase().includes(q))
     }
     return entries
-  }, [sales, expenses, ledgerFilter])
+  }, [sales, expenses, ledgerFilter, isOwner, activeProfile])
 
   const byMethod = summary?.byMethod || {}
   const digitalTotal = (byMethod['Transferencia']?.total ?? 0) + (byMethod['Tarjeta']?.total ?? 0)
@@ -760,96 +781,99 @@ export default function CajaPage() {
               isOwner={isOwner}
             />
 
-            {/* ── DOS TARJETAS PRINCIPALES ───────────── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-              {/* Disponible Digital */}
-              <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                    <Smartphone className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
-                </div>
-                <p className="text-[2rem] font-black text-slate-900 tracking-tight leading-none mb-3">
-                  {display(digitalTotal)}
-                </p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-semibold text-slate-400">
-                  {(byMethod['Transferencia']?.total ?? 0) > 0 && (
-                    <span className="flex items-center gap-1">
-                      <ArrowLeftRight className="w-2.5 h-2.5" />
-                      {display(byMethod['Transferencia'].total)}
-                    </span>
-                  )}
-                  {(byMethod['Tarjeta']?.total ?? 0) > 0 && (
-                    <span className="flex items-center gap-1">
-                      <CreditCard className="w-2.5 h-2.5" />
-                      {display(byMethod['Tarjeta'].total)}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Efectivo en Cajón */}
-              <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
-                    <Banknote className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
-                </div>
-                <p className="text-[2rem] font-black text-slate-900 tracking-tight leading-none mb-3">
-                  {display(efectivoTotal)}
-                </p>
-                {session?.status === 'open' && (
-                  <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                    Esperado: {display(session.expected_cash)}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* ── VER DETALLE ────────────────────────── */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <button
-                id="detail-expand-toggle"
-                onClick={() => setIsDetailExpanded(!isDetailExpanded)}
-                className="w-full px-5 py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors"
-              >
-                <span>Ver detalle</span>
-                <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${isDetailExpanded ? 'rotate-90' : ''}`} />
-              </button>
-
-              <AnimatePresence>
-                {isDetailExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22, ease: 'easeInOut' }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-5 pb-5 grid grid-cols-3 gap-3 border-t border-slate-50">
-                      <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100/60 mt-4">
-                        <p className="text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
-                        <p className="text-lg font-black text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
-                      </div>
-                      <div className="text-center p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/40 mt-4">
-                        <p className="text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
-                        <p className="text-lg font-black text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
-                        <p className="text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
-                      </div>
-                      <div className="text-center p-4 rounded-2xl bg-red-50/50 border border-red-100/30 mt-4">
-                        <p className="text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos Totales</p>
-                        <p className="text-lg font-black text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
-                        <p className="text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
-                      </div>
+            {/* ── DOS TARJETAS PRINCIPALES (Solo Dueño) ───────────── */}
+            {isOwner && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Disponible Digital */}
+                <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <Smartphone className="w-4 h-4 text-blue-500" />
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
+                  </div>
+                  <p className="text-[2rem] font-black text-slate-900 tracking-tight leading-none mb-3">
+                    {display(digitalTotal)}
+                  </p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-semibold text-slate-400">
+                    {(byMethod['Transferencia']?.total ?? 0) > 0 && (
+                      <span className="flex items-center gap-1">
+                        <ArrowLeftRight className="w-2.5 h-2.5" />
+                        {display(byMethod['Transferencia'].total)}
+                      </span>
+                    )}
+                    {(byMethod['Tarjeta']?.total ?? 0) > 0 && (
+                      <span className="flex items-center gap-1">
+                        <CreditCard className="w-2.5 h-2.5" />
+                        {display(byMethod['Tarjeta'].total)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Efectivo en Cajón */}
+                <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <Banknote className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
+                  </div>
+                  <p className="text-[2rem] font-black text-slate-900 tracking-tight leading-none mb-3">
+                    {display(efectivoTotal)}
+                  </p>
+                  {session?.status === 'open' && (
+                    <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                      Esperado: {display(session.expected_cash)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── VER DETALLE (Solo Dueño) ────────────────────────── */}
+            {isOwner && (
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <button
+                  id="detail-expand-toggle"
+                  onClick={() => setIsDetailExpanded(!isDetailExpanded)}
+                  className="w-full px-5 py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors"
+                >
+                  <span>Ver detalle</span>
+                  <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${isDetailExpanded ? 'rotate-90' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isDetailExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 grid grid-cols-3 gap-3 border-t border-slate-50">
+                        <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100/60 mt-4">
+                          <p className="text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
+                          <p className="text-lg font-black text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
+                        </div>
+                        <div className="text-center p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/40 mt-4">
+                          <p className="text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
+                          <p className="text-lg font-black text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
+                          <p className="text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
+                        </div>
+                        <div className="text-center p-4 rounded-2xl bg-red-50/50 border border-red-100/30 mt-4">
+                          <p className="text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos Totales</p>
+                          <p className="text-lg font-black text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
+                          <p className="text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
             {/* ════════════════════════════════════════
                 LIBRO MAYOR (LEDGER)

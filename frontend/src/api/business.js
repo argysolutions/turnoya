@@ -16,3 +16,9 @@ export const updateSettings = (data) => client.put('/settings', data)
  * @param {string} pin - El PIN de 4 dígitos.
  */
 export const updateStaffPin = (pin) => client.put('/settings/staff/pin', { pin })
+
+/**
+ * Actualiza el PIN del dueño para el kiosco.
+ * @param {string} pin - El PIN de 4 dígitos.
+ */
+export const updateOwnerPin = (pin) => client.put('/settings/owner-pin', { pin })
