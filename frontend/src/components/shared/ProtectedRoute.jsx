@@ -1,24 +1,27 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 
-export default function ProtectedRoute({ children, requiredRole }) {
-  const { role, loading } = useAuth()
+/**
+ * ProtectedRoute con control de rol.
+ *
+ * Comportamiento por status HTTP:
+ *   - Sin token / token inválido → redirect /login (401)
+ *   - Token válido pero rol insuficiente → redirect /sin-acceso (403)
+ *     NO hace logout: el usuario está autenticado, solo no tiene permisos.
+ *
+ * @param {string|null} requiredRole - 'dueño' | 'empleado' | null (cualquier autenticado)
+ */
+export default function ProtectedRoute({ children, requiredRole = null }) {
+  const { isAuthenticated, role } = useAuth()
+  const location = useLocation()
 
-  // Mientras el contexto decodifica el token, mostramos un estado neutro
-  if (loading) return null
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
 
-  // Sin rol/token → login
-  if (!role) return <Navigate to="/login" replace />
-
-  // Si se exige un rol específico y no coincide → redirigir al dashboard (no destruir sesión)
-  if (requiredRole) {
-    const currentRole = role.toLowerCase().trim()
-    const targetRole = requiredRole.toLowerCase().trim()
-
-    if (currentRole !== targetRole) {
-      console.warn(`Acceso denegado: se requiere "${targetRole}", se tiene "${currentRole}". Redirigiendo.`)
-      return <Navigate to="/dashboard" replace />
-    }
+  if (requiredRole && role !== requiredRole) {
+    // 403: autenticado pero insuficiente rol — no desloguear
+    return <Navigate to="/sin-acceso" replace />
   }
 
   return children

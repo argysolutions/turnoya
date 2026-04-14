@@ -11,31 +11,26 @@ import {
 export const financesRoutes = async (app) => {
   // ── Gastos ────────────────────────────────────────────────────────────────
 
-  // Listar gastos del día/rango: ?date=YYYY-MM-DD o ?startDate=...&endDate=...
-  app.get('/expenses', { preHandler: [verifyToken, requireRole('dueño')] }, listExpenses)
+  // Listar gastos: empleados y dueños pueden leer
+  app.get('/expenses', { preHandler: verifyToken }, listExpenses)
 
-  // Registrar un gasto
+  // Registrar gasto: solo el dueño
   app.post('/expenses', { preHandler: [verifyToken, requireRole('dueño')] }, addExpense)
 
-  // Eliminar un gasto (borrado por error)
+  // Eliminar gasto: solo el dueño
   app.delete('/expenses/:id', { preHandler: [verifyToken, requireRole('dueño')] }, removeExpense)
 
   // ── Resumen financiero ────────────────────────────────────────────────────
 
-  // Resumen financiero: ingresos, gastos, neto real, desglose por método
-  // Query params: ?date=YYYY-MM-DD  o  ?startDate=...&endDate=...
-  app.get('/finances/summary', { preHandler: [verifyToken, requireRole('dueño')] }, financesSummary)
+  // Empleados y dueños pueden ver el resumen (el frontend filtra por rol)
+  app.get('/finances/summary', { preHandler: verifyToken }, financesSummary)
 
   // ── Sesión de Caja ────────────────────────────────────────────────────────
 
-  // Obtener sesión abierta actual (o sesión cerrada de un día: ?date=YYYY-MM-DD)
-  app.get('/finances/session', { preHandler: [verifyToken, requireRole('dueño')] }, getSession)
+  // Consultar sesión: ambos roles
+  app.get('/finances/session', { preHandler: verifyToken }, getSession)
 
-  // Abrir una nueva sesión de caja
-  // Body: { initial_amount: number }
+  // Abrir/cerrar caja: solo el dueño
   app.post('/finances/session/open', { preHandler: [verifyToken, requireRole('dueño')] }, openSession)
-
-  // Cerrar la sesión de caja activa (calcula difference en servidor)
-  // Body: { counted_amount: number }
   app.post('/finances/session/close', { preHandler: [verifyToken, requireRole('dueño')] }, closeSession)
 }

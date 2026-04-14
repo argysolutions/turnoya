@@ -47,7 +47,7 @@ export default function BookingPage() {
       }
     }
     fetch()
-  }, [date, service])
+  }, [date, service, slug])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
   const handlePhoneChange = (value) => setForm({ ...form, client_phone: value || '' })
