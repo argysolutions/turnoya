@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { AuthProvider } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/shared/ProtectedRoute'
 
 import BusinessPage from '@/pages/public/BusinessPage'
@@ -8,6 +9,8 @@ import BookingPage from '@/pages/public/BookingPage'
 import ConfirmationPage from '@/pages/public/ConfirmationPage'
 import LoginPage from '@/pages/panel/LoginPage'
 import RegisterPage from '@/pages/panel/RegisterPage'
+import StaffLoginPage from '@/pages/panel/StaffLoginPage'
+import NoAccessPage from '@/pages/panel/NoAccessPage'
 import DashboardPage from '@/pages/panel/DashboardPage'
 import ServicesPage from '@/pages/panel/ServicesPage'
 import AvailabilityPage from '@/pages/panel/AvailabilityPage'
@@ -16,33 +19,49 @@ import CajaPage from '@/pages/panel/CajaPage'
 
 export default function App() {
   return (
-    <TooltipProvider delayDuration={300}>
-      <BrowserRouter>
-        <Toaster position="top-right" />
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/p/:slug" element={<BusinessPage />} />
-        <Route path="/p/:slug/reservar" element={<BookingPage />} />
-        <Route path="/turno/:id" element={<ConfirmationPage />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute><DashboardPage /></ProtectedRoute>
-        } />
-        <Route path="/servicios" element={
-          <ProtectedRoute><ServicesPage /></ProtectedRoute>
-        } />
-        <Route path="/disponibilidad" element={
-          <ProtectedRoute><AvailabilityPage /></ProtectedRoute>
-        } />
-        <Route path="/dashboard/configuracion" element={
-          <ProtectedRoute><SettingsPage /></ProtectedRoute>
-        } />
-        <Route path="/dashboard/caja" element={
-          <ProtectedRoute><CajaPage /></ProtectedRoute>
-        } />
-      </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    // AuthProvider envuelve todo: mantiene el JWT en React state
+    // y expone role/isOwner/isEmployee a toda la app sin pasar props manualmente.
+    <AuthProvider>
+      <TooltipProvider delayDuration={300}>
+        <BrowserRouter>
+          <Toaster position="top-right" />
+          <Routes>
+            {/* ── Públicas ─────────────────────────────────────────────────── */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/staff-login" element={<StaffLoginPage />} />
+            <Route path="/sin-acceso" element={<NoAccessPage />} />
+
+            {/* ── Rutas de cliente público ──────────────────────────────────── */}
+            <Route path="/p/:slug" element={<BusinessPage />} />
+            <Route path="/p/:slug/reservar" element={<BookingPage />} />
+            <Route path="/turno/:id" element={<ConfirmationPage />} />
+
+            {/* ── Panel: cualquier usuario autenticado ──────────────────────── */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute><DashboardPage /></ProtectedRoute>
+            } />
+            <Route path="/servicios" element={
+              <ProtectedRoute><ServicesPage /></ProtectedRoute>
+            } />
+            <Route path="/disponibilidad" element={
+              <ProtectedRoute><AvailabilityPage /></ProtectedRoute>
+            } />
+
+            {/* ── Panel: CAJA — acceso para dueño y empleado ───────────────── */}
+            {/*   El empleado puede ver su propia vista filtrada por professionalName */}
+            <Route path="/dashboard/caja" element={
+              <ProtectedRoute><CajaPage /></ProtectedRoute>
+            } />
+
+            {/* ── Panel: admin only — requiredRole="dueño" ─────────────────── */}
+            <Route path="/dashboard/configuracion" element={
+              <ProtectedRoute requiredRole="dueño"><SettingsPage /></ProtectedRoute>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   )
 }

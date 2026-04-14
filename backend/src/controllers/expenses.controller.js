@@ -3,7 +3,8 @@ import { createExpense, deleteExpenseById } from '../db/expenses.queries.js'
 export const addExpense = async (req, reply) => {
   try {
     const businessId = req.business.id
-    const { description, amount, category, created_at } = req.body
+    const staffId    = req.business.staff_id ?? null // null para el dueño
+    const { description, amount, category, created_at, is_advance, professional_name } = req.body
 
     if (!description || !amount) {
       return reply.status(400).send({ error: 'description y amount son requeridos' })
@@ -19,7 +20,10 @@ export const addExpense = async (req, reply) => {
       description.trim(),
       parsed,
       category || 'General',
-      created_at || null
+      created_at || null,
+      Boolean(is_advance),
+      professional_name || null,
+      staffId
     )
 
     reply.status(201).send(expense)

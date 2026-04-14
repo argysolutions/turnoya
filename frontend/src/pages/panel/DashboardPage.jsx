@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import { getAppointments, updateStatus, createBlock } from '@/api/appointments'
 import { es } from 'react-day-picker/locale'
@@ -234,7 +235,7 @@ export default function DashboardPage() {
       setBlockModal(false)
       fetchAppointments()
       toast.success(payload.fullDay ? 'Día bloqueado con éxito' : 'Bache horario bloqueado con éxito')
-    } catch (error) {
+    } catch {
       toast.error('Error insertando el bloqueo manual')
     }
   }
@@ -257,7 +258,7 @@ export default function DashboardPage() {
       setEventModal(false)
       fetchAppointments()
       toast.success('Fecha destacada en el calendario')
-    } catch (error) {
+    } catch {
       toast.error('Error insertando evento destacado')
     }
   }

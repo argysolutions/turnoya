@@ -14,14 +14,15 @@ import {
 } from "@/components/ui/tooltip"
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar"
 import { es } from 'date-fns/locale'
-import { motion, AnimatePresence } from 'framer-motion'
 import { addDays as fnsAddDays } from 'date-fns'
 import {
   ChevronLeft, ChevronRight, CreditCard, Wallet, ArrowLeftRight,
   HelpCircle, Eye, EyeOff, PlusCircle, X, Unlock,
-  Share2, ChevronDown, Search, FileText, Download,
-  Menu, Banknote, Smartphone, Lock,
+  Share2, Search, FileText, Download,
+  Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff,
 } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const today = () => new Date().toISOString().split('T')[0]
@@ -58,7 +59,6 @@ const METHOD_ICON = {
 const EXPENSE_CATEGORIES = ['General', 'Insumos', 'Servicios', 'Alquiler', 'Personal', 'Marketing', 'Otro']
 
 // ─── WhatsApp Export ─────────────────────────────────────────────────────────
-
 const generateWhatsAppText = ({ dateLabel, summary, byMethod, session }) => {
   const efectivo = byMethod['Efectivo']?.total ?? 0
   const transferencia = byMethod['Transferencia']?.total ?? 0
@@ -95,13 +95,12 @@ const generateWhatsAppText = ({ dateLabel, summary, byMethod, session }) => {
 // SUB-COMPONENTS
 // ════════════════════════════════════════════════════════════════════════════
 
-function SessionBanner({ session, onOpenCierre, loading }) {
+function SessionBanner({ session, onOpen, onOpenCierre, loading, isOwner }) {
   if (loading) return null
 
-  // Sesión abierta → banner verde
   if (session?.status === 'open') {
     return (
-      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 px-4 py-2.5 flex items-center justify-between">
+      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -110,19 +109,30 @@ function SessionBanner({ session, onOpenCierre, loading }) {
           <div className="h-3 w-px bg-emerald-200 hidden sm:block" />
           <span className="text-[10px] font-bold text-emerald-600 hidden sm:block">Inicio: {fmt(session.initial_amount)}</span>
         </div>
-        <Button
-          onClick={onOpenCierre}
-          variant="ghost"
-          className="h-7 px-3 text-[9px] font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
-        >
-          Cerrar Caja
-        </Button>
+        {isOwner && (
+          <Button
+            onClick={onOpenCierre}
+            variant="ghost"
+            className="h-7 px-3 text-[9px] font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
+          >
+            Cerrar Caja
+          </Button>
+        )}
       </div>
     )
   }
 
-  // Sin sesión o sesión cerrada → banner ámbar (apertura desde el banner)
-  return <AperturaBanner inline />
+  // Caja cerrada: solo el dueño puede abrirla
+  if (!isOwner) {
+    return (
+      <div className="rounded-2xl border border-slate-100 bg-slate-50/50 px-4 py-2.5 flex items-center gap-2">
+        <ShieldOff className="w-3.5 h-3.5 text-slate-300" />
+        <span className="text-[10px] font-bold text-slate-400">Sesión en espera de apertura por el dueño</span>
+      </div>
+    )
+  }
+
+  return <AperturaBanner inline onOpen={onOpen} />
 }
 
 function AperturaBanner({ onOpen, inline = false }) {
@@ -145,7 +155,6 @@ function AperturaBanner({ onOpen, inline = false }) {
     }
   }
 
-  // Versión compacta para el SessionBanner (inline)
   if (inline) {
     return (
       <div className="rounded-2xl border border-amber-100 bg-amber-50/40 px-4 py-3 space-y-3">
@@ -206,7 +215,6 @@ function AperturaBanner({ onOpen, inline = false }) {
     )
   }
 
-  // Versión standalone (panel de gestión / standalone)
   return (
     <div className="rounded-[2rem] border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
       <div className="flex flex-col items-center gap-4">
@@ -242,7 +250,6 @@ function AperturaBanner({ onOpen, inline = false }) {
 }
 
 // ─── Cierre de Caja Modal ────────────────────────────────────────────────────
-
 function CierreCajaModal({ session, summary, onClose, onClosed }) {
   const [counted, setCounted] = useState('')
   const [saving, setSaving] = useState(false)
@@ -311,7 +318,6 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
 }
 
 // ─── Sale Detail Drawer ───────────────────────────────────────────────────────
-
 function SaleDetailDrawer({ sale, onClose }) {
   if (!sale) return null
   return (
@@ -341,12 +347,25 @@ function SaleDetailDrawer({ sale, onClose }) {
   )
 }
 
-// ─── Management Content (shared between sidebar & drawer) ────────────────────
+const Item = ({ icon: IconComponent, label, onClick, accent }) => (
+  <button
+    onClick={onClick}
+    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors hover:bg-slate-50 text-slate-700"
+  >
+    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+      accent === 'red' ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-500'
+    }`}>
+      <IconComponent className="w-4 h-4" />
+    </div>
+    <span className="text-sm font-semibold">{label}</span>
+  </button>
+)
 
+// ─── Management Content ───────────────────────────────────────────────────────
 function ManagementContent({
   session, summary, professionals, businessSettings,
   onOpenExpenseModal, onOpenCierre, display,
-  date,
+  date, isOwner,
 }) {
   const byMethod = summary?.byMethod || {}
   const isToday = date === today()
@@ -390,35 +409,22 @@ function ManagementContent({
     toast.success('Archivo XML descargado')
   }
 
-  const Item = ({ icon: Icon, label, onClick, accent }) => (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors hover:bg-slate-50 text-slate-700`}
-    >
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-        accent === 'red' ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-500'
-      }`}>
-        <Icon className="w-4 h-4" />
-      </div>
-      <span className="text-sm font-semibold">{label}</span>
-    </button>
-  )
-
   return (
     <div className="space-y-5">
-      {/* Operaciones */}
-      <div>
-        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-1">Operaciones</p>
-        <div className="space-y-0.5">
-          <Item icon={PlusCircle} label="Registrar Gasto" onClick={onOpenExpenseModal} />
-          {/* Solo mostramos Cierre si la sesión está abierta — Apertura la maneja el banner */}
-          {session?.status === 'open' && (
-            <Item icon={Lock} label="Cierre Definitivo" onClick={onOpenCierre} accent="red" />
-          )}
+      {/* Operaciones — solo visibles para el dueño */}
+      {isOwner && (
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-1">Operaciones</p>
+          <div className="space-y-0.5">
+            <Item icon={PlusCircle} label="Registrar Gasto" onClick={onOpenExpenseModal} />
+            {session?.status === 'open' && (
+              <Item icon={Lock} label="Cierre Definitivo" onClick={onOpenCierre} accent="red" />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Arqueo de Caja (solo si hay sesión abierta) */}
+      {/* Arqueo de Caja */}
       {session?.status === 'open' && (
         <div>
           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-2">Arqueo de Caja</p>
@@ -468,23 +474,30 @@ function ManagementContent({
   )
 }
 
-// ─── Management Drawer (Mobile only) ─────────────────────────────────────────
-
+// ─── Management Drawer (Mobile) ───────────────────────────────────────────────
 function ManagementDrawer({ onClose, ...contentProps }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/25 backdrop-blur-[2px]"
       />
       <motion.div
         initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative bg-white w-full sm:w-80 border-l border-slate-100 shadow-2xl h-full flex flex-col"
+        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+        className="relative bg-white w-[85vw] max-w-sm border-l border-slate-100 shadow-2xl h-full flex flex-col"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={{ left: 0, right: 0.3 }}
+        onDragEnd={(_, info) => { if (info.offset.x > 80) onClose() }}
+        onClick={e => e.stopPropagation()}
       >
-        {/* Header con flecha de cierre */}
-        <div className="px-4 py-4 border-b border-slate-100 flex items-center gap-3 shrink-0">
+        {/* Handle visual */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-slate-200 rounded-full -ml-0.5 opacity-60" />
+
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3 shrink-0">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
@@ -510,14 +523,19 @@ function ManagementDrawer({ onClose, ...contentProps }) {
 // ════════════════════════════════════════════════════════════════════════════
 // MAIN PAGE
 // ════════════════════════════════════════════════════════════════════════════
-
 export default function CajaPage() {
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  const { isOwner } = useAuth()
+  const prefs = useEncryptedPrefs()
+
+  // ── State ─────────────────────────────────────────────────────────────────
   const [date, setDate] = useState(today())
   const [sales, setSales] = useState([])
   const [expenses, setExpenses] = useState([])
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [hidden, setHidden] = useState(() => localStorage.getItem('turno_ya_privacy_mode') === 'true')
+  // privacy_mode persiste cifrado; inicializa desde prefs una vez que la clave está lista
+  const [hidden, setHidden] = useState(false)
   const [session, setSession] = useState(null)
   const [sessionLoading, setSessionLoading] = useState(true)
   const [businessSettings, setBusinessSettings] = useState(null)
@@ -531,7 +549,18 @@ export default function CajaPage() {
   const [isDetailExpanded, setIsDetailExpanded] = useState(false)
   const [ledgerFilter, setLedgerFilter] = useState('')
 
-  useEffect(() => { localStorage.setItem('turno_ya_privacy_mode', hidden) }, [hidden])
+  // Recuperar privacy_mode desde prefs cifradas apenas la clave esté lista
+  useEffect(() => {
+    if (!prefs.isReady) return
+    const saved = prefs.getItem('privacy_mode')
+    if (saved !== null) setHidden(Boolean(saved))
+  }, [prefs.isReady]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persistir privacy_mode cifrado cada vez que cambia
+  useEffect(() => {
+    if (!prefs.isReady) return
+    prefs.setItem('privacy_mode', hidden)
+  }, [hidden, prefs.isReady]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -544,7 +573,13 @@ export default function CajaPage() {
         getExpenses({ date })
       ])
       setSummary(summaryRes.data)
-      setSales(salesRes.data.sales || [])
+
+      // Empleados solo ven sus propios cobros (filtrado por staffId en el futuro
+      // o por professional_name). Por ahora el servidor devuelve todo y
+      // el frontend filtra para la vista del empleado.
+      const allSales = salesRes.data.sales || []
+      setSales(allSales)
+
       setSession(sessionRes.data.session)
       setBusinessSettings(settingsRes.data)
       setExpenses(expensesRes.data.expenses || [])
@@ -598,7 +633,8 @@ export default function CajaPage() {
         time: e.created_at,
       }))
     ]
-    entries.sort((a, b) => new Date(b.time) - new Date(a.time))
+    // Orden cronológico ascendente (más antiguo primero, como un ledger real)
+    entries.sort((a, b) => new Date(a.time) - new Date(b.time))
     if (ledgerFilter.trim()) {
       const q = ledgerFilter.toLowerCase()
       return entries.filter(e => e.description?.toLowerCase().includes(q))
@@ -610,7 +646,6 @@ export default function CajaPage() {
   const digitalTotal = (byMethod['Transferencia']?.total ?? 0) + (byMethod['Tarjeta']?.total ?? 0)
   const efectivoTotal = byMethod['Efectivo']?.total ?? 0
 
-  // Props compartidas para ManagementContent
   const managementProps = {
     session,
     summary,
@@ -620,121 +655,168 @@ export default function CajaPage() {
     onOpenCierre: () => setShowCierreModal(true),
     display,
     date,
+    isOwner,
   }
+
+  const changeDate = (delta) =>
+    setDate(fnsAddDays(new Date(date + 'T12:00:00'), delta).toISOString().split('T')[0])
 
   return (
     <Layout>
       <TooltipProvider>
-        {/* ── Layout wrapper: dos columnas en desktop ── */}
-        <div className="max-w-6xl mx-auto px-4 py-4 lg:flex lg:gap-6">
+        {/*
+          ── Outer container: full-bleed ledger layout ──
+          En desktop: w-3/4 Ledger + w-1/4 Sidebar fijo.
+          En mobile: columna única.
+        */}
+        <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto">
 
-          {/* ── Columna principal (3/4 en desktop, full en mobile) ── */}
-          <div className="flex-1 min-w-0 flex flex-col gap-4">
+          {/* ═══════════════════════════════════════════
+              COLUMNA LEDGER (3/4 desktop, full mobile)
+          ══════════════════════════════════════════════ */}
+          <div className="flex-1 min-w-0 flex flex-col gap-4 pb-10">
 
-            {/* ── Header Operativo ── */}
-            <div className="flex items-center justify-between sticky top-0 z-40 bg-slate-50 -mx-4 px-4 py-3 border-b border-slate-100/50">
+            {/* ── HEADER ─────────────────────────────── */}
+            <div className="flex items-center gap-3 sticky top-14 z-40 bg-slate-50 -mx-4 px-4 py-3 border-b border-slate-100/80">
 
-              {/* Left: Title + Privacy */}
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-base font-black uppercase tracking-widest text-slate-800">Caja</h1>
+              {/* Título CAJA + Privacy Toggle */}
+              <div className="flex items-center gap-2 shrink-0">
+                <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900">CAJA</h1>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      id="privacy-toggle"
+                      onClick={() => setHidden(!hidden)}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                        hidden
+                          ? 'bg-blue-50 text-blue-500 ring-1 ring-blue-100'
+                          : 'text-slate-300 hover:text-slate-500 hover:bg-white'
+                      }`}
+                    >
+                      {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-[10px]">
+                    {hidden ? 'Mostrar montos' : 'Ocultar montos'}
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Selector de fecha centrado */}
+              <div className="flex-1 flex justify-center">
+                <div className="flex items-center gap-1 bg-white border border-slate-100 rounded-xl p-0.5 shadow-sm">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700"
+                    onClick={() => changeDate(-1)}
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </Button>
+                  <button
+                    id="date-picker-trigger"
+                    onClick={() => setIsCalendarExpanded(true)}
+                    className="px-3 text-[10px] font-black uppercase tracking-tight text-slate-700 min-w-[64px] text-center hover:text-slate-900 transition-colors"
+                  >
+                    {isToday ? 'HOY' : fmtDateShort(date)}
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700"
+                    onClick={() => changeDate(1)}
+                    disabled={isToday}
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Hamburger (solo en mobile, solo para dueño que tiene el panel de gestión) */}
+              {isOwner ? (
                 <button
-                  onClick={() => setHidden(!hidden)}
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                    hidden ? 'bg-blue-50 text-blue-500' : 'text-slate-400 hover:text-slate-600'
-                  }`}
+                  id="management-drawer-trigger"
+                  onClick={() => setShowManagementDrawer(true)}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-100 transition-all lg:hidden shrink-0"
                 >
-                  {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  <Menu className="w-4.5 h-4.5" />
                 </button>
-              </div>
+              ) : (
+                <div className="w-9 h-9 shrink-0 lg:hidden" />
+              )}
 
-              {/* Center: Date Navigation */}
-              <div className="flex items-center gap-1 bg-white border border-slate-100 rounded-xl p-0.5 shadow-sm">
-                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), -1).toISOString().split('T')[0])}>
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </Button>
-                <button onClick={() => setIsCalendarExpanded(true)} className="px-3 text-[10px] font-black uppercase tracking-tight text-slate-700 min-w-[60px] text-center">
-                  {isToday ? 'Hoy' : fmtDateShort(date)}
-                </button>
-                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={() => setDate(fnsAddDays(new Date(date + 'T12:00:00'), 1).toISOString().split('T')[0])} disabled={isToday}>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-
-              {/* Right: Hamburger (solo en mobile) */}
-              <button
-                onClick={() => setShowManagementDrawer(true)}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors lg:hidden"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-
-              {/* Spacer desktop para centrar la fecha */}
-              <div className="hidden lg:block w-9" />
+              {/* Spacer invisible para desktop (mantiene la fecha centrada) */}
+              <div className="hidden lg:block w-[36px] shrink-0" />
             </div>
 
-            {/* ── Session Banner ── */}
+            {/* ── SESSION BANNER ─────────────────────── */}
             <SessionBanner
               session={session}
               onOpen={handleOpenCaja}
               onOpenCierre={() => setShowCierreModal(true)}
               loading={sessionLoading}
+              isOwner={isOwner}
             />
 
-            {/* ── Smart Cards de Liquidez ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* ── DOS TARJETAS PRINCIPALES ───────────── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
               {/* Disponible Digital */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-shadow hover:shadow-md">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-                    <Smartphone className="w-[18px] h-[18px] text-blue-500" />
+              <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                    <Smartphone className="w-4 h-4 text-blue-500" />
                   </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Disponible Digital</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
                 </div>
-                <p className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-3">
+                <p className="text-[2rem] font-black text-slate-900 tracking-tight leading-none mb-3">
                   {display(digitalTotal)}
                 </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold text-slate-400">
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-semibold text-slate-400">
                   {(byMethod['Transferencia']?.total ?? 0) > 0 && (
                     <span className="flex items-center gap-1">
-                      <ArrowLeftRight className="w-3 h-3" /> Transferencia: {display(byMethod['Transferencia'].total)}
+                      <ArrowLeftRight className="w-2.5 h-2.5" />
+                      {display(byMethod['Transferencia'].total)}
                     </span>
                   )}
                   {(byMethod['Tarjeta']?.total ?? 0) > 0 && (
                     <span className="flex items-center gap-1">
-                      <CreditCard className="w-3 h-3" /> Tarjeta: {display(byMethod['Tarjeta'].total)}
+                      <CreditCard className="w-2.5 h-2.5" />
+                      {display(byMethod['Tarjeta'].total)}
                     </span>
                   )}
                 </div>
               </div>
 
               {/* Efectivo en Cajón */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-shadow hover:shadow-md">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                    <Banknote className="w-[18px] h-[18px] text-emerald-500" />
+              <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+                    <Banknote className="w-4 h-4 text-emerald-500" />
                   </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
                 </div>
-                <p className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-3">
+                <p className="text-[2rem] font-black text-slate-900 tracking-tight leading-none mb-3">
                   {display(efectivoTotal)}
                 </p>
                 {session?.status === 'open' && (
-                  <p className="text-[10px] font-semibold text-slate-400">
-                    Esperado en caja: {display(session.expected_cash)}
+                  <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                    Esperado: {display(session.expected_cash)}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* ── Ver Detalle (Revelación Progresiva) ── */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            {/* ── VER DETALLE ────────────────────────── */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <button
+                id="detail-expand-toggle"
                 onClick={() => setIsDetailExpanded(!isDetailExpanded)}
-                className="w-full px-5 py-3 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
+                className="w-full px-5 py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors"
               >
                 <span>Ver detalle</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isDetailExpanded ? 'rotate-180' : ''}`} />
+                <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${isDetailExpanded ? 'rotate-90' : ''}`} />
               </button>
 
               <AnimatePresence>
@@ -743,22 +825,22 @@ export default function CajaPage() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
+                    transition={{ duration: 0.22, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="px-5 pb-5 grid grid-cols-3 gap-3">
-                      <div className="text-center p-4 rounded-xl bg-slate-50 border border-slate-100/50">
+                    <div className="px-5 pb-5 grid grid-cols-3 gap-3 border-t border-slate-50">
+                      <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100/60 mt-4">
                         <p className="text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
-                        <p className="text-lg font-black text-slate-900">{display(summary?.netBalance)}</p>
+                        <p className="text-lg font-black text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
                       </div>
-                      <div className="text-center p-4 rounded-xl bg-emerald-50/50 border border-emerald-100/30">
+                      <div className="text-center p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/40 mt-4">
                         <p className="text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
-                        <p className="text-lg font-black text-emerald-900">{display(summary?.totalIncome)}</p>
+                        <p className="text-lg font-black text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
                         <p className="text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
                       </div>
-                      <div className="text-center p-4 rounded-xl bg-red-50/50 border border-red-100/30">
-                        <p className="text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos</p>
-                        <p className="text-lg font-black text-red-900">{display(summary?.totalExpenses)}</p>
+                      <div className="text-center p-4 rounded-2xl bg-red-50/50 border border-red-100/30 mt-4">
+                        <p className="text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos Totales</p>
+                        <p className="text-lg font-black text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
                         <p className="text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
                       </div>
                     </div>
@@ -767,22 +849,28 @@ export default function CajaPage() {
               </AnimatePresence>
             </div>
 
-            {/* ── Libro Mayor ── */}
+            {/* ════════════════════════════════════════
+                LIBRO MAYOR (LEDGER)
+            ════════════════════════════════════════ */}
             <div className="flex-1 flex flex-col min-h-0">
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
 
-                {/* Header con buscador integrado */}
-                <div className="px-4 py-3 border-b border-slate-50 flex items-center gap-3">
+                {/* Buscador como header del ledger */}
+                <div className="px-4 py-3 border-b border-slate-50 flex items-center gap-3 bg-white sticky top-0">
                   <Search className="w-4 h-4 text-slate-300 shrink-0" />
                   <input
+                    id="ledger-search"
                     type="text"
-                    placeholder="Buscar por cliente o descripción..."
+                    placeholder="Buscar por cliente..."
                     value={ledgerFilter}
                     onChange={e => setLedgerFilter(e.target.value)}
-                    className="flex-1 bg-transparent text-sm font-medium focus:outline-none placeholder:text-slate-300 text-slate-700"
+                    className="flex-1 bg-transparent text-sm font-medium focus:outline-none placeholder:text-slate-300 placeholder:font-normal text-slate-700"
                   />
                   {ledgerFilter && (
-                    <button onClick={() => setLedgerFilter('')} className="text-slate-300 hover:text-slate-500">
+                    <button
+                      onClick={() => setLedgerFilter('')}
+                      className="text-slate-300 hover:text-slate-500 transition-colors"
+                    >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   )}
@@ -791,33 +879,45 @@ export default function CajaPage() {
                 {/* Entries */}
                 {loading ? (
                   <div className="py-20 text-center">
-                    <div className="w-5 h-5 border-2 border-slate-200 border-t-slate-500 rounded-full animate-spin mx-auto" />
+                    <div className="w-5 h-5 border-2 border-slate-100 border-t-slate-400 rounded-full animate-spin mx-auto" />
                   </div>
                 ) : ledgerEntries.length === 0 ? (
                   <div className="py-20 text-center px-6">
-                    <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Sin movimientos registrados</p>
-                    <p className="text-[11px] text-slate-400">Finalizá turnos en la Agenda o agregá gastos para verlos aquí</p>
+                    <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Sin movimientos</p>
+                    <p className="text-[11px] text-slate-400">Finalizá turnos o agregá gastos para verlos aquí.</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-50">
-                    {ledgerEntries.map(entry => (
+                    {ledgerEntries.map((entry) => (
                       <button
                         key={entry.id}
                         onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
-                        className={`w-full text-left px-4 py-3.5 flex items-center justify-between transition-colors ${
-                          entry.type === 'income' ? 'hover:bg-slate-50/80 cursor-pointer' : 'cursor-default'
+                        className={`w-full text-left px-4 py-3.5 flex items-center justify-between transition-colors group ${
+                          entry.type === 'income'
+                            ? 'hover:bg-slate-50/80 cursor-pointer'
+                            : 'cursor-default'
                         }`}
                       >
+                        {/* Left: dot + info */}
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-2 h-2 rounded-full shrink-0 ${entry.type === 'income' ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                          {/* Colored dot */}
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${
+                            entry.type === 'income' ? 'bg-emerald-400' : 'bg-red-400'
+                          }`} />
+
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-800 truncate">{entry.description}</p>
+                            <p className="text-sm font-semibold text-slate-800 truncate leading-snug">
+                              {entry.description}
+                            </p>
                             <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 mt-0.5">
                               <span>{fmtTime(entry.time)}</span>
                               {entry.method && (
                                 <>
                                   <span className="text-slate-200">·</span>
-                                  <span className="flex items-center gap-0.5">{METHOD_ICON[entry.method]}{entry.method}</span>
+                                  <span className="flex items-center gap-0.5">
+                                    {METHOD_ICON[entry.method]}
+                                    {entry.method}
+                                  </span>
                                 </>
                               )}
                               {entry.category && (
@@ -829,7 +929,9 @@ export default function CajaPage() {
                             </div>
                           </div>
                         </div>
-                        <span className={`text-sm font-black tabular-nums shrink-0 ml-3 ${
+
+                        {/* Right: amount */}
+                        <span className={`text-sm font-black tabular-nums shrink-0 ml-4 ${
                           entry.type === 'income' ? 'text-emerald-600' : 'text-red-500'
                         }`}>
                           <span className={hidden ? 'blur-md select-none' : ''}>
@@ -843,38 +945,64 @@ export default function CajaPage() {
               </div>
             </div>
 
-          </div>{/* fin columna principal */}
+          </div>{/* fin columna ledger */}
 
-          {/* ── Sidebar Derecho (solo Desktop) ── */}
-          <aside className="hidden lg:flex flex-col gap-4 w-72 shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sticky top-16">
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4 px-1">Gestión y Reportes</p>
-              <ManagementContent {...managementProps} />
-            </div>
-          </aside>
+          {/* ═══════════════════════════════════════════
+              SIDEBAR DERECHO (solo Desktop — 1/4, solo dueño)
+          ══════════════════════════════════════════════ */}
+          {isOwner && (
+            <aside className="hidden lg:flex flex-col w-[260px] xl:w-[280px] shrink-0">
+              <div className="sticky top-16 bg-white rounded-2xl border border-slate-100 shadow-md overflow-hidden">
+                <div className="px-4 pt-4 pb-2 border-b border-slate-50">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Gestión y Reportes</p>
+                </div>
+                <div className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-8rem)] scrollbar-hide">
+                  <ManagementContent {...managementProps} />
+                </div>
+              </div>
+            </aside>
+          )}
 
-        </div>{/* fin layout wrapper */}
+        </div>{/* fin outer flex */}
 
-        {/* ── Overlays ── */}
+        {/* ── OVERLAYS — cada uno en su propio AnimatePresence para
+            que el cierre de uno no afecte el estado de otro ── */}
         <AnimatePresence>
-          {showManagementDrawer && (
+          {isOwner && showManagementDrawer && (
             <ManagementDrawer
+              key="management-drawer"
               onClose={() => setShowManagementDrawer(false)}
               {...managementProps}
             />
           )}
+        </AnimatePresence>
 
-          {drawerSale && <SaleDetailDrawer sale={drawerSale} onClose={() => setDrawerSale(null)} />}
-          {showExpenseModal && (
+        <AnimatePresence>
+          {drawerSale && (
+            <SaleDetailDrawer
+              key="sale-drawer"
+              sale={drawerSale}
+              onClose={() => setDrawerSale(null)}
+            />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {isOwner && showExpenseModal && (
             <ExpenseModal
+              key="expense-modal"
               onClose={() => setShowExpenseModal(false)}
               onSaved={fetchData}
               sessionLocked={session?.status === 'closed'}
               categories={businessSettings?.expense_categories}
             />
           )}
-          {showCierreModal && (
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {isOwner && showCierreModal && (
             <CierreCajaModal
+              key="cierre-modal"
               session={session}
               summary={summary}
               onClose={() => setShowCierreModal(false)}
@@ -883,6 +1011,7 @@ export default function CajaPage() {
           )}
         </AnimatePresence>
 
+        {/* ── CALENDAR PICKER ──────────────────────── */}
         <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
           <DialogContent className="sm:max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
             <DialogHeader className="p-6 bg-slate-900 text-white">
@@ -903,9 +1032,8 @@ export default function CajaPage() {
   )
 }
 
-// ─── Expense Modal ───────────────────────────────────────────────────────────
-
-function ExpenseModal({ onClose, onSaved, sessionLocked, categories }) {
+// ─── Expense Modal ────────────────────────────────────────────────────────────
+function ExpenseModal({ onClose, onSaved, categories }) {
   const cats = categories?.length > 0 ? categories : EXPENSE_CATEGORIES
   const [form, setForm] = useState({ description: '', amount: '', category: cats[0], created_at: today() })
   const [saving, setSaving] = useState(false)
@@ -929,12 +1057,30 @@ function ExpenseModal({ onClose, onSaved, sessionLocked, categories }) {
           <Button variant="ghost" size="icon" onClick={onClose}><X className="w-4 h-4" /></Button>
         </div>
         <form className="p-8 space-y-5" onSubmit={handleSubmit}>
-          <input placeholder="Descripción..." className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-          <input type="text" inputMode="numeric" placeholder="Monto" className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.amount} onChange={e => setForm({ ...form, amount: fmtNumericInput(e.target.value) })} />
-          <select className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+          <input
+            placeholder="Descripción..."
+            className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+            value={form.description}
+            onChange={e => setForm({ ...form, description: e.target.value })}
+          />
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="Monto"
+            className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+            value={form.amount}
+            onChange={e => setForm({ ...form, amount: fmtNumericInput(e.target.value) })}
+          />
+          <select
+            className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm focus:outline-none"
+            value={form.category}
+            onChange={e => setForm({ ...form, category: e.target.value })}
+          >
             {cats.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <Button type="submit" disabled={saving} className="w-full h-12 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest">Guardar Gasto</Button>
+          <Button type="submit" disabled={saving} className="w-full h-12 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest">
+            {saving ? 'Guardando...' : 'Guardar Gasto'}
+          </Button>
         </form>
       </div>
     </div>

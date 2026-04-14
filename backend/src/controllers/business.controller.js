@@ -1,4 +1,6 @@
+import bcrypt from 'bcrypt'
 import { findBusinessById, updateBusinessSettings } from '../db/business.queries.js'
+import { getStaffByBusiness, createStaff, updateStaffPinHash } from '../db/staff.queries.js'
 
 export const getSettings = async (req, reply) => {
   try {
@@ -52,5 +54,33 @@ export const updateSettings = async (req, reply) => {
     })
   } catch (error) {
     reply.status(500).send({ error: 'Error al actualizar la configuración' })
+  }
+}
+
+export const updateStaffPin = async (req, reply) => {
+  try {
+    const businessId = req.business.id
+    const { pin } = req.body
+
+    if (!pin || !/^\d{4}$/.test(String(pin))) {
+      return reply.status(400).send({ error: 'El PIN debe ser exactamente 4 dígitos numéricos' })
+    }
+
+    const pepperedPin = `${businessId}:${pin}`
+    const hash = await bcrypt.hash(pepperedPin, 10)
+
+    const staffList = await getStaffByBusiness(businessId)
+    // Para simplificar, buscamos si ya existe el empleado por defecto, sino se crea
+    let targetStaff = staffList.find(s => s.role === 'empleado')
+
+    if (!targetStaff) {
+      targetStaff = await createStaff(businessId, 'Empleado General', hash, 'empleado')
+    } else {
+      await updateStaffPinHash(targetStaff.id, hash)
+    }
+
+    reply.send({ message: 'PIN actualizado correctamente', staff_name: targetStaff.name || 'Empleado General' })
+  } catch (error) {
+    reply.status(500).send({ error: 'Error al actualizar el PIN de staff' })
   }
 }

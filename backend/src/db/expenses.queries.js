@@ -2,13 +2,24 @@ import { pool } from '../config/db.js'
 
 /**
  * Crea un gasto para un negocio.
+ * Incluye trazabilidad completa: is_advance, professional_name, created_by_staff_id.
  */
-export const createExpense = async (businessId, description, amount, category, created_at) => {
+export const createExpense = async (
+  businessId,
+  description,
+  amount,
+  category,
+  created_at,
+  isAdvance = false,
+  professionalName = null,
+  createdByStaffId = null
+) => {
   const { rows } = await pool.query(
-    `INSERT INTO expenses (business_id, description, amount, category, created_at)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO expenses
+       (business_id, description, amount, category, created_at, is_advance, professional_name, created_by_staff_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
-    [businessId, description, amount, category, created_at || new Date()]
+    [businessId, description, amount, category, created_at || new Date(), isAdvance, professionalName, createdByStaffId]
   )
   return rows[0]
 }

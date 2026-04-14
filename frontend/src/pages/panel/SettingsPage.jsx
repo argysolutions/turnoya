@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import client from '@/api/client'
+import { getSettings, updateSettings, updateStaffPin } from '@/api/business'
 import { getGoogleAuthUrl, getGoogleStatus, unlinkGoogle } from '@/api/google'
 import { 
   CheckCircle2, 
@@ -31,7 +31,8 @@ export default function SettingsPage() {
     expense_categories: []
   })
   const [newCategory, setNewCategory] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [staffPin, setStaffPin] = useState('')
+  const [updatingPin, setUpdatingPin] = useState(false)
   const [saving, setSaving] = useState(false)
   const [linkingGoogle, setLinkingGoogle] = useState(false)
   const [googleStatus, setGoogleStatus] = useState({ linked: false, updated_at: null })
@@ -40,7 +41,7 @@ export default function SettingsPage() {
     const fetchData = async () => {
       try {
         const [settingsRes, googleRes] = await Promise.all([
-          client.get('/settings'),
+          getSettings(),
           getGoogleStatus()
         ])
         
@@ -54,10 +55,8 @@ export default function SettingsPage() {
         })
         
         setGoogleStatus(googleRes.data)
-      } catch (error) {
+      } catch {
         toast.error('Error al cargar la configuración')
-      } finally {
-        setLoading(false)
       }
     }
     fetchData()
@@ -74,7 +73,9 @@ export default function SettingsPage() {
             setLinkingGoogle(false)
             toast.success('¡Google vinculado!')
           }
-        } catch {}
+        } catch {
+          // ignore error
+        }
       }
     }
 
@@ -128,12 +129,28 @@ export default function SettingsPage() {
     if (e) e.preventDefault()
     setSaving(true)
     try {
-      await client.put('/settings', settings)
+      await updateSettings(settings)
       toast.success('Configuración guardada')
     } catch {
       toast.error('Error al guardar')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSavePin = async () => {
+    if (!staffPin || staffPin.length !== 4 || isNaN(staffPin)) {
+      return toast.error('El PIN debe ser exactamente 4 dígitos numéricos')
+    }
+    setUpdatingPin(true)
+    try {
+      await updateStaffPin(staffPin)
+      toast.success('PIN de personal actualizado')
+      setStaffPin('')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al actualizar PIN')
+    } finally {
+      setUpdatingPin(false)
     }
   }
 
@@ -260,6 +277,38 @@ export default function SettingsPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-slate-200">
+              <CardHeader>
+                <CardTitle className="text-lg">Acceso de Personal</CardTitle>
+                <CardDescription>Configurá el PIN de 4 dígitos que usarán los empleados para ingresar a la plataforma por <span className="font-bold">/staff-login</span>.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-700">Nuevo PIN (4 dígitos)</Label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={staffPin}
+                      onChange={(e) => setStaffPin(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Ej: 1234"
+                      className="flex h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={handleSavePin}
+                      disabled={updatingPin || staffPin.length !== 4}
+                      className="bg-slate-900 text-white min-w-[100px]"
+                    >
+                      {updatingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Establecer'}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Este PIN cifrado funciona para todos los empleados de la sucursal.</p>
                 </div>
               </CardContent>
             </Card>

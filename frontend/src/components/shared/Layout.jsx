@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Separator } from '@/components/ui/separator'
@@ -9,16 +9,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Settings, HelpCircle, Share2, LogOut, User, CheckCircle2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import client from '@/api/client'
-import { toast } from 'sonner'
+import { Settings, HelpCircle, Share2, LogOut, User } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 const navItems = [
   { label: 'Agenda', path: '/dashboard' },
@@ -32,13 +24,16 @@ export default function Layout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('business')
+  const { logout } = useAuth()
+
+  const handleLogout = (forget = false) => {
+    // Optionally ignore standard business obj cleanup, or just do it.
+    localStorage.removeItem('business') 
+    logout(forget)
     navigate('/login')
   }
 
-  const [business, setBusiness] = useState(() => JSON.parse(localStorage.getItem('business') || '{}'))
+  const [business] = useState(() => JSON.parse(localStorage.getItem('business') || '{}'))
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -96,9 +91,13 @@ export default function Layout({ children }) {
                   <span>Ayuda</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer py-2">
+                <DropdownMenuItem onClick={() => handleLogout(false)} className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer py-2">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Cerrar sesión</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleLogout(true)} className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer py-2">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Cerrar sesión y olvidar cuenta</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
