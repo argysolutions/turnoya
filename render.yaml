@@ -17,7 +17,7 @@ services:
       - key: ENCRYPTION_KEY
         generateValue: true
       - key: FRONTEND_URL
-        value: https://turnoya-frontend.onrender.com
+        value: https://turnoya-cliente.onrender.com
 
   - type: web
     name: turnoya-frontend
@@ -27,7 +27,7 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
-        value: https://turnoya-backend.onrender.com/api # <-- Ajustar esto al dominio final del backend si es diferente a este patrón
+        value: https://turnoya-el1c.onrender.com/api
 
 databases:
   - name: turnoya-db

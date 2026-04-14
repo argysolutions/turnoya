@@ -22,7 +22,6 @@ import {
   Share2, Search, FileText, Download,
   Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff,
 } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
 import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

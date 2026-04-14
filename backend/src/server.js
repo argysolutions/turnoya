@@ -15,8 +15,21 @@ import { financesRoutes } from './routes/finances.routes.js'
 
 const app = Fastify({ logger: true })
 
+// CORS: acepta FRONTEND_URL (puede ser comma-separated), o fallback a producción + dev
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(u => u.trim())
+  : ['https://turnoya-cliente.onrender.com', 'http://localhost:5173']
+
 await app.register(cors, {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, cb) => {
+    // Permitir requests sin origin (curl, health checks, mobile apps)
+    if (!origin || allowedOrigins.includes(origin)) {
+      cb(null, true)
+    } else {
+      console.warn(`CORS bloqueado para origin: ${origin}`)
+      cb(null, false)
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 })
