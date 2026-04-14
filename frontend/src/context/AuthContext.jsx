@@ -84,11 +84,12 @@ export function AuthProvider({ children }) {
     // Estado
     isAuthenticated: !!auth,
     token: auth?.token ?? null,
-    role: auth?.payload?.role ?? null,
+    // Compatibilidad para tokens antiguos que no tenían rol (solo existían dueños)
+    role: auth?.payload?.role ?? (auth?.payload ? 'dueño' : null),
     businessId: auth?.payload?.business_id ?? null,
     staffId: auth?.payload?.staff_id ?? null,
     // Shortcuts
-    isOwner: auth?.payload?.role === 'dueño',
+    isOwner: (auth?.payload?.role ?? 'dueño') === 'dueño',
     isEmployee: auth?.payload?.role === 'empleado',
     // Actions
     setToken,

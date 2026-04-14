@@ -45,12 +45,14 @@ export const requireRole = (requiredRole) => async (req, reply) => {
     return reply.status(401).send({ error: 'Token requerido' })
   }
 
-  if (req.business.role !== requiredRole) {
+  const actualRole = req.business.role ?? 'dueño' // Retrocompatibilidad para tokens viejos
+
+  if (actualRole !== requiredRole) {
     return reply.status(403).send({
       error: 'Acceso denegado',
       code: 'FORBIDDEN',
       required_role: requiredRole,
-      current_role: req.business.role ?? 'desconocido',
+      current_role: actualRole,
     })
   }
 }
