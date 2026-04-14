@@ -174,9 +174,11 @@ export default function SettingsPage() {
     }
   }
 
-  if (role !== 'dueño' && !authLoading) {
-    return (
-      <Layout>
+  const isRestricted = role !== 'dueño' && !authLoading
+
+  return (
+    <Layout>
+      {isRestricted ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
             <ShieldCheck className="w-8 h-8 text-red-600" />
@@ -184,24 +186,20 @@ export default function SettingsPage() {
           <h1 className="text-xl font-bold text-slate-900">Acceso Restringido</h1>
           <p className="text-slate-500 max-w-xs">No tenés permisos de administrador para ver o modificar la configuración de este negocio.</p>
         </div>
-      </Layout>
-    )
-  }
+      ) : (
+        <>
+          <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">Configuración</h1>
+              <p className="text-sm text-slate-500 mt-1">Gestioná las reglas de tu negocio e integraciones.</p>
+            </div>
+            <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto shadow-md">
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Guardar cambios
+            </Button>
+          </div>
 
-  return (
-    <Layout>
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Configuración</h1>
-          <p className="text-sm text-slate-500 mt-1">Gestioná las reglas de tu negocio e integraciones.</p>
-        </div>
-        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto shadow-md">
-          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Guardar cambios
-        </Button>
-      </div>
-
-      <Tabs defaultValue="reglas" className="w-full">
+          <Tabs defaultValue="reglas" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 rounded-xl h-12">
           <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
             <Settings2 className="w-4 h-4 mr-2" /> Reglas de Negocio

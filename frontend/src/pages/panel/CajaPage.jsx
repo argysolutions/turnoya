@@ -534,15 +534,6 @@ export default function CajaPage() {
     return () => clearActiveProfile()
   }, [clearActiveProfile])
 
-  // Si no hay perfil activo, mostrar Lock Screen
-  if (!activeProfile) {
-    return (
-      <Layout>
-        <LockScreen onUnlock={() => {}} />
-      </Layout>
-    )
-  }
-
   // ── State ─────────────────────────────────────────────────────────────────
   const [date, setDate] = useState(today())
   const [sales, setSales] = useState([])
@@ -683,6 +674,15 @@ export default function CajaPage() {
 
   const changeDate = (delta) =>
     setDate(fnsAddDays(new Date(date + 'T12:00:00'), delta).toISOString().split('T')[0])
+
+  // Si no hay perfil activo, mostrar Lock Screen (Movido aquí para evitar violación de Hooks)
+  if (!activeProfile) {
+    return (
+      <Layout>
+        <LockScreen onUnlock={() => {}} />
+      </Layout>
+    )
+  }
 
   return (
     <Layout>
