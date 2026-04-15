@@ -21,7 +21,19 @@ const navItems = [
 ]
 
 function NavScrollable({ location }) {
+  const { isOwner, isEmployee, role } = useAuth()
   const scrollRef = useRef(null)
+  
+  // Filtrar pestañas por rol
+  const visibleNavItems = navItems.filter(item => {
+    const isActuallyEmployee = role === 'employee' || isEmployee
+    if (isActuallyEmployee) {
+      // Empleados solo ven Agenda, Caja y Configuración (su perfil)
+      return ['Agenda', 'Caja', 'Configuración'].includes(item.label)
+    }
+    return true // Dueño ve todo
+  })
+
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
 
@@ -57,7 +69,7 @@ function NavScrollable({ location }) {
         ref={scrollRef}
         className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto no-scrollbar whitespace-nowrap"
       >
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
@@ -79,6 +91,7 @@ function NavScrollable({ location }) {
         ))}
       </nav>
 
+
       {/* Right scroll indicator */}
       {canScrollRight && (
         <div className="absolute right-0 top-0 bottom-0 w-6 flex items-center justify-end z-10 pointer-events-none bg-gradient-to-l from-white to-transparent sm:hidden">
@@ -93,12 +106,20 @@ export default function Layout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { logout, activeProfile, clearActiveProfile } = useAuth()
+  const { logout, activeProfile, clearActiveProfile, isEmployee, role } = useAuth()
+  const isActuallyEmployee = role === 'employee' || isEmployee
 
   const handleLogout = (forget = false) => {
+    const isEmp = isActuallyEmployee
     localStorage.removeItem('business') 
     logout(forget)
-    navigate('/login')
+    
+    // Si era empleado, lo mandamos directo al login de staff
+    if (isEmp) {
+      navigate('/staff-login', { replace: true })
+    } else {
+      navigate('/login', { replace: true })
+    }
   }
 
   const handleChangeProfile = () => {
@@ -113,7 +134,12 @@ export default function Layout({ children }) {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-[60]">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-4 sm:gap-6 w-full overflow-hidden">
-            <span className="font-semibold text-slate-900 text-sm shrink-0">TurnoYa</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="font-semibold text-slate-900 text-sm">TurnoYa</span>
+              {isActuallyEmployee && (
+                <span className="bg-indigo-600 text-[9px] text-white font-black uppercase px-1.5 py-0.5 rounded-md tracking-widest shrink-0 animate-pulse">Staff Mode</span>
+              )}
+            </div>
             <Separator orientation="vertical" className="h-4 shrink-0" />
             <NavScrollable location={location} />
           </div>

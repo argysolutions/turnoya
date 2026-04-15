@@ -7,6 +7,7 @@ import { pool } from '../config/db.js'
 export const getSalesByBusiness = async (businessId, date) => {
   const params = [businessId]
   const tz = `'America/Argentina/Buenos_Aires'`
+  let whereDate = ''
   if (date) {
     whereDate = `AND (s.created_at AT TIME ZONE ${tz})::date = $2::date`
     params.push(date)
@@ -15,7 +16,7 @@ export const getSalesByBusiness = async (businessId, date) => {
   const { rows: sales } = await pool.query(
     `SELECT s.id, s.business_id, s.appointment_id, s.client_name, s.phone,
             s.amount::NUMERIC(10,2) AS amount, s.payment_method,
-            s.professional_name, s.created_at
+            s.professional_name, s.staff_id, s.created_at
      FROM sales s
      WHERE s.business_id = $1
        ${whereDate}

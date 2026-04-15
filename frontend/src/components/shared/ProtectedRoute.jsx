@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children, requiredRole = null }) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  if (requiredRole && role !== requiredRole) {
+  if (requiredRole && String(role).toLowerCase() !== String(requiredRole).toLowerCase()) {
     // 403: autenticado pero insuficiente rol — no desloguear
     return <Navigate to="/sin-acceso" replace />
   }

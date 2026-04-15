@@ -120,15 +120,17 @@ export const staffLogin = async (req, reply) => {
     return reply.status(401).send({ error: 'PIN incorrecto' })
   }
 
-  // JWT minimalista: sin nombres ni emails
-  // Normalizar rol a ASCII-safe antes de emitir el JWT
-  const normalizedRole = matchedStaff.role === 'dueño' || matchedStaff.role === 'owner' ? 'owner' : 'employee'
+  // Normalizar rol a ASCII-safe antes de emitir el JWT (insensible a mayúsculas)
+  const r = String(matchedStaff.role || '').toLowerCase()
+  const normalizedRole = (r === 'dueño' || r === 'owner' || r === 'administrador') ? 'owner' : 'employee'
 
   const token = jwt.sign(
     {
       business_id: matchedStaff.business_id,
       role: normalizedRole,
       staff_id: matchedStaff.id,
+      name: matchedStaff.name,
+      professional_name: matchedStaff.professional_name || matchedStaff.name,
     },
     ENV.JWT_SECRET,
     { expiresIn: '12h' } // sesión más corta para staff

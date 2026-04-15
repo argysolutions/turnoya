@@ -12,9 +12,19 @@ function decodeJWT(token) {
     const [, payload] = token.split('.')
     const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
     if (decoded.exp && decoded.exp * 1000 < Date.now()) return null
-    // Normalizar roles legacy ('dueño' → 'owner', 'empleado' → 'employee')
-    if (decoded.role === 'dueño') decoded.role = 'owner'
-    if (decoded.role === 'empleado') decoded.role = 'employee'
+    
+    // Normalizar roles robustamente eliminando cualquier espacio o carácter extraño
+    const rawRole = String(decoded.role || '').toLowerCase().trim()
+    
+    if (rawRole.includes('dueño') || rawRole.includes('owner') || rawRole.includes('admin')) {
+      decoded.role = 'owner'
+    } else if (rawRole.includes('empleado') || rawRole.includes('employee') || rawRole.includes('staff')) {
+      decoded.role = 'employee'
+    } else if (rawRole === '') {
+      decoded.role = 'owner' // fallback legacy
+    }
+    
+    console.log('[Auth] Final state for role:', decoded.role)
     return decoded
   } catch {
     return null
@@ -62,19 +72,41 @@ export function AuthProvider({ children }) {
    * Cierra sesión: limpia token, payload en memoria y cualquier pref cifrada.
    */
   const logout = useCallback((forgetIdentity = false) => {
+    // Limpiar auth state inmediatamente
+    setAuth(null)
+    setActiveProfile(null)
+
+    // Token base
     localStorage.removeItem('token')
     localStorage.removeItem('business')
+
+    // Si pide olvidar, barremos TODO lo que huela a identidad o negocio
+    if (forgetIdentity) {
+      const keysToRemove = [
+        'turno_ya_last_business',
+        'turno_ya_last_staff',
+        'turno_ya_last_staff_business_id',
+        'turno_ya_last_staff_name',
+        'staff_identity',
+        'last_login_v2'
+      ]
+      
+      keysToRemove.forEach(k => localStorage.removeItem(k))
+
+      // También barremos por prefijo por si acaso
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('turno_ya') || key.includes('last_business') || key.includes('staff')) {
+          localStorage.removeItem(key)
+        }
+      })
+    }
+
+    // Limpiar preferencias cifradas
     Object.keys(localStorage)
       .filter(k => k.startsWith('enc_pref_'))
       .forEach(k => localStorage.removeItem(k))
 
-    if (forgetIdentity) {
-      localStorage.removeItem('turno_ya_last_business')
-      localStorage.removeItem('turno_ya_last_staff')
-    }
-
-    setAuth(null)
-    setActiveProfile(null)
+    console.log('[Auth] Logout complete. Forget identity:', forgetIdentity)
   }, [])
 
   /**
@@ -103,6 +135,8 @@ export function AuthProvider({ children }) {
     role: effectiveRole,
     businessId: auth?.payload?.business_id ?? null,
     staffId: activeProfile?.staff_id ?? auth?.payload?.staff_id ?? null,
+    professionalName: activeProfile?.professional_name ?? auth?.payload?.professional_name ?? null,
+    staffName: activeProfile?.name ?? auth?.payload?.name ?? null,
     // Shortcuts
     isOwner: effectiveRole === 'owner',
     isEmployee: effectiveRole === 'employee',

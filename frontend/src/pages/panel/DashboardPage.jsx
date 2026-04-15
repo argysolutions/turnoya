@@ -910,6 +910,7 @@ export default function DashboardPage() {
               <input 
                 type="number" 
                 value={paymentInfo.amount} 
+                autoFocus
                 onChange={e => setPaymentInfo({...paymentInfo, amount: e.target.value})}
                 className="flex h-12 w-full rounded-xl border border-input bg-slate-50 px-4 py-2 text-xl font-bold tabular-nums focus:ring-2 focus:ring-emerald-500 outline-none" 
               />

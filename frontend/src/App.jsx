@@ -55,9 +55,9 @@ export default function App() {
               <ProtectedRoute><CajaPage /></ProtectedRoute>
             } />
 
-            {/* ── Panel: admin only — requiredRole="owner" ─────────────────── */}
+            {/* ── Panel: configuración — bifurcada por rol ───────────────── */}
             <Route path="/dashboard/configuracion" element={
-              <ProtectedRoute requiredRole="owner"><SettingsPage /></ProtectedRoute>
+              <ProtectedRoute><SettingsPage /></ProtectedRoute>
             } />
           </Routes>
         </BrowserRouter>

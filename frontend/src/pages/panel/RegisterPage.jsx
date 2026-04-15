@@ -43,7 +43,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-slate-700 font-semibold ml-1 text-xs uppercase tracking-wider">Nombre del negocio *</Label>
-              <Input id="name" name="name" placeholder="Peluquería Demo" value={form.name} onChange={handleChange} required className="bg-slate-50/50 border-slate-200 h-11 rounded-xl focus:bg-white transition-all" />
+              <Input id="name" name="name" placeholder="Peluquería Demo" autoFocus value={form.name} onChange={handleChange} required className="bg-slate-50/50 border-slate-200 h-11 rounded-xl focus:bg-white transition-all" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-slate-700 font-semibold ml-1 text-xs uppercase tracking-wider">Email *</Label>

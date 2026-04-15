@@ -62,7 +62,7 @@ export const getAppointmentsByBusiness = async (businessId, date) => {
   return result.rows
 }
 
-export const updateAppointmentStatus = async (id, businessId, status, paymentInfo = null) => {
+export const updateAppointmentStatus = async (id, businessId, status, paymentInfo = null, staffContext = null) => {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
@@ -77,8 +77,10 @@ export const updateAppointmentStatus = async (id, businessId, status, paymentInf
     if (res.rows[0] && status === 'completed' && paymentInfo) {
       const amount = parseFloat(paymentInfo.amount) || 0
       const method = paymentInfo.method || 'Efectivo'
+      const professionalName = paymentInfo.professional_name || staffContext?.professional_name || null
+      const staffId = staffContext?.staff_id || null
 
-      // Traemos client_name y phone en una query separada para evitar problemas con parámetros en INSERT...SELECT
+      // Traemos client_name y phone
       const clientRes = await client.query(
         `SELECT c.name, c.phone
          FROM appointments a
@@ -89,9 +91,9 @@ export const updateAppointmentStatus = async (id, businessId, status, paymentInf
       const clientData = clientRes.rows[0] || {}
 
       await client.query(
-        `INSERT INTO sales (business_id, appointment_id, client_name, phone, amount, payment_method)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [businessId, id, clientData.name || null, clientData.phone || null, amount, method]
+        `INSERT INTO sales (business_id, appointment_id, client_name, phone, amount, payment_method, professional_name, staff_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [businessId, id, clientData.name || null, clientData.phone || null, amount, method, professionalName, staffId]
       )
     }
 

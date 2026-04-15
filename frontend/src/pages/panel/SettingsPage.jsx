@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Layout from '@/components/shared/Layout'
+import EmployeeProfile from '@/pages/panel/EmployeeProfile'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -31,6 +32,21 @@ import {
 } from 'lucide-react'
 
 export default function SettingsPage() {
+  const { role, isEmployee, loading } = useAuth()
+
+  if (loading) return null
+
+  // Bifurcación: empleados ven su perfil, dueños ven configuración completa
+  const isActuallyEmployee = String(role).toLowerCase() === 'employee' || isEmployee
+
+  if (isActuallyEmployee) {
+    return <EmployeeProfile />
+  }
+
+  return <BusinessSettings />
+}
+
+function BusinessSettings() {
   const [googleStatus, setGoogleStatus] = useState({ linked: false, updated_at: null })
   const [settings, setSettings] = useState({
     cancellation_policy: '',

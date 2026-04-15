@@ -138,19 +138,20 @@ export default function LockScreen({ onUnlock }) {
             className="flex gap-3 justify-center mb-6"
           >
             {pinDigits.map((digit, idx) => (
-              <input
-                key={idx}
-                ref={el => pinRefs.current[idx] = el}
-                type="password"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={e => handlePinChange(e.target.value, idx)}
-                onKeyDown={e => handlePinKeyDown(e, idx)}
-                disabled={verifying}
-                className={`w-14 h-16 rounded-2xl bg-slate-50 border-2 ${error ? 'border-red-200' : 'border-slate-100'} text-center text-2xl font-black text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all disabled:opacity-50`}
-                placeholder="•"
-              />
+                <input
+                  key={idx}
+                  ref={el => pinRefs.current[idx] = el}
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={1}
+                  autoFocus={idx === 0}
+                  value={digit}
+                  onChange={e => handlePinChange(e.target.value, idx)}
+                  onKeyDown={e => handlePinKeyDown(e, idx)}
+                  disabled={verifying}
+                  className={`w-14 h-16 rounded-2xl bg-slate-50 border-2 ${error ? 'border-red-200' : 'border-slate-100'} text-center text-2xl font-black text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all disabled:opacity-50`}
+                  placeholder="•"
+                />
             ))}
           </motion.div>
 

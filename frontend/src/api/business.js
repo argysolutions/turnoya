@@ -31,3 +31,5 @@ export const editStaff = (id, data) => client.put(`/staff/${id}`, data)
 export const updateMemberPin = (id, pin) => client.put(`/staff/${id}/pin`, { pin })
 export const removeStaff = (id) => client.delete(`/staff/${id}`)
 
+// Self-service: employee updates own PIN
+export const updateMyPin = (pin) => client.put('/staff/me/pin', { pin })

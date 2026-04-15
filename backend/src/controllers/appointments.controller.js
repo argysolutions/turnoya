@@ -131,7 +131,11 @@ export const updateStatus = async (req, reply) => {
     }
 
     // Lógicas estándar (incluye INSERT en sales si status === 'completed')
-    const updated = await updateAppointmentStatus(id, req.business.id, status, paymentInfo)
+    const staffContext = {
+      staff_id: req.business?.staff_id || null,
+      professional_name: paymentInfo?.professional_name || null,
+    }
+    const updated = await updateAppointmentStatus(id, req.business.id, status, paymentInfo, staffContext)
     if (!updated) return reply.status(404).send({ error: 'Turno no encontrado' })
 
     reply.send(updated)

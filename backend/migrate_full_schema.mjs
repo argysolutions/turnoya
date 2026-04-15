@@ -111,8 +111,11 @@ async function migrate() {
         appointment_id    INTEGER DEFAULT NULL,
         amount            DECIMAL(12,2) NOT NULL,
         payment_method    TEXT NOT NULL DEFAULT 'Efectivo',
+        client_name       TEXT DEFAULT NULL,
+        phone             TEXT DEFAULT NULL,
         service_name      TEXT DEFAULT NULL,
         professional_name TEXT DEFAULT NULL,
+        staff_id          INTEGER REFERENCES staff(id) ON DELETE SET NULL,
         created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);

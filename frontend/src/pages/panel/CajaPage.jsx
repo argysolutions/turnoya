@@ -305,6 +305,7 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
               type="text"
               inputMode="numeric"
               value={counted}
+              autoFocus
               onChange={e => setCounted(fmtNumericInput(e.target.value))}
               className="w-full h-12 rounded-2xl border border-slate-200 px-4 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"
               placeholder="0"
@@ -527,7 +528,7 @@ function ManagementDrawer({ onClose, ...contentProps }) {
 // ════════════════════════════════════════════════════════════════════════════
 export default function CajaPage() {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const { isOwner, isEmployee, activeProfile, clearActiveProfile, setActiveProfile, staffId, role, loading: authLoading } = useAuth()
+  const { isOwner, isEmployee, activeProfile, clearActiveProfile, setActiveProfile, staffId, professionalName, staffName, role, loading: authLoading } = useAuth()
   const prefs = useEncryptedPrefs()
 
   // Empleados: auto-activar perfil (ya autenticados por staff-login, sin LockScreen)
@@ -535,13 +536,13 @@ export default function CajaPage() {
     if (isEmployee && !activeProfile) {
       setActiveProfile({
         id: `staff-${staffId}`,
-        name: 'Empleado',
+        name: staffName || 'Empleado',
         role: 'employee',
         staff_id: staffId,
-        professional_name: null,
+        professional_name: professionalName,
       })
     }
-  }, [isEmployee, staffId, activeProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isEmployee, staffId, staffName, professionalName, activeProfile, setActiveProfile])
 
   // Solo los dueños limpian perfil activo al salir (para pedir PIN cada vez)
   useEffect(() => {
@@ -590,12 +591,14 @@ export default function CajaPage() {
     if (authLoading) return
     setLoading(true)
     try {
+      const isActuallyEmployee = role === 'employee' || isEmployee
+
       const [summaryRes, salesRes, sessionRes, settingsRes, expensesRes] = await Promise.all([
-        getFinancesSummary({ date, includeTrend: false }),
-        getSales(date),
-        getCashSession(date),
-        getSettings(),
-        getExpenses({ date })
+        getFinancesSummary({ date, includeTrend: false }).catch(() => ({ data: {} })),
+        getSales(date).catch(() => ({ data: { sales: [] } })),
+        getCashSession(date).catch(() => ({ data: { session: null } })),
+        !isActuallyEmployee ? getSettings().catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
+        getExpenses({ date }).catch(() => ({ data: { expenses: [] } }))
       ])
       setSummary(summaryRes.data)
 
@@ -642,11 +645,12 @@ export default function CajaPage() {
 
   const ledgerEntries = useMemo(() => {
     // Si es empleado, filtrar para ver solo sus movimientos
-    const filteredSales = isOwner 
+    const isActuallyEmployee = role === 'employee' || isEmployee
+    const filteredSales = !isActuallyEmployee 
       ? sales 
-      : sales.filter(s => s.professional_name === activeProfile?.professional_name)
+      : sales.filter(s => s.professional_name === professionalName)
     
-    const filteredExpenses = isOwner ? expenses : [] // Empleados no suelen ver gastos generales
+    const filteredExpenses = !isActuallyEmployee ? expenses : [] // Empleados no suelen ver gastos generales
 
     const entries = [
       ...filteredSales.map(s => ({
@@ -672,7 +676,7 @@ export default function CajaPage() {
       return entries.filter(e => e.description?.toLowerCase().includes(q))
     }
     return entries
-  }, [sales, expenses, ledgerFilter, isOwner, activeProfile])
+  }, [sales, expenses, ledgerFilter, isOwner, isEmployee, role, professionalName])
 
   const byMethod = summary?.byMethod || {}
   const digitalTotal = (byMethod['Transferencia']?.total ?? 0) + (byMethod['Tarjeta']?.total ?? 0)
@@ -695,7 +699,7 @@ export default function CajaPage() {
 
   return (
     <Layout>
-      <div className={`transition-all duration-700 ${!activeProfile ? 'blur-3xl grayscale-[0.2] brightness-95 opacity-80 pointer-events-none select-none' : ''}`}>
+      <div className={`transition-all duration-700 ${isOwner && !activeProfile ? 'blur-3xl grayscale-[0.2] brightness-95 opacity-80 pointer-events-none select-none' : ''}`}>
         <TooltipProvider>
           {/*
             ── Outer container: full-bleed ledger layout ──
@@ -716,8 +720,12 @@ export default function CajaPage() {
               {/* Título CAJA + Privacy Toggle */}
               <div className="flex items-center gap-2 shrink-0">
                 <div className="flex flex-col">
-                  <h1 className="text-xl font-semibold text-slate-900">Caja</h1>
-                  <p className="text-[10px] text-slate-500 font-medium hidden sm:block">Control de ventas y gastos</p>
+                  <h1 className="text-xl font-semibold text-slate-900">
+                    {String(role).toLowerCase() === 'employee' ? 'Mis Ingresos' : 'Caja'}
+                  </h1>
+                  <p className="text-[10px] text-slate-500 font-medium hidden sm:block">
+                    {String(role).toLowerCase() === 'employee' ? 'Resumen de tus cobros' : 'Control de ventas y gastos'}
+                  </p>
                 </div>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -786,14 +794,16 @@ export default function CajaPage() {
               <div className="hidden lg:block w-[36px] shrink-0" />
             </div>
 
-            {/* ── SESSION BANNER ─────────────────────── */}
-            <SessionBanner
-              session={session}
-              onOpen={handleOpenCaja}
-              onOpenCierre={() => setShowCierreModal(true)}
-              loading={sessionLoading}
-              isOwner={isOwner}
-            />
+            {/* ── SESSION BANNER (Solo Dueño) ───────────── */}
+            {String(role).toLowerCase() !== 'employee' && (
+              <SessionBanner
+                session={session}
+                loading={sessionLoading}
+                onOpen={handleOpenCaja}
+                onOpenCierre={() => setShowCierreModal(true)}
+                isOwner={isOwner}
+              />
+            )}
 
             {/* ── DOS TARJETAS PRINCIPALES (Solo Dueño) ───────────── */}
             {isOwner && (
@@ -960,6 +970,14 @@ export default function CajaPage() {
                                   </span>
                                 </>
                               )}
+                              {isOwner && entry.raw?.professional_name && (
+                                <>
+                                  <span className="text-slate-200">·</span>
+                                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold text-[9px]">
+                                    {entry.raw.professional_name}
+                                  </span>
+                                </>
+                              )}
                               {entry.category && (
                                 <>
                                   <span className="text-slate-200">·</span>
@@ -1069,7 +1087,8 @@ export default function CajaPage() {
 
         </TooltipProvider>
       </div>
-      {!activeProfile && <LockScreen onUnlock={() => {}} />}
+      {/* LockScreen solo para dueños — empleados ya están autenticados */}
+      {isOwner && !activeProfile && <LockScreen onUnlock={() => {}} />}
     </Layout>
   )
 }
@@ -1101,6 +1120,7 @@ function ExpenseModal({ onClose, onSaved, categories }) {
         <form className="p-8 space-y-5" onSubmit={handleSubmit}>
           <input
             placeholder="Descripción..."
+            autoFocus
             className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
             value={form.description}
             onChange={e => setForm({ ...form, description: e.target.value })}

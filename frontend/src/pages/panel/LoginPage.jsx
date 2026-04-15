@@ -82,6 +82,7 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 placeholder="tu@negocio.com"
+                autoFocus={!savedAccount}
                 value={form.email}
                 onChange={handleChange}
                 required

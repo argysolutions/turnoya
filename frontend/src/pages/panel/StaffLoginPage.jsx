@@ -110,6 +110,7 @@ export default function StaffLoginPage() {
                 type="text"
                 inputMode="numeric"
                 placeholder="Ej: 12"
+                autoFocus={!savedStaff}
                 readOnly={!!savedStaff}
                 value={form.business_id}
                 onChange={e => setForm(f => ({ ...f, business_id: e.target.value.replace(/\D/g, '') }))}
@@ -133,6 +134,7 @@ export default function StaffLoginPage() {
                   type={showPin ? 'text' : 'password'}
                   inputMode="numeric"
                   maxLength={1}
+                  autoFocus={savedStaff && idx === 0}
                   value={digit}
                   onChange={e => handlePinChange(e.target.value, idx)}
                   onKeyDown={e => handlePinKeyDown(e, idx)}
