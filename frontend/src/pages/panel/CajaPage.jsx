@@ -715,7 +715,7 @@ export default function CajaPage() {
           <div className="flex-1 min-w-0 flex flex-col gap-4 pb-10">
 
             {/* ── HEADER ─────────────────────────────── */}
-            <div className="flex items-center gap-3 sticky top-14 z-40 bg-slate-50 -mx-4 px-4 py-3 border-b border-slate-100/80">
+            <div className="flex items-center gap-3 sticky top-14 z-40 bg-white -mx-4 px-4 pt-1 pb-4 border-b border-slate-100/80 mb-6">
 
               {/* Título CAJA + Privacy Toggle */}
               <div className="flex items-center gap-2 shrink-0">

@@ -266,7 +266,7 @@ function BusinessSettings() {
         </div>
       ) : (
         <>
-          <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between pt-1">
             <div>
               <h1 className="text-xl font-semibold text-slate-900">Configuración</h1>
               <p className="text-sm text-slate-500 mt-0.5">Gestioná las reglas de tu negocio e integraciones.</p>

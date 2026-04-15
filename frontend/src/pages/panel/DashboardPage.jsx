@@ -429,7 +429,7 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <div className="mb-6 flex flex-col sm:flex-row items-baseline justify-between gap-4">
+      <div className="mb-6 flex flex-col sm:flex-row items-baseline justify-between gap-4 pt-1">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-semibold text-slate-900">{business.name || 'Mi Negocio'}</h1>

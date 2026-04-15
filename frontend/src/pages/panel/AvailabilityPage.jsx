@@ -93,7 +93,7 @@ export default function AvailabilityPage() {
 
   return (
     <Layout>
-      <div className="sticky top-14 z-20 bg-slate-50 py-4 mb-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="sticky top-14 z-20 bg-white -mx-4 px-4 pt-1 pb-4 border-b border-slate-100/80 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Disponibilidad</h1>
           <p className="text-sm text-slate-500 mt-0.5">Configurá qué días y horarios atendés</p>
