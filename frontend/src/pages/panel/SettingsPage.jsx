@@ -181,10 +181,6 @@ function BusinessSettings() {
     }
   }
 
-  const handleSavePin = async () => {
-    // Removed old shared PIN handler
-  }
-
   const handleSaveOwnerPin = async () => {
     if (!ownerPin || ownerPin.length !== 4 || isNaN(ownerPin)) {
       return toast.error('El PIN debe ser exactamente 4 dígitos numéricos')

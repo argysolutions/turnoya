@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Separator } from '@/components/ui/separator'
 import {
   DropdownMenu,
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from '@/context/AuthContext'
 import { LogOut, User, Settings, HelpCircle, Share2, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react'
+import NotificationTray from './NotificationTray'
+import { Button } from '@/components/ui/button'
 
 const navItems = [
   { label: 'Agenda', path: '/dashboard' },
@@ -143,9 +145,21 @@ export default function Layout({ children }) {
             <Separator orientation="vertical" className="h-4 shrink-0" />
             <NavScrollable location={location} />
           </div>
-          <div className="flex items-center gap-3 shrink-0 ml-4">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/dashboard/configuracion')}
+              className="h-11 w-11 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all duration-200 flex"
+              title="Configuración"
+            >
+              <Settings className="h-5 w-5 text-slate-600" />
+            </Button>
+
+            <NotificationTray />
+
             <DropdownMenu>
-              <DropdownMenuTrigger className="relative h-11 w-11 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center border border-slate-200 focus-visible:ring-offset-0 focus-visible:ring-0">
+              <DropdownMenuTrigger className="relative h-11 w-11 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center border border-slate-200 focus-visible:ring-offset-0 focus-visible:ring-0 transition-all duration-200 overflow-hidden">
                 <User className="h-5 w-5 text-slate-600" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-1 shadow-sm rounded-xl">

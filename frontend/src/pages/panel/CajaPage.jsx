@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import Layout from '@/components/shared/Layout'
 import LockScreen from '@/components/shared/LockScreen'
 import { useAuth } from '@/context/AuthContext'
@@ -350,19 +350,21 @@ function SaleDetailDrawer({ sale, onClose }) {
   )
 }
 
-const Item = ({ icon: IconComponent, label, onClick, accent }) => (
-  <button
-    onClick={onClick}
-    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors hover:bg-slate-50 text-slate-700"
-  >
-    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-      accent === 'red' ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-500'
-    }`}>
-      <IconComponent className="w-4 h-4" />
-    </div>
-    <span className="text-sm font-semibold">{label}</span>
-  </button>
-)
+const Item = ({ icon: IconComponent, label, onClick, accent = 'blue' }) => {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors hover:bg-slate-50 text-slate-700"
+    >
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+        accent === 'red' ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-500'
+      }`}>
+        <IconComponent className="w-4 h-4" />
+      </div>
+      <span className="text-sm font-semibold">{label}</span>
+    </button>
+  )
+}
 
 // ─── Management Content ───────────────────────────────────────────────────────
 function ManagementContent({
@@ -612,7 +614,7 @@ export default function CajaPage() {
       setBusinessSettings(settingsRes.data)
       setExpenses(expensesRes.data.expenses || [])
     } finally { setLoading(false); setSessionLoading(false) }
-  }, [date, authLoading])
+  }, [date, authLoading, isEmployee, role])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -676,7 +678,7 @@ export default function CajaPage() {
       return entries.filter(e => e.description?.toLowerCase().includes(q))
     }
     return entries
-  }, [sales, expenses, ledgerFilter, isOwner, isEmployee, role, professionalName])
+  }, [sales, expenses, ledgerFilter, isEmployee, role, professionalName])
 
   const byMethod = summary?.byMethod || {}
   const digitalTotal = (byMethod['Transferencia']?.total ?? 0) + (byMethod['Tarjeta']?.total ?? 0)

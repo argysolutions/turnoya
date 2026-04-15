@@ -130,7 +130,7 @@ export default function DashboardPage() {
   const [requestSentModal, setRequestSentModal] = useState(false)
   const [paymentInfo, setPaymentInfo] = useState({ amount: '', method: 'Efectivo' })
   
-  const { isOwner, isEmployee, role, staffName } = useAuth()
+  const { isEmployee, role, staffName } = useAuth()
   const business = JSON.parse(localStorage.getItem('business') || '{}')
   const publicLink = `${window.location.origin}/p/${business.slug}`
 
@@ -171,7 +171,6 @@ export default function DashboardPage() {
       let msg = 'Turno actualizado'
       if (status === 'completed') msg = '¡Venta registrada!'
       if (status === 'cancelled_occupied') msg = 'Bloqueo aprobado con éxito'
-      if (status === 'cancelled' && pendingBlocksArray.some(b => b.id === id)) msg = 'Bloqueo rechazado'
       
       toast.success(msg)
       fetchAppointments()
@@ -237,6 +236,11 @@ export default function DashboardPage() {
       let durationMins = (eh * 60 + em) - (sh * 60 + sm)
       if (durationMins <= 0) durationMins = 60
       payload.duration = durationMins
+
+      if (isEmployee || String(role).toLowerCase() === 'employee') {
+        payload.status = 'pending_block'
+        payload.notes = JSON.stringify({ requested_by_name: staffName || 'Empleado' })
+      }
 
       await createBlock(payload)
       setConfirmBlockModal(false)
@@ -320,7 +324,6 @@ export default function DashboardPage() {
   const totalCancelled = cancelledForDate.length + cancelledSemana.length + cancelledProx.length
 
   const activeBlocksArray = appointments.filter(a => (a.status === 'cancelled_occupied' || a.status === 'pending_block') && a.client_name?.includes('Bloqueo'))
-  const pendingBlocksArray = appointments.filter(a => a.status === 'pending_block')
   
   // ESTRUCTURA DE EVENTOS PARA EL CALENDARIO
   const allEvents = appointments.filter(a => a.notes?.includes('"text"') && a.client_name?.includes('Evento'))
@@ -337,14 +340,6 @@ export default function DashboardPage() {
     .map(a => new Date(safeDate(a.date) + 'T12:00:00'))
 
   const boxOfficeToday = completedForDate.reduce((sum, a) => sum + (parseFloat(a.price) || 0), 0)
-
-  // Helper para extraer datos de solicitante
-  const getRequestedByName = (notesStr) => {
-    try {
-      const data = JSON.parse(notesStr || '{}')
-      return data.requested_by_name || 'Empleado'
-    } catch { return 'Empleado' }
-  }
 
   // REUSABLE RENDERER
   const renderAppointmentList = (list, emptyMessage = 'No hay turnos') => {
@@ -452,56 +447,6 @@ export default function DashboardPage() {
   return (
     <Layout>
       {/* FLOATING AUTHORIZATION NOTIFICATION (ONLY OWNER) */}
-      <AnimatePresence>
-        {isOwner && pendingBlocksArray.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed top-20 left-4 right-4 z-[100] sm:left-auto sm:right-8 sm:w-[380px]"
-          >
-            <div className="bg-white border-2 border-amber-100 shadow-2xl rounded-[2rem] p-5 overflow-hidden relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-amber-400" />
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-6 h-6 text-amber-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-black text-slate-900 leading-tight">Autorización Pendiente</h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">
-                    <span className="text-indigo-600 font-bold">{getRequestedByName(pendingBlocksArray[0].notes)}</span> ha solicitado bloquear el día <span className="text-slate-900 font-bold">{formatDate(safeDate(pendingBlocksArray[0].date))}</span> 
-                    ({pendingBlocksArray[0].start_time.slice(0,5)} hs).
-                  </p>
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button 
-                      size="sm" 
-                      className="flex-1 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest h-10"
-                      onClick={() => handleStatus(pendingBlocksArray[0].id, 'cancelled_occupied')}
-                    >
-                      Aprobar
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="flex-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl text-[10px] font-black uppercase tracking-widest h-10 border-slate-100"
-                      onClick={() => handleStatus(pendingBlocksArray[0].id, 'cancelled')}
-                    >
-                      Rechazar
-                    </Button>
-                  </div>
-                  
-                  {pendingBlocksArray.length > 1 && (
-                    <p className="text-[9px] text-amber-600 font-bold text-center mt-3 uppercase tracking-tighter">
-                      + {pendingBlocksArray.length - 1} solicitudes más esperando
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <div className="mb-6 flex flex-col sm:flex-row items-baseline justify-between gap-4 pt-1">
         <div>
@@ -665,18 +610,9 @@ export default function DashboardPage() {
                   Finalizados {totalCompleted > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-blue-100 text-blue-700 border-none">{totalCompleted}</Badge>}
                   <TabUnderline value="finalizados" activeTab={activeTab} color="bg-blue-500" />
                 </TabsTrigger>
-                {isOwner && (
-                  <TabsTrigger value="solicitudes" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-amber-700 data-[state=active]:shadow-none">
-                    Solicitudes {pendingBlocksArray.length > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-amber-100 text-amber-700 border-none animate-pulse">{pendingBlocksArray.length}</Badge>}
-                    <TabUnderline value="solicitudes" activeTab={activeTab} color="bg-amber-500" />
-                  </TabsTrigger>
-                )}
               </TabsList>
             </div>
 
-            <TabsContent value="solicitudes" className="space-y-3 outline-none">
-              {renderAppointmentList(pendingBlocksArray, 'No hay solicitudes de bloqueo pendientes')}
-            </TabsContent>
 
             <TabsContent value="pendientes" className="space-y-3 outline-none">
               
