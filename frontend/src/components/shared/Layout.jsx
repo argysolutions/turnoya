@@ -80,7 +80,7 @@ export default function Layout({ children }) {
                     {activeProfile ? activeProfile.name : (business.name || 'Mi Negocio')}
                   </p>
                   <p className="text-[10px] leading-none text-slate-500 font-medium uppercase tracking-wider mt-1">
-                    {activeProfile ? (activeProfile.role === 'dueño' ? 'Administrador' : 'Staff') : 'Terminal'}
+                    {activeProfile ? (activeProfile.role === 'owner' ? 'Administrador' : 'Staff') : 'Terminal'}
                   </p>
                 </div>
                 <DropdownMenuSeparator />

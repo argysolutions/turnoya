@@ -39,7 +39,7 @@ async function migrate() {
         business_id       INTEGER NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
         name              TEXT NOT NULL,
         pin_hash          TEXT NOT NULL,
-        role              TEXT NOT NULL DEFAULT 'empleado' CHECK (role IN ('empleado', 'dueño')),
+        role              TEXT NOT NULL DEFAULT 'employee' CHECK (role IN ('employee', 'owner')),
         professional_name TEXT DEFAULT NULL,
         is_active         BOOLEAN NOT NULL DEFAULT TRUE,
         created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()

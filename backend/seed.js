@@ -35,7 +35,7 @@ const OWNER_SLUG = 'color-craft-test'
 
 const STAFF_NAME = 'Juan Perez'
 const STAFF_PIN = '1234'
-const STAFF_ROLE = 'empleado'
+const STAFF_ROLE = 'employee'
 
 async function seed() {
   const client = await pool.connect()

@@ -34,10 +34,10 @@ export const getStaffByBusiness = async (businessId) => {
  * @param {number} businessId
  * @param {string} name
  * @param {string} pinHash   - bcrypt hash de `${businessId}:${pin}`
- * @param {string} role      - 'empleado' | 'dueño'
+ * @param {string} role      - 'employee' | 'owner'
  * @param {string|null} professionalName
  */
-export const createStaff = async (businessId, name, pinHash, role = 'empleado', professionalName = null) => {
+export const createStaff = async (businessId, name, pinHash, role = 'employee', professionalName = null) => {
   const { rows } = await pool.query(
     `INSERT INTO staff (business_id, name, pin_hash, role, professional_name)
      VALUES ($1, $2, $3, $4, $5)
