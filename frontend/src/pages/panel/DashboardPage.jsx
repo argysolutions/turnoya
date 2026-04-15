@@ -554,19 +554,19 @@ export default function DashboardPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="overflow-x-auto no-scrollbar mask-fade-edges pb-2 -mb-2">
               <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-xl flex w-max min-w-full justify-start sm:justify-center border-none">
-                <TabsTrigger value="pendientes" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-red-700 data-[state=active]:shadow-none">
+                <TabsTrigger value="pendientes" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-amber-700 data-[state=active]:shadow-none">
                   Pendientes {totalPending > 0 && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       className="ml-2"
                     >
-                      <Badge className="h-5 text-[10px] bg-red-600 text-white border-none shadow-sm shadow-red-200">
+                      <Badge className="h-5 text-[10px] bg-amber-500 text-white border-none shadow-sm shadow-amber-200">
                         {totalPending}
                       </Badge>
                     </motion.div>
                   )}
-                  <TabUnderline value="pendientes" activeTab={activeTab} color="bg-red-600" />
+                  <TabUnderline value="pendientes" activeTab={activeTab} color="bg-amber-500" />
                 </TabsTrigger>
                 <TabsTrigger value="confirmados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-[#269442] data-[state=active]:shadow-none">
                   Confirmados {totalConfirmed > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-emerald-100 text-[#269442] border-none">{totalConfirmed}</Badge>}
