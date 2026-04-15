@@ -236,7 +236,7 @@ export default function DashboardPage() {
       fetchAppointments()
       toast.success(payload.fullDay ? 'Día bloqueado con éxito' : 'Bache horario bloqueado con éxito')
     } catch {
-      toast.error('Error insertando el bloqueo manual')
+      toast.error('Error al insertar el bloqueo manual')
     }
   }
 
@@ -259,7 +259,7 @@ export default function DashboardPage() {
       fetchAppointments()
       toast.success('Fecha destacada en el calendario')
     } catch {
-      toast.error('Error insertando evento destacado')
+      toast.error('Error al insertar el evento destacado')
     }
   }
 
@@ -615,7 +615,7 @@ export default function DashboardPage() {
                   <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {renderAppointmentList(pendingSemana, 'No hay turnos para los proximos 7 dias')}
+                  {renderAppointmentList(pendingSemana, 'No hay turnos pendientes para los próximos 7 días')}
                 </CardContent>
               </Card>
 
@@ -660,7 +660,7 @@ export default function DashboardPage() {
                   <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {renderAppointmentList(confirmedSemana, 'No hay confirmados para los proximos 7 dias')}
+                  {renderAppointmentList(confirmedSemana, 'No hay turnos confirmados para los próximos 7 días')}
                 </CardContent>
               </Card>
 
@@ -715,7 +715,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {renderAppointmentList(completedForDate, 'Ninguna caja hoy todavía.')}
+                  {renderAppointmentList(completedForDate, 'No hay cobros registrados para esta fecha.')}
                 </CardContent>
               </Card>
 
