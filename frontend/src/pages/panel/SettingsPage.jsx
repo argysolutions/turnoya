@@ -45,7 +45,7 @@ export default function SettingsPage() {
   const [updatingPin, setUpdatingPin] = useState(false)
   const [saving, setSaving] = useState(false)
   const [linkingGoogle, setLinkingGoogle] = useState(false)
-  const { role, loading: authLoading } = useAuth()
+  const { role, businessId, loading: authLoading } = useAuth()
   const isRestricted = !authLoading && role !== 'owner'
 
   // Staff Management
@@ -394,6 +394,16 @@ export default function SettingsPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Business ID banner */}
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50/60 border border-blue-100">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                        <Info className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-blue-700">ID de Negocio para acceso de empleados</p>
+                        <p className="text-lg font-black text-blue-900 tabular-nums tracking-wide">#{businessId}</p>
+                      </div>
+                    </div>
                     {/* Owner PIN inline */}
                     <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-100 space-y-2">
                       <div className="flex items-center gap-2">

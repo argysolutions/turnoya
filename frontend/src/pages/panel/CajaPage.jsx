@@ -527,13 +527,30 @@ function ManagementDrawer({ onClose, ...contentProps }) {
 // ════════════════════════════════════════════════════════════════════════════
 export default function CajaPage() {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const { isOwner, activeProfile, clearActiveProfile, loading: authLoading } = useAuth()
+  const { isOwner, isEmployee, activeProfile, clearActiveProfile, setActiveProfile, staffId, role, loading: authLoading } = useAuth()
   const prefs = useEncryptedPrefs()
 
-  // Limpiar perfil activo al desmontar (pide PIN cada vez que se entra a Caja)
+  // Empleados: auto-activar perfil (ya autenticados por staff-login, sin LockScreen)
   useEffect(() => {
-    return () => clearActiveProfile()
-  }, [clearActiveProfile])
+    if (isEmployee && !activeProfile) {
+      setActiveProfile({
+        id: `staff-${staffId}`,
+        name: 'Empleado',
+        role: 'employee',
+        staff_id: staffId,
+        professional_name: null,
+      })
+    }
+  }, [isEmployee, staffId, activeProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Solo los dueños limpian perfil activo al salir (para pedir PIN cada vez)
+  useEffect(() => {
+    return () => {
+      if (role === 'owner') {
+        clearActiveProfile()
+      }
+    }
+  }, [role, clearActiveProfile])
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [date, setDate] = useState(today())

@@ -1,62 +1,46 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { getProfiles, verifyPin } from '@/api/auth'
+import { verifyPin } from '@/api/auth'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
-import { Lock, ShieldCheck, User, ArrowLeft, Loader2 } from 'lucide-react'
+import { ShieldCheck, Loader2 } from 'lucide-react'
 
-const ROLE_COLORS = {
-  owner: 'from-indigo-500 to-violet-600',
-  employee: 'from-emerald-500 to-teal-600',
-  // legacy compat
-  'dueño': 'from-indigo-500 to-violet-600',
-  empleado: 'from-emerald-500 to-teal-600',
-}
-
-const ROLE_LABELS = {
-  owner: 'Administrador',
-  employee: 'Empleado',
-  // legacy compat
-  'dueño': 'Administrador',
-  empleado: 'Empleado',
-}
-
+/**
+ * LockScreen simplificado:
+ * - Dueño: muestra un input de PIN genérico para desbloquear
+ * - Empleado: se bypassea automáticamente (ya autenticado por staff-login)
+ */
 export default function LockScreen({ onUnlock }) {
-  const { setActiveProfile } = useAuth()
-  const [profiles, setProfiles] = useState([])
-  const [selected, setSelected] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { role, setActiveProfile, businessId, staffId } = useAuth()
   const [verifying, setVerifying] = useState(false)
   const [pinDigits, setPinDigits] = useState(['', '', '', ''])
   const [error, setError] = useState('')
   const [shake, setShake] = useState(false)
   const pinRefs = useRef([])
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const { data } = await getProfiles()
-        setProfiles(data.profiles || [])
-      } catch (err) {
-        console.error('Error cargando perfiles:', err)
-        toast.error('Error al cargar perfiles')
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
+  const isEmployee = role === 'employee'
 
-  const handleSelectProfile = (profile) => {
-    if (!profile.has_pin) {
-      toast.error('Este perfil no tiene PIN configurado. Configuralo en Ajustes.')
-      return
+  // Empleados: bypass automático del LockScreen
+  useEffect(() => {
+    if (isEmployee) {
+      const profile = {
+        id: `staff-${staffId}`,
+        name: 'Empleado',
+        role: 'employee',
+        staff_id: staffId,
+        professional_name: null,
+      }
+      setActiveProfile(profile)
+      onUnlock?.(profile)
     }
-    setError('')
-    setSelected(profile)
-    setPinDigits(['', '', '', ''])
-    setTimeout(() => pinRefs.current[0]?.focus(), 150)
-  }
+  }, [isEmployee, staffId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Focus primer input al montar (solo para dueño)
+  useEffect(() => {
+    if (!isEmployee) {
+      setTimeout(() => pinRefs.current[0]?.focus(), 300)
+    }
+  }, [isEmployee])
 
   const handlePinChange = (value, idx) => {
     if (error) setError('')
@@ -85,18 +69,17 @@ export default function LockScreen({ onUnlock }) {
   }
 
   const handleVerify = async (pin) => {
-    if (!selected) return
     setVerifying(true)
     setError('')
     try {
-      const { data } = await verifyPin({ profile_id: selected.id, pin })
+      const { data } = await verifyPin({ profile_id: 'owner', pin })
       if (data.valid) {
         const profile = {
-          id: selected.id,
+          id: 'owner',
           name: data.name,
-          role: data.role,
-          staff_id: data.staff_id,
-          professional_name: data.professional_name || data.name,
+          role: 'owner',
+          staff_id: null,
+          professional_name: data.name,
         }
         setActiveProfile(profile)
         toast.success(`Bienvenido, ${data.name}`)
@@ -114,13 +97,8 @@ export default function LockScreen({ onUnlock }) {
     }
   }
 
-  const handleBack = () => {
-    setSelected(null)
-    setError('')
-    setPinDigits(['', '', '', ''])
-  }
-
-  if (loading) {
+  // Si es empleado, no renderizar nada (bypass automático)
+  if (isEmployee) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
@@ -128,6 +106,7 @@ export default function LockScreen({ onUnlock }) {
     )
   }
 
+  // Dueño: modal con PIN directo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-12">
       {/* Overlay translúcido */}
@@ -138,141 +117,78 @@ export default function LockScreen({ onUnlock }) {
         className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]"
       />
 
-      <AnimatePresence mode="wait">
-        {!selected ? (
-          /* ── Selección de Perfil ──────────────────────────────────── */
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+        className="relative z-10 w-full max-w-sm bg-white rounded-[3rem] p-8 sm:p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100"
+      >
+        <div className="text-center mb-10">
+          <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-slate-900/20">
+            <ShieldCheck className="w-7 h-7 text-white" />
+          </div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">Acceso a Caja</h1>
+          <p className="text-sm font-medium text-slate-400 mt-2">Ingresá tu PIN de Dueño para desbloquear</p>
+        </div>
+
+        {/* PIN Inputs */}
+        <div className="relative">
           <motion.div
-            key="profiles"
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            className="relative z-10 w-full max-w-[400px] bg-white rounded-[3rem] p-8 sm:p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100"
+            animate={shake ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+            className="flex gap-3 justify-center mb-6"
           >
-            <div className="text-center mb-10">
-              <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-slate-900/20">
-                <ShieldCheck className="w-7 h-7 text-white" />
-              </div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">Acceso a Caja</h1>
-              <p className="text-sm font-medium text-slate-400 mt-2">Seleccioná tu perfil para operar</p>
-            </div>
-
-            <div className="space-y-3">
-              {profiles.map((profile) => (
-                <button
-                  key={profile.id}
-                  onClick={() => handleSelectProfile(profile)}
-                  className="w-full flex items-center gap-4 p-4 rounded-3xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 group"
-                >
-                  {/* Avatar */}
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${ROLE_COLORS[profile.role] || 'from-slate-500 to-slate-600'} flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform`}>
-                    <span className="text-white font-black text-lg">
-                      {profile.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 text-left">
-                    <p className="text-sm font-black text-slate-800 tracking-tight">{profile.name}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">{ROLE_LABELS[profile.role] || profile.role}</p>
-                  </div>
-
-                  {/* Icon */}
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-slate-100 text-slate-300 group-hover:text-slate-900 group-hover:border-slate-300 transition-colors">
-                    <Lock className="w-3.5 h-3.5" />
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-10">
-              TurnoYa Secure Access
-            </p>
+            {pinDigits.map((digit, idx) => (
+              <input
+                key={idx}
+                ref={el => pinRefs.current[idx] = el}
+                type="password"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={e => handlePinChange(e.target.value, idx)}
+                onKeyDown={e => handlePinKeyDown(e, idx)}
+                disabled={verifying}
+                className={`w-14 h-16 rounded-2xl bg-slate-50 border-2 ${error ? 'border-red-200' : 'border-slate-100'} text-center text-2xl font-black text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all disabled:opacity-50`}
+                placeholder="•"
+              />
+            ))}
           </motion.div>
-        ) : (
-          /* ── Input de PIN ─────────────────────────────────────────── */
-          <motion.div
-            key="pin"
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            className="relative z-10 w-full max-w-sm bg-white rounded-[3rem] p-8 sm:p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100"
-          >
-            <button
-              onClick={handleBack}
-              className="absolute left-8 top-8 w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
 
-            <div className="text-center mb-10 pt-4">
-              {/* Avatar circular */}
-              <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${ROLE_COLORS[selected.role] || 'from-slate-500 to-slate-600'} flex items-center justify-center mx-auto mb-5 shadow-2xl p-1 bg-white ring-4 ring-slate-50`}>
-                <div className="w-full h-full rounded-full bg-inherit flex items-center justify-center">
-                  <span className="text-white font-black text-3xl">
-                    {selected.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">{selected.name}</h2>
-              <p className="text-sm font-medium text-slate-400 mt-1">Ingresá tu PIN de 4 dígitos</p>
-            </div>
-
-            {/* PIN Inputs */}
-            <div className="relative">
-              <motion.div
-                animate={shake ? { x: [0, -10, 10, -10, 10, 0] } : {}}
-                className="flex gap-3 justify-center mb-6"
+          <AnimatePresence>
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-center text-red-500 text-[11px] font-black uppercase tracking-wider mb-6 px-4"
               >
-                {pinDigits.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    ref={el => pinRefs.current[idx] = el}
-                    type="password"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={e => handlePinChange(e.target.value, idx)}
-                    onKeyDown={e => handlePinKeyDown(e, idx)}
-                    disabled={verifying}
-                    className={`w-14 h-16 rounded-2xl bg-slate-50 border-2 ${error ? 'border-red-200' : 'border-slate-100'} text-center text-2xl font-black text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all disabled:opacity-50`}
-                    placeholder="•"
-                  />
-                ))}
-              </motion.div>
-
-              <AnimatePresence>
-                {error && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="text-center text-red-500 text-[11px] font-black uppercase tracking-wider mb-6 px-4"
-                  >
-                    {error}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {verifying ? (
-              <div className="flex items-center justify-center gap-2 text-slate-400 py-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Verificando...</span>
-              </div>
-            ) : (
-              <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => toast.info('Contactate con el administrador para resetear tu PIN.')}
-                  className="text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-slate-600 transition-colors"
-                >
-                  ¿Olvidaste tu PIN?
-                </button>
-              </div>
+                {error}
+              </motion.p>
             )}
-          </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {verifying ? (
+          <div className="flex items-center justify-center gap-2 text-slate-400 py-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Verificando...</span>
+          </div>
+        ) : (
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => toast.info('Podés cambiar tu PIN en Configuración → Gestión de Staff.')}
+              className="text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-slate-600 transition-colors"
+            >
+              ¿Olvidaste tu PIN?
+            </button>
+          </div>
         )}
-      </AnimatePresence>
+
+        <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-10">
+          TurnoYa Secure Access
+        </p>
+      </motion.div>
     </div>
   )
 }
