@@ -2,9 +2,20 @@ import jwt from 'jsonwebtoken'
 import { ENV } from '../config/env.js'
 
 /**
+ * Normaliza roles legacy (dueño/empleado) a ASCII-safe (owner/employee).
+ * Esto evita fallos de comparación por encoding UTF-8 en servidores Linux.
+ */
+const normalizeRole = (role) => {
+  if (!role) return 'owner'
+  if (role === 'dueño' || role === 'owner') return 'owner'
+  if (role === 'empleado' || role === 'employee') return 'employee'
+  return role
+}
+
+/**
  * Verifica el JWT y adjunta el payload decodificado a req.business.
- * Compatible con tokens de dueño { business_id, role: 'dueño', staff_id: null }
- * y de staff { business_id, role: 'empleado', staff_id }.
+ * Compatible con tokens legacy { role: 'dueño' | 'empleado' }
+ * y tokens nuevos { role: 'owner' | 'employee' }.
  *
  * Normaliza req.business.id = req.business.business_id para retrocompatibilidad
  * con controllers que usen req.business.id.
@@ -20,10 +31,10 @@ export const verifyToken = async (req, reply) => {
 
   try {
     const decoded = jwt.verify(token, ENV.JWT_SECRET)
-    // Normalizar: los controllers usan req.business.id
     req.business = {
       ...decoded,
-      id: decoded.business_id ?? decoded.id, // retrocompatibilidad
+      id: decoded.business_id ?? decoded.id,
+      role: normalizeRole(decoded.role), // siempre normalizado a ASCII
     }
   } catch (err) {
     return reply.status(401).send({ error: 'Token inválido o expirado' })
@@ -37,15 +48,14 @@ export const verifyToken = async (req, reply) => {
  *   401 → no autenticado → logout
  *   403 → autenticado pero sin permisos → mostrar "sin acceso" sin desloguear
  *
- * @param {...string} allowedRoles - 'dueño' | 'empleado' (acepta múltiples)
+ * @param {...string} allowedRoles - 'owner' | 'employee' (acepta múltiples)
  */
 export const requireRole = (...allowedRoles) => async (req, reply) => {
   if (!req.business) {
-    // verifyToken no se ejecutó antes — configuración incorrecta
     return reply.status(401).send({ error: 'Token requerido' })
   }
 
-  const actualRole = req.business.role ?? 'dueño' // Retrocompatibilidad para tokens viejos
+  const actualRole = req.business.role // ya normalizado por verifyToken
 
   if (!allowedRoles.includes(actualRole)) {
     return reply.status(403).send({

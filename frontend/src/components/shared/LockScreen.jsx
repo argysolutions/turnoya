@@ -6,12 +6,18 @@ import { toast } from 'sonner'
 import { Lock, ShieldCheck, User, ArrowLeft, Loader2 } from 'lucide-react'
 
 const ROLE_COLORS = {
-  dueño: 'from-indigo-500 to-violet-600',
+  owner: 'from-indigo-500 to-violet-600',
+  employee: 'from-emerald-500 to-teal-600',
+  // legacy compat
+  'dueño': 'from-indigo-500 to-violet-600',
   empleado: 'from-emerald-500 to-teal-600',
 }
 
 const ROLE_LABELS = {
-  dueño: 'Administrador',
+  owner: 'Administrador',
+  employee: 'Empleado',
+  // legacy compat
+  'dueño': 'Administrador',
   empleado: 'Empleado',
 }
 

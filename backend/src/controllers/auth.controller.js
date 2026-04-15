@@ -36,7 +36,7 @@ export const register = async (req, reply) => {
 
   // JWT minimalista: solo role + business_id (sin email ni nombres)
   const token = jwt.sign(
-    { business_id: business.id, role: 'dueño', staff_id: null },
+    { business_id: business.id, role: 'owner', staff_id: null },
     ENV.JWT_SECRET,
     { expiresIn: '7d' }
   )
@@ -67,7 +67,7 @@ export const login = async (req, reply) => {
 
   // JWT minimalista: role + business_id + staff_id: null
   const token = jwt.sign(
-    { business_id: business.id, role: 'dueño', staff_id: null },
+    { business_id: business.id, role: 'owner', staff_id: null },
     ENV.JWT_SECRET,
     { expiresIn: '7d' }
   )
@@ -121,10 +121,13 @@ export const staffLogin = async (req, reply) => {
   }
 
   // JWT minimalista: sin nombres ni emails
+  // Normalizar rol a ASCII-safe antes de emitir el JWT
+  const normalizedRole = matchedStaff.role === 'dueño' || matchedStaff.role === 'owner' ? 'owner' : 'employee'
+
   const token = jwt.sign(
     {
       business_id: matchedStaff.business_id,
-      role: matchedStaff.role,
+      role: normalizedRole,
       staff_id: matchedStaff.id,
     },
     ENV.JWT_SECRET,
@@ -153,7 +156,7 @@ export const getProfiles = async (req, reply) => {
       {
         id: 'owner',
         name: business.name,
-        role: 'dueño',
+        role: 'owner',
         staff_id: null,
         has_pin: !!business.owner_pin_hash,
       },
@@ -162,9 +165,9 @@ export const getProfiles = async (req, reply) => {
         .map(s => ({
           id: `staff-${s.id}`,
           name: s.name,
-          role: s.role,
+          role: s.role === 'dueño' || s.role === 'owner' ? 'owner' : 'employee',
           staff_id: s.id,
-          has_pin: true, // Staff siempre tiene PIN
+          has_pin: true,
         })),
     ]
 
@@ -213,7 +216,7 @@ export const verifyPin = async (req, reply) => {
 
       return reply.send({
         valid: true,
-        role: 'dueño',
+        role: 'owner',
         staff_id: null,
         name: business.name,
         profile_id: 'owner',
@@ -241,7 +244,7 @@ export const verifyPin = async (req, reply) => {
 
     return reply.send({
       valid: true,
-      role: member.role,
+      role: member.role === 'dueño' || member.role === 'owner' ? 'owner' : 'employee',
       staff_id: member.id,
       name: member.name,
       professional_name: member.professional_name,

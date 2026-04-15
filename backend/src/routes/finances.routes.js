@@ -15,10 +15,10 @@ export const financesRoutes = async (app) => {
   app.get('/expenses', { preHandler: verifyToken }, listExpenses)
 
   // Registrar gasto: solo el dueño
-  app.post('/expenses', { preHandler: [verifyToken, requireRole('dueño')] }, addExpense)
+  app.post('/expenses', { preHandler: [verifyToken, requireRole('owner')] }, addExpense)
 
   // Eliminar gasto: solo el dueño
-  app.delete('/expenses/:id', { preHandler: [verifyToken, requireRole('dueño')] }, removeExpense)
+  app.delete('/expenses/:id', { preHandler: [verifyToken, requireRole('owner')] }, removeExpense)
 
   // ── Resumen financiero ────────────────────────────────────────────────────
 
@@ -31,6 +31,6 @@ export const financesRoutes = async (app) => {
   app.get('/finances/session', { preHandler: verifyToken }, getSession)
 
   // Abrir/cerrar caja: solo el dueño
-  app.post('/finances/session/open', { preHandler: [verifyToken, requireRole('dueño')] }, openSession)
-  app.post('/finances/session/close', { preHandler: [verifyToken, requireRole('dueño')] }, closeSession)
+  app.post('/finances/session/open', { preHandler: [verifyToken, requireRole('owner')] }, openSession)
+  app.post('/finances/session/close', { preHandler: [verifyToken, requireRole('owner')] }, closeSession)
 }

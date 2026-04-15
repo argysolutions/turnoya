@@ -11,8 +11,10 @@ function decodeJWT(token) {
   try {
     const [, payload] = token.split('.')
     const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
-    // Verificar expiración local (el servidor también lo verifica)
     if (decoded.exp && decoded.exp * 1000 < Date.now()) return null
+    // Normalizar roles legacy ('dueño' → 'owner', 'empleado' → 'employee')
+    if (decoded.role === 'dueño') decoded.role = 'owner'
+    if (decoded.role === 'empleado') decoded.role = 'employee'
     return decoded
   } catch {
     return null
@@ -92,7 +94,7 @@ export function AuthProvider({ children }) {
   }, [auth?.payload?.exp, logout])
 
   // El rol efectivo depende del perfil activo del kiosco
-  const effectiveRole = activeProfile?.role ?? auth?.payload?.role ?? (auth?.payload ? 'dueño' : null)
+  const effectiveRole = activeProfile?.role ?? auth?.payload?.role ?? (auth?.payload ? 'owner' : null)
 
   const value = {
     // Estado
@@ -102,8 +104,8 @@ export function AuthProvider({ children }) {
     businessId: auth?.payload?.business_id ?? null,
     staffId: activeProfile?.staff_id ?? auth?.payload?.staff_id ?? null,
     // Shortcuts
-    isOwner: effectiveRole === 'dueño',
-    isEmployee: effectiveRole === 'empleado',
+    isOwner: effectiveRole === 'owner',
+    isEmployee: effectiveRole === 'employee',
     // Backward compat
     loading: false,
     // Kiosco
