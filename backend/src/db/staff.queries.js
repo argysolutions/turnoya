@@ -20,7 +20,7 @@ export const findStaffByBusinessAndPin = async (businessId, pin) => {
  */
 export const getStaffByBusiness = async (businessId) => {
   const { rows } = await pool.query(
-    `SELECT id, name, role, professional_name, is_active, created_at
+    `SELECT id, name, role, professional_name, pin_hash, is_active, created_at
      FROM staff
      WHERE business_id = $1
      ORDER BY name ASC`,
@@ -54,6 +54,41 @@ export const updateStaffPinHash = async (id, pinHash) => {
   const { rows } = await pool.query(
     `UPDATE staff SET pin_hash = $1 WHERE id = $2 RETURNING id`,
     [pinHash, id]
+  )
+  return rows[0]
+}
+
+/**
+ * Actualiza datos de un miembro del staff (nombre, rol, professional_name).
+ */
+export const updateStaff = async (id, { name, role, professionalName }) => {
+  const { rows } = await pool.query(
+    `UPDATE staff SET name = $1, role = $2, professional_name = $3 WHERE id = $4
+     RETURNING id, name, role, professional_name, is_active, created_at`,
+    [name, role, professionalName, id]
+  )
+  return rows[0]
+}
+
+/**
+ * Soft-delete: desactiva un miembro del staff.
+ */
+export const deactivateStaff = async (id) => {
+  const { rows } = await pool.query(
+    `UPDATE staff SET is_active = FALSE WHERE id = $1 RETURNING id`,
+    [id]
+  )
+  return rows[0]
+}
+
+/**
+ * Busca un staff member por id.
+ */
+export const findStaffById = async (id) => {
+  const { rows } = await pool.query(
+    `SELECT id, business_id, name, role, professional_name, pin_hash, is_active, created_at
+     FROM staff WHERE id = $1`,
+    [id]
   )
   return rows[0]
 }

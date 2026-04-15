@@ -8,7 +8,10 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { getSettings, updateSettings, updateStaffPin, updateOwnerPin } from '@/api/business'
+import {
+  getSettings, updateSettings, updateOwnerPin,
+  listStaff, addStaff, editStaff, updateMemberPin, removeStaff,
+} from '@/api/business'
 import { getGoogleAuthUrl, getGoogleStatus, unlinkGoogle } from '@/api/google'
 import { 
   CheckCircle2, 
@@ -19,7 +22,12 @@ import {
   Cloud, 
   Loader2,
   ExternalLink,
-  Trash2
+  Trash2,
+  UserPlus,
+  Users,
+  Key,
+  Pencil,
+  X,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -33,7 +41,6 @@ export default function SettingsPage() {
     expense_categories: []
   })
   const [newCategory, setNewCategory] = useState('')
-  const [staffPin, setStaffPin] = useState('')
   const [ownerPin, setOwnerPin] = useState('')
   const [updatingPin, setUpdatingPin] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -41,13 +48,25 @@ export default function SettingsPage() {
   const { role, loading: authLoading } = useAuth()
   const isRestricted = !authLoading && role !== 'owner'
 
+  // Staff Management
+  const [staffList, setStaffList] = useState([])
+  const [staffLoading, setStaffLoading] = useState(true)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newMember, setNewMember] = useState({ name: '', pin: '', role: 'employee', professional_name: '' })
+  const [addingStaff, setAddingStaff] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [editForm, setEditForm] = useState({})
+  const [pinChangeId, setPinChangeId] = useState(null)
+  const [newPinValue, setNewPinValue] = useState('')
+
   useEffect(() => {
     const fetchData = async () => {
       if (authLoading) return
       try {
-        const [settingsRes, googleRes] = await Promise.all([
+        const [settingsRes, googleRes, staffRes] = await Promise.all([
           getSettings(),
-          getGoogleStatus()
+          getGoogleStatus(),
+          listStaff().catch(() => ({ data: { staff: [] } })),
         ])
         
         setSettings({
@@ -60,8 +79,11 @@ export default function SettingsPage() {
         })
         
         setGoogleStatus(googleRes.data)
+        setStaffList(staffRes.data.staff || [])
       } catch {
         toast.error('Error al cargar la configuración')
+      } finally {
+        setStaffLoading(false)
       }
     }
     fetchData()
@@ -144,19 +166,7 @@ export default function SettingsPage() {
   }
 
   const handleSavePin = async () => {
-    if (!staffPin || staffPin.length !== 4 || isNaN(staffPin)) {
-      return toast.error('El PIN debe ser exactamente 4 dígitos numéricos')
-    }
-    setUpdatingPin(true)
-    try {
-      await updateStaffPin(staffPin)
-      toast.success('PIN de personal actualizado')
-      setStaffPin('')
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Error al actualizar PIN')
-    } finally {
-      setUpdatingPin(false)
-    }
+    // Removed old shared PIN handler
   }
 
   const handleSaveOwnerPin = async () => {
@@ -172,6 +182,59 @@ export default function SettingsPage() {
       toast.error(err.response?.data?.error || 'Error al actualizar PIN')
     } finally {
       setUpdatingPin(false)
+    }
+  }
+
+  // ── Staff Management Handlers ──────────────────────────────────────────────
+  const handleAddStaff = async () => {
+    if (!newMember.name.trim()) return toast.error('El nombre es obligatorio')
+    if (!newMember.pin || !/^\d{4}$/.test(newMember.pin)) return toast.error('El PIN debe ser 4 dígitos')
+    setAddingStaff(true)
+    try {
+      const { data } = await addStaff(newMember)
+      setStaffList(prev => [...prev, data.staff])
+      setNewMember({ name: '', pin: '', role: 'employee', professional_name: '' })
+      setShowAddForm(false)
+      toast.success(`${data.staff.name} agregado al equipo`)
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al agregar')
+    } finally {
+      setAddingStaff(false)
+    }
+  }
+
+  const handleEditStaff = async (id) => {
+    try {
+      const { data } = await editStaff(id, editForm)
+      setStaffList(prev => prev.map(s => s.id === id ? { ...s, ...data.staff } : s))
+      setEditingId(null)
+      toast.success('Miembro actualizado')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al actualizar')
+    }
+  }
+
+  const handleUpdatePin = async (id) => {
+    if (!newPinValue || !/^\d{4}$/.test(newPinValue)) return toast.error('PIN inválido')
+    try {
+      await updateMemberPin(id, newPinValue)
+      setStaffList(prev => prev.map(s => s.id === id ? { ...s, has_pin: true } : s))
+      setPinChangeId(null)
+      setNewPinValue('')
+      toast.success('PIN actualizado')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al cambiar PIN')
+    }
+  }
+
+  const handleRemoveStaff = async (id, name) => {
+    if (!window.confirm(`¿Desactivar a "${name}"? Ya no podrá acceder al Kiosco.`)) return
+    try {
+      await removeStaff(id)
+      setStaffList(prev => prev.filter(s => s.id !== id))
+      toast.success(`${name} desactivado`)
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al desactivar')
     }
   }
 
@@ -312,18 +375,33 @@ export default function SettingsPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-sm border-slate-200">
+                <Card className="shadow-sm border-slate-200 md:col-span-2">
                   <CardHeader>
-                    <CardTitle className="text-lg">Seguridad Kiosco (POS)</CardTitle>
-                    <CardDescription>Configurá los PINs de acceso para la Caja.</CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg flex items-center gap-2"><Users className="w-5 h-5 text-slate-500" /> Gestión de Staff</CardTitle>
+                        <CardDescription>Creá y administrá los perfiles de tu equipo para el Kiosco POS.</CardDescription>
+                      </div>
+                      <Button 
+                        type="button"
+                        onClick={() => setShowAddForm(!showAddForm)}
+                        className="bg-slate-900 text-white gap-2"
+                        size="sm"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        Agregar
+                      </Button>
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-3">
+                  <CardContent className="space-y-4">
+                    {/* Owner PIN inline */}
+                    <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-100 space-y-2">
                       <div className="flex items-center gap-2">
-                        <Label className="text-slate-700 font-bold">PIN de Dueño (Tu PIN)</Label>
+                        <Key className="w-4 h-4 text-indigo-500" />
+                        <Label className="text-slate-700 font-bold text-sm">Tu PIN de Dueño</Label>
                         <Tooltip>
-                          <TooltipTrigger><Info className="h-4 w-4 text-slate-400" /></TooltipTrigger>
-                          <TooltipContent>Tu PIN personal para operar la caja sin usar tu contraseña.</TooltipContent>
+                          <TooltipTrigger><Info className="h-3.5 w-3.5 text-slate-400" /></TooltipTrigger>
+                          <TooltipContent>Tu PIN personal para acceder al Kiosco como Administrador.</TooltipContent>
                         </Tooltip>
                       </div>
                       <div className="flex gap-2">
@@ -333,52 +411,168 @@ export default function SettingsPage() {
                           maxLength={4}
                           value={ownerPin}
                           onChange={(e) => setOwnerPin(e.target.value.replace(/\D/g, ''))}
-                          placeholder="Ej: 0000"
-                          className="flex h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
+                          placeholder="••••"
+                          className="flex h-9 w-24 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none text-center tracking-[0.3em] font-mono" 
                         />
                         <Button 
                           type="button" 
                           onClick={handleSaveOwnerPin}
                           disabled={updatingPin || ownerPin.length !== 4}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white min-w-[100px]"
+                          size="sm"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
                         >
-                          {updatingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Establecer'}
+                          {updatingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar'}
                         </Button>
                       </div>
-                      <p className="text-[11px] text-slate-500">Este PIN se usará junto con los demás perfiles en el Lock Screen.</p>
                     </div>
 
-                    <div className="h-px bg-slate-100" />
+                    {/* Add form */}
+                    {showAddForm && (
+                      <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
+                        <p className="text-xs font-bold uppercase text-slate-400 tracking-wider">Nuevo Miembro</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs text-slate-500">Nombre *</Label>
+                            <input
+                              value={newMember.name}
+                              onChange={e => setNewMember({ ...newMember, name: e.target.value })}
+                              placeholder="Ej: María López"
+                              className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-slate-500">Nombre Profesional</Label>
+                            <input
+                              value={newMember.professional_name}
+                              onChange={e => setNewMember({ ...newMember, professional_name: e.target.value })}
+                              placeholder="Ej: Dra. López (opcional)"
+                              className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-slate-500">PIN de 4 dígitos *</Label>
+                            <input
+                              type="password"
+                              inputMode="numeric"
+                              maxLength={4}
+                              value={newMember.pin}
+                              onChange={e => setNewMember({ ...newMember, pin: e.target.value.replace(/\D/g, '') })}
+                              placeholder="••••"
+                              className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none text-center tracking-[0.3em] font-mono"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-slate-500">Rol</Label>
+                            <select
+                              value={newMember.role}
+                              onChange={e => setNewMember({ ...newMember, role: e.target.value })}
+                              className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"
+                            >
+                              <option value="employee">Empleado</option>
+                              <option value="owner">Administrador</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <Button type="button" onClick={handleAddStaff} disabled={addingStaff} className="bg-slate-900 text-white" size="sm">
+                            {addingStaff ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <UserPlus className="w-4 h-4 mr-1" />}
+                            Crear Miembro
+                          </Button>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddForm(false)}>Cancelar</Button>
+                        </div>
+                      </div>
+                    )}
 
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Label className="text-slate-700">PIN de Empleados</Label>
-                        <Tooltip>
-                          <TooltipTrigger><Info className="h-4 w-4 text-slate-400" /></TooltipTrigger>
-                          <TooltipContent>PIN compartido para que tus empleados operen la caja.</TooltipContent>
-                        </Tooltip>
+                    {/* Staff list */}
+                    {staffLoading ? (
+                      <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>
+                    ) : staffList.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Users className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+                        <p className="text-sm text-slate-400">No hay miembros del equipo.</p>
+                        <p className="text-xs text-slate-400">Creá el primer miembro para habilitar el acceso por PIN.</p>
                       </div>
-                      <div className="flex gap-2">
-                        <input 
-                          type="password" 
-                          inputMode="numeric"
-                          maxLength={4}
-                          value={staffPin}
-                          onChange={(e) => setStaffPin(e.target.value.replace(/\D/g, ''))}
-                          placeholder="Ej: 1234"
-                          className="flex h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
-                        />
-                        <Button 
-                          type="button" 
-                          onClick={handleSavePin}
-                          disabled={updatingPin || staffPin.length !== 4}
-                          className="bg-slate-900 text-white min-w-[100px]"
-                        >
-                          {updatingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Establecer'}
-                        </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        {staffList.filter(s => s.is_active).map((member) => (
+                          <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white hover:bg-slate-50/50 transition-colors">
+                            {/* Avatar */}
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-sm shrink-0 ${
+                              member.role === 'owner' ? 'bg-gradient-to-br from-indigo-500 to-violet-600' : 'bg-gradient-to-br from-emerald-500 to-teal-600'
+                            }`}>
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+
+                            {/* Info */}
+                            {editingId === member.id ? (
+                              <div className="flex-1 flex flex-wrap gap-2">
+                                <input
+                                  value={editForm.name ?? member.name}
+                                  onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                                  className="flex-1 min-w-[120px] h-8 rounded-md border border-slate-200 px-2 text-sm"
+                                />
+                                <input
+                                  value={editForm.professional_name ?? member.professional_name ?? ''}
+                                  onChange={e => setEditForm({ ...editForm, professional_name: e.target.value })}
+                                  placeholder="Nombre profesional"
+                                  className="flex-1 min-w-[120px] h-8 rounded-md border border-slate-200 px-2 text-sm"
+                                />
+                                <Button size="sm" className="h-8 text-xs" onClick={() => handleEditStaff(member.id)}>Guardar</Button>
+                                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setEditingId(null)}>Cancelar</Button>
+                              </div>
+                            ) : pinChangeId === member.id ? (
+                              <div className="flex-1 flex items-center gap-2">
+                                <span className="text-sm font-medium text-slate-700">{member.name}</span>
+                                <input
+                                  type="password"
+                                  inputMode="numeric"
+                                  maxLength={4}
+                                  value={newPinValue}
+                                  onChange={e => setNewPinValue(e.target.value.replace(/\D/g, ''))}
+                                  placeholder="Nuevo PIN"
+                                  className="w-20 h-8 rounded-md border border-slate-200 px-2 text-sm text-center tracking-widest font-mono"
+                                  autoFocus
+                                />
+                                <Button size="sm" className="h-8 text-xs" onClick={() => handleUpdatePin(member.id)}>OK</Button>
+                                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setPinChangeId(null); setNewPinValue('') }}>
+                                  <X className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-semibold text-slate-900 truncate">{member.name}</p>
+                                  <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                                    member.role === 'owner' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+                                  }`}>
+                                    {member.role === 'owner' ? 'Admin' : 'Empleado'}
+                                  </span>
+                                  {!member.has_pin && <span className="text-[10px] text-amber-600 font-bold">Sin PIN</span>}
+                                </div>
+                                {member.professional_name && (
+                                  <p className="text-xs text-slate-400 truncate">{member.professional_name}</p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Actions */}
+                            {editingId !== member.id && pinChangeId !== member.id && (
+                              <div className="flex gap-1 shrink-0">
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-slate-700" onClick={() => { setPinChangeId(member.id); setNewPinValue('') }}>
+                                  <Key className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-slate-700" onClick={() => { setEditingId(member.id); setEditForm({ name: member.name, professional_name: member.professional_name || '' }) }}>
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-red-600" onClick={() => handleRemoveStaff(member.id, member.name)}>
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                      <p className="text-[11px] text-slate-500">Este PIN funciona para todos los empleados de la sucursal.</p>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
