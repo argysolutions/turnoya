@@ -94,7 +94,7 @@ export const updateStatus = async (req, reply) => {
   const { id } = req.params
   const { status, paymentInfo } = req.body
 
-  if (!['confirmed', 'cancelled', 'cancelled_occupied', 'liberate', 'completed'].includes(status)) {
+  if (!['confirmed', 'cancelled', 'cancelled_occupied', 'liberate', 'completed', 'pending_block'].includes(status)) {
     return reply.status(400).send({ error: 'Estado inválido' })
   }
 
@@ -154,8 +154,14 @@ export const blockTime = async (req, reply) => {
     if (!serviceId) throw new Error('No hay servicios creados para enlazar el bloqueo')
     
     // Si es evento, no bloquea turnos (cancelled nativo), si es Receso se vuelve cancelled_occupied
-    const clientName = isEvent ? '🌟 Evento Destacado' : '🛠️ Receso / Bloqueo'
-    const status = isEvent ? 'cancelled' : 'cancelled_occupied'
+    const isEmployee = req.user?.role === 'employee'
+    const clientName = isEvent ? '🌟 Evento Destacado' : (isEmployee ? '⏳ Bloqueo Pendiente' : '🛠️ Receso / Bloqueo')
+    
+    // Si es empleado y no es evento, queda en pendiente de aprobación
+    let status = isEvent ? 'cancelled' : 'cancelled_occupied'
+    if (!isEvent && isEmployee) {
+      status = 'pending_block'
+    }
 
     const cl = await pool.query(`INSERT INTO clients (name, phone) VALUES ($1, '0000000000') RETURNING id`, [clientName])
     
@@ -167,10 +173,20 @@ export const blockTime = async (req, reply) => {
       end = `${String(Math.floor(endMins / 60)).padStart(2, '0')}:${String(endMins % 60).padStart(2, '0')}:00`
     }
     
+    const staffId = req.user?.staff_id || null
+    const staffName = req.user?.name || 'Empleado'
+    
+    // Almacenamos metadata del solicitante en las notas
+    const metaNotes = JSON.stringify({ 
+      text: notes || '', 
+      requested_by_name: staffName,
+      requested_by_id: staffId 
+    })
+
     await pool.query(
       `INSERT INTO appointments (business_id, service_id, client_id, date, start_time, end_time, status, notes) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, 
-      [businessId, serviceId, cl.rows[0].id, date, start_time, end, status, notes || '']
+      [businessId, serviceId, cl.rows[0].id, date, start_time, end, status, metaNotes]
     )
     reply.send({ success: true })
   } catch (err) {
