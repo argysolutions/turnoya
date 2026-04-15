@@ -17,7 +17,14 @@ const ROLE_LABELS = {
 
 export default function LockScreen({ onUnlock }) {
   const { setActiveProfile } = useAuth()
+  const [profiles, setProfiles] = useState([])
+  const [selected, setSelected] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [verifying, setVerifying] = useState(false)
+  const [pinDigits, setPinDigits] = useState(['', '', '', ''])
   const [error, setError] = useState('')
+  const [shake, setShake] = useState(false)
+  const pinRefs = useRef([])
 
   useEffect(() => {
     const load = async () => {
@@ -109,43 +116,49 @@ export default function LockScreen({ onUnlock }) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-xl flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-white animate-spin" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-xl flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-12">
+      {/* Overlay translúcido */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]"
+      />
+
       <AnimatePresence mode="wait">
         {!selected ? (
           /* ── Selección de Perfil ──────────────────────────────────── */
           <motion.div
             key="profiles"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-md"
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            className="relative z-10 w-full max-w-[400px] bg-white rounded-[3rem] p-8 sm:p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100"
           >
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-3xl bg-white/10 flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/10">
-                <ShieldCheck className="w-8 h-8 text-white" />
+            <div className="text-center mb-10">
+              <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-slate-900/20">
+                <ShieldCheck className="w-7 h-7 text-white" />
               </div>
-              <h1 className="text-2xl font-black text-white tracking-tight">¿Quién opera la caja?</h1>
-              <p className="text-sm text-slate-400 mt-1">Seleccioná tu perfil para continuar</p>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">Acceso a Caja</h1>
+              <p className="text-sm font-medium text-slate-400 mt-2">Seleccioná tu perfil para operar</p>
             </div>
 
             <div className="space-y-3">
               {profiles.map((profile) => (
-                <motion.button
+                <button
                   key={profile.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelectProfile(profile)}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group"
+                  className="w-full flex items-center gap-4 p-4 rounded-3xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 group"
                 >
                   {/* Avatar */}
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${ROLE_COLORS[profile.role] || 'from-slate-500 to-slate-600'} flex items-center justify-center shrink-0 shadow-lg`}>
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${ROLE_COLORS[profile.role] || 'from-slate-500 to-slate-600'} flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform`}>
                     <span className="text-white font-black text-lg">
                       {profile.name.charAt(0).toUpperCase()}
                     </span>
@@ -153,54 +166,56 @@ export default function LockScreen({ onUnlock }) {
 
                   {/* Info */}
                   <div className="flex-1 text-left">
-                    <p className="text-white font-bold text-sm">{profile.name}</p>
-                    <p className="text-slate-400 text-xs font-medium">{ROLE_LABELS[profile.role] || profile.role}</p>
+                    <p className="text-sm font-black text-slate-800 tracking-tight">{profile.name}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">{ROLE_LABELS[profile.role] || profile.role}</p>
                   </div>
 
-                  {/* Indicador */}
-                  {!profile.has_pin ? (
-                    <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg">Sin PIN</span>
-                  ) : (
-                    <Lock className="w-4 h-4 text-slate-500 group-hover:text-white transition-colors" />
-                  )}
-                </motion.button>
+                  {/* Icon */}
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-slate-100 text-slate-300 group-hover:text-slate-900 group-hover:border-slate-300 transition-colors">
+                    <Lock className="w-3.5 h-3.5" />
+                  </div>
+                </button>
               ))}
             </div>
+
+            <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-10">
+              TurnoYa Secure Access
+            </p>
           </motion.div>
         ) : (
           /* ── Input de PIN ─────────────────────────────────────────── */
           <motion.div
             key="pin"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-sm"
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            className="relative z-10 w-full max-w-sm bg-white rounded-[3rem] p-8 sm:p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100"
           >
             <button
               onClick={handleBack}
-              className="flex items-center gap-1.5 text-slate-400 hover:text-white text-xs font-bold mb-6 transition-colors"
+              className="absolute left-8 top-8 w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Volver
+              <ArrowLeft className="w-5 h-5" />
             </button>
 
-            <div className="text-center mb-8">
-              {/* Avatar grande */}
-              <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${ROLE_COLORS[selected.role] || 'from-slate-500 to-slate-600'} flex items-center justify-center mx-auto mb-4 shadow-2xl`}>
-                <span className="text-white font-black text-3xl">
-                  {selected.name.charAt(0).toUpperCase()}
-                </span>
+            <div className="text-center mb-10 pt-4">
+              {/* Avatar circular */}
+              <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${ROLE_COLORS[selected.role] || 'from-slate-500 to-slate-600'} flex items-center justify-center mx-auto mb-5 shadow-2xl p-1 bg-white ring-4 ring-slate-50`}>
+                <div className="w-full h-full rounded-full bg-inherit flex items-center justify-center">
+                  <span className="text-white font-black text-3xl">
+                    {selected.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
               </div>
-              <h2 className="text-xl font-black text-white">{selected.name}</h2>
-              <p className="text-sm text-slate-400 font-medium mt-1">Ingresá tu PIN de 4 dígitos</p>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">{selected.name}</h2>
+              <p className="text-sm font-medium text-slate-400 mt-1">Ingresá tu PIN de 4 dígitos</p>
             </div>
 
             {/* PIN Inputs */}
             <div className="relative">
               <motion.div
-                animate={shake ? { x: [0, -12, 12, -12, 12, 0] } : {}}
-                transition={{ duration: 0.4 }}
-                className="flex gap-4 justify-center mb-4"
+                animate={shake ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+                className="flex gap-3 justify-center mb-6"
               >
                 {pinDigits.map((digit, idx) => (
                   <input
@@ -213,20 +228,19 @@ export default function LockScreen({ onUnlock }) {
                     onChange={e => handlePinChange(e.target.value, idx)}
                     onKeyDown={e => handlePinKeyDown(e, idx)}
                     disabled={verifying}
-                    className={`w-14 h-16 rounded-2xl bg-white/10 border ${error ? 'border-red-500/50' : 'border-white/20'} text-center text-2xl font-black text-white focus:outline-none focus:ring-2 ${error ? 'focus:ring-red-500' : 'focus:ring-indigo-500'} focus:border-transparent transition-all placeholder:text-slate-600 disabled:opacity-50`}
+                    className={`w-14 h-16 rounded-2xl bg-slate-50 border-2 ${error ? 'border-red-200' : 'border-slate-100'} text-center text-2xl font-black text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all disabled:opacity-50`}
                     placeholder="•"
                   />
                 ))}
               </motion.div>
 
-              {/* Error Message */}
               <AnimatePresence>
                 {error && (
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="text-center text-red-400 text-xs font-bold mb-6"
+                    className="text-center text-red-500 text-[11px] font-black uppercase tracking-wider mb-6 px-4"
                   >
                     {error}
                   </motion.p>
@@ -234,23 +248,22 @@ export default function LockScreen({ onUnlock }) {
               </AnimatePresence>
             </div>
 
-            <div className="space-y-6 mt-8">
-              {verifying ? (
-                <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verificando...</span>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <button
-                    onClick={() => toast.info('Contactate con el administrador para resetear tu PIN desde Ajustes.')}
-                    className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors"
-                  >
-                    ¿Olvidaste tu PIN?
-                  </button>
-                </div>
-              )}
-            </div>
+            {verifying ? (
+              <div className="flex items-center justify-center gap-2 text-slate-400 py-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Verificando...</span>
+              </div>
+            ) : (
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => toast.info('Contactate con el administrador para resetear tu PIN.')}
+                  className="text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-slate-600 transition-colors"
+                >
+                  ¿Olvidaste tu PIN?
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

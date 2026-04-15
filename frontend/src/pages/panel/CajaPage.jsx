@@ -677,9 +677,7 @@ export default function CajaPage() {
 
   return (
     <Layout>
-      {!activeProfile ? (
-        <LockScreen onUnlock={() => {}} />
-      ) : (
+      <div className={`transition-all duration-700 ${!activeProfile ? 'blur-3xl grayscale-[0.2] brightness-95 opacity-80 pointer-events-none select-none' : ''}`}>
         <TooltipProvider>
           {/*
             ── Outer container: full-bleed ledger layout ──
@@ -1049,7 +1047,8 @@ export default function CajaPage() {
         </Dialog>
 
         </TooltipProvider>
-      )}
+      </div>
+      {!activeProfile && <LockScreen onUnlock={() => {}} />}
     </Layout>
   )
 }
