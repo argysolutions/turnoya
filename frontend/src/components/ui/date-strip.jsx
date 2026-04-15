@@ -5,14 +5,14 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 
 export default function DateStrip({ selectedDate, onSelect, onExpand }) {
   const start = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const days = Array.from({ length: 14 }, (_, i) => addDays(start, i)); // 2 weeks of quick access
+  const days = Array.from({ length: 7 }, (_, i) => addDays(start, i)); // Mon-Sun current week
 
   return (
     <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 -mx-4 px-4 py-3 mb-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex flex-col">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Agenda</span>
-          <h2 className="text-sm font-bold text-slate-900 tracking-tight leading-none">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Turnos del</span>
+          <h2 className="text-base font-semibold text-slate-900 tracking-tight leading-tight">
             {format(selectedDate, 'eeee d \'de\' MMMM', { locale: es })}
           </h2>
         </div>
@@ -25,7 +25,7 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
         </button>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar mask-fade-edges py-1">
+      <div className="flex gap-2 justify-center overflow-x-auto no-scrollbar py-1">
         {days.map((day) => {
           const isSelected = isSameDay(day, selectedDate);
           const isToday = isSameDay(day, new Date());

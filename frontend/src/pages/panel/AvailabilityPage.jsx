@@ -140,7 +140,7 @@ export default function AvailabilityPage() {
                 </div>
 
                 {slots[day.value].enabled ? (
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto flex-1">
+                  <div className="flex flex-row items-center gap-4 w-full sm:w-auto flex-1">
                     <div className="flex-1 w-full sm:w-32">
                       {isMobile ? (
                         <TimePickerModal
