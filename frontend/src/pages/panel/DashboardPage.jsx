@@ -452,11 +452,22 @@ export default function DashboardPage() {
 
       {/* Vista de Navegación de Fecha en Mobile */}
       {isMobile && !isCalendarExpanded && (
-        <DateStrip 
-          selectedDate={calendarDate}
-          onSelect={handleCalendarSelect}
-          onExpand={() => setIsCalendarExpanded(true)}
-        />
+        <>
+          <DateStrip 
+            selectedDate={calendarDate}
+            onSelect={handleCalendarSelect}
+            onExpand={() => setIsCalendarExpanded(true)}
+          />
+          {/* Acciones rápidas mobile */}
+          <div className="flex gap-2 -mt-2 mb-4">
+            <Button size="sm" className="flex-1 h-9 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
+              Bloquear Día/Horario
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1 h-9 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
+              Destacar Día/Evento
+            </Button>
+          </div>
+        </>
       )}
       <div className="flex flex-col lg:flex-row-reverse gap-8">
         {/* === LADO SECUNDARIO (Derecha): CALENDARIO (Solo Desktop o expandido en Mobile) === */}
