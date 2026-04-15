@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { Copy, MoreVertical, Check, X, Calendar as CalendarIcon, Clock } from 'lucide-react'
+import { Copy, MoreVertical, Check, X, Calendar as CalendarIcon, Clock, ShieldCheck } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -168,7 +168,12 @@ export default function DashboardPage() {
     try {
       const payload = extraData ? { status, paymentInfo: extraData } : { status }
       await updateStatus(id, payload.status, payload.paymentInfo)
-      toast.success(status === 'completed' ? `¡Venta registrada!` : `Turno actualizado`)
+      let msg = 'Turno actualizado'
+      if (status === 'completed') msg = '¡Venta registrada!'
+      if (status === 'cancelled_occupied') msg = 'Bloqueo aprobado con éxito'
+      if (status === 'cancelled' && pendingBlocksArray.some(b => b.id === id)) msg = 'Bloqueo rechazado'
+      
+      toast.success(msg)
       fetchAppointments()
       if (status === 'cancelled' && pendingCancelModal) setPendingCancelModal(null)
       if (status === 'completed') setFinishModal(null)
