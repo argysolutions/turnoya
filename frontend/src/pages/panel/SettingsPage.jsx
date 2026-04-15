@@ -189,12 +189,11 @@ export default function SettingsPage() {
         <>
           <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Configuración</h1>
-              <p className="text-sm text-slate-500 mt-1">Gestioná las reglas de tu negocio e integraciones.</p>
+              <h1 className="text-xl font-semibold text-slate-900">Configuración</h1>
+              <p className="text-sm text-slate-500 mt-0.5">Gestioná las reglas de tu negocio e integraciones.</p>
             </div>
-            <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto shadow-md">
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Guardar cambios
+            <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto h-11 sm:h-10 shadow-md">
+              {saving ? 'Guardando...' : 'Guardar cambios'}
             </Button>
           </div>
 

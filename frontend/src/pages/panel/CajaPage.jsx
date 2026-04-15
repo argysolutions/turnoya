@@ -698,7 +698,10 @@ export default function CajaPage() {
 
               {/* Título CAJA + Privacy Toggle */}
               <div className="flex items-center gap-2 shrink-0">
-                <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900">CAJA</h1>
+                <div className="flex flex-col">
+                  <h1 className="text-xl font-semibold text-slate-900">Caja</h1>
+                  <p className="text-[10px] text-slate-500 font-medium hidden sm:block">Control de ventas y gastos</p>
+                </div>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button

@@ -432,9 +432,9 @@ export default function DashboardPage() {
       <div className="mb-6 flex flex-col sm:flex-row items-baseline justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900">{business.name || 'Agenda de Turnos'}</h1>
+            <h1 className="text-xl font-semibold text-slate-900">{business.name || 'Mi Negocio'}</h1>
           </div>
-          <p className="text-sm text-slate-500 mt-1">Navegá entre fechas, bloqueos o revisá turnos pendientes.</p>
+          <p className="text-sm text-slate-500 mt-0.5">Agenda de turnos</p>
         </div>
 
         {business.slug && (
