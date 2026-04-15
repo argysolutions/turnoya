@@ -209,7 +209,7 @@ export const verifyPin = async (req, reply) => {
       const pepperedPin = `owner:${businessId}:${pin}`
       const valid = await bcrypt.compare(pepperedPin, business.owner_pin_hash)
 
-      if (!valid) return reply.status(401).send({ error: 'PIN incorrecto' })
+      if (!valid) return reply.status(403).send({ error: 'PIN incorrecto' })
 
       return reply.send({
         valid: true,
@@ -231,13 +231,13 @@ export const verifyPin = async (req, reply) => {
     const member = staffList.find(s => s.id === staffId)
 
     if (!member) {
-      return reply.status(401).send({ error: 'Empleado no encontrado' })
+      return reply.status(403).send({ error: 'Empleado no encontrado o PIN incorrecto' })
     }
 
     const pepperedPin = `${businessId}:${pin}`
     const valid = await bcrypt.compare(pepperedPin, member.pin_hash)
 
-    if (!valid) return reply.status(401).send({ error: 'PIN incorrecto' })
+    if (!valid) return reply.status(403).send({ error: 'PIN incorrecto' })
 
     return reply.send({
       valid: true,

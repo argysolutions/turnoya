@@ -675,24 +675,19 @@ export default function CajaPage() {
   const changeDate = (delta) =>
     setDate(fnsAddDays(new Date(date + 'T12:00:00'), delta).toISOString().split('T')[0])
 
-  // Si no hay perfil activo, mostrar Lock Screen (Movido aquí para evitar violación de Hooks)
-  if (!activeProfile) {
-    return (
-      <Layout>
-        <LockScreen onUnlock={() => {}} />
-      </Layout>
-    )
-  }
-
   return (
     <Layout>
-      <TooltipProvider>
-        {/*
-          ── Outer container: full-bleed ledger layout ──
-          En desktop: w-3/4 Ledger + w-1/4 Sidebar fijo.
-          En mobile: columna única.
-        */}
-        <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto">
+      {!activeProfile ? (
+        <LockScreen onUnlock={() => {}} />
+      ) : (
+        <TooltipProvider>
+          {/*
+            ── Outer container: full-bleed ledger layout ──
+            En desktop: w-3/4 Ledger + w-1/4 Sidebar fijo.
+            En mobile: columna única.
+          */}
+          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto">
+
 
           {/* ═══════════════════════════════════════════
               COLUMNA LEDGER (3/4 desktop, full mobile)
@@ -1053,7 +1048,8 @@ export default function CajaPage() {
           </DialogContent>
         </Dialog>
 
-      </TooltipProvider>
+        </TooltipProvider>
+      )}
     </Layout>
   )
 }

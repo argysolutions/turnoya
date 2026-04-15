@@ -17,13 +17,7 @@ const ROLE_LABELS = {
 
 export default function LockScreen({ onUnlock }) {
   const { setActiveProfile } = useAuth()
-  const [profiles, setProfiles] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState(null)
-  const [pinDigits, setPinDigits] = useState(['', '', '', ''])
-  const [verifying, setVerifying] = useState(false)
-  const [shake, setShake] = useState(false)
-  const pinRefs = useRef([])
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const load = async () => {
@@ -45,12 +39,14 @@ export default function LockScreen({ onUnlock }) {
       toast.error('Este perfil no tiene PIN configurado. Configuralo en Ajustes.')
       return
     }
+    setError('')
     setSelected(profile)
     setPinDigits(['', '', '', ''])
     setTimeout(() => pinRefs.current[0]?.focus(), 150)
   }
 
   const handlePinChange = (value, idx) => {
+    if (error) setError('')
     const digit = value.replace(/\D/g, '').slice(-1)
     const next = [...pinDigits]
     next[idx] = digit
@@ -78,6 +74,7 @@ export default function LockScreen({ onUnlock }) {
   const handleVerify = async (pin) => {
     if (!selected) return
     setVerifying(true)
+    setError('')
     try {
       const { data } = await verifyPin({ profile_id: selected.id, pin })
       if (data.valid) {
@@ -94,7 +91,7 @@ export default function LockScreen({ onUnlock }) {
       }
     } catch (err) {
       const msg = err?.response?.data?.error || 'PIN incorrecto'
-      toast.error(msg)
+      setError(msg)
       setShake(true)
       setTimeout(() => setShake(false), 500)
       setPinDigits(['', '', '', ''])
@@ -106,6 +103,7 @@ export default function LockScreen({ onUnlock }) {
 
   const handleBack = () => {
     setSelected(null)
+    setError('')
     setPinDigits(['', '', '', ''])
   }
 
@@ -198,34 +196,61 @@ export default function LockScreen({ onUnlock }) {
             </div>
 
             {/* PIN Inputs */}
-            <motion.div
-              animate={shake ? { x: [0, -12, 12, -12, 12, 0] } : {}}
-              transition={{ duration: 0.4 }}
-              className="flex gap-4 justify-center mb-8"
-            >
-              {pinDigits.map((digit, idx) => (
-                <input
-                  key={idx}
-                  ref={el => pinRefs.current[idx] = el}
-                  type="password"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={e => handlePinChange(e.target.value, idx)}
-                  onKeyDown={e => handlePinKeyDown(e, idx)}
-                  disabled={verifying}
-                  className="w-14 h-16 rounded-2xl bg-white/10 border border-white/20 text-center text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-slate-600 disabled:opacity-50"
-                  placeholder="•"
-                />
-              ))}
-            </motion.div>
+            <div className="relative">
+              <motion.div
+                animate={shake ? { x: [0, -12, 12, -12, 12, 0] } : {}}
+                transition={{ duration: 0.4 }}
+                className="flex gap-4 justify-center mb-4"
+              >
+                {pinDigits.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    ref={el => pinRefs.current[idx] = el}
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={e => handlePinChange(e.target.value, idx)}
+                    onKeyDown={e => handlePinKeyDown(e, idx)}
+                    disabled={verifying}
+                    className={`w-14 h-16 rounded-2xl bg-white/10 border ${error ? 'border-red-500/50' : 'border-white/20'} text-center text-2xl font-black text-white focus:outline-none focus:ring-2 ${error ? 'focus:ring-red-500' : 'focus:ring-indigo-500'} focus:border-transparent transition-all placeholder:text-slate-600 disabled:opacity-50`}
+                    placeholder="•"
+                  />
+                ))}
+              </motion.div>
 
-            {verifying && (
-              <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Verificando...</span>
-              </div>
-            )}
+              {/* Error Message */}
+              <AnimatePresence>
+                {error && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center text-red-400 text-xs font-bold mb-6"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="space-y-6 mt-8">
+              {verifying ? (
+                <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Verificando...</span>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <button
+                    onClick={() => toast.info('Contactate con el administrador para resetear tu PIN desde Ajustes.')}
+                    className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors"
+                  >
+                    ¿Olvidaste tu PIN?
+                  </button>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
