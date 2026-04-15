@@ -39,6 +39,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [linkingGoogle, setLinkingGoogle] = useState(false)
   const { role, loading: authLoading } = useAuth()
+  const isRestricted = !authLoading && role !== 'dueño'
 
   useEffect(() => {
     const fetchData = async () => {

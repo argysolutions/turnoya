@@ -39,7 +39,7 @@ export const getExpensesByBusiness = async (businessId, startDate, endDate) => {
   }
 
   const { rows } = await pool.query(
-    `SELECT * FROM expenses
+    `SELECT * FROM expenses e
      WHERE business_id = $1 ${whereDate}
      ORDER BY created_at DESC`,
     params
