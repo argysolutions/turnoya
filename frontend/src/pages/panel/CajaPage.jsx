@@ -486,7 +486,7 @@ function ManagementDrawer({ onClose, ...contentProps }) {
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/25 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-white/60 backdrop-blur-[4px]"
       />
       <motion.div
         initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
@@ -554,6 +554,31 @@ export default function CajaPage() {
       }
     }
   }, [role, clearActiveProfile])
+
+  // ── Inactividad (1 minuto) ────────────────────────────────────────────────
+  useEffect(() => {
+    if (role !== 'owner' || !activeProfile) return
+
+    let timer
+    const resetTimer = () => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        clearActiveProfile()
+        toast.info('Sesión cerrada por inactividad')
+      }, 60000) // 60 segundos
+    }
+
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart']
+    const handleActivity = () => resetTimer()
+    
+    events.forEach(e => document.addEventListener(e, handleActivity))
+    resetTimer()
+
+    return () => {
+      if (timer) clearTimeout(timer)
+      events.forEach(e => document.removeEventListener(e, handleActivity))
+    }
+  }, [role, activeProfile, clearActiveProfile])
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [date, setDate] = useState(today())
@@ -1113,7 +1138,7 @@ function ExpenseModal({ onClose, onSaved, categories }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); onClose() }} />
+      <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px]" onClick={(e) => { e.stopPropagation(); onClose() }} />
       <div className="relative bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl">
         <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
           <h3 className="text-xs font-black uppercase tracking-widest">Registrar Gasto</h3>

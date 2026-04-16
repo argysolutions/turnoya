@@ -109,12 +109,11 @@ export default function LockScreen({ onUnlock }) {
   // Dueño: modal con PIN directo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-12">
-      {/* Overlay translúcido */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-white/60 backdrop-blur-[4px]"
       />
 
       <motion.div

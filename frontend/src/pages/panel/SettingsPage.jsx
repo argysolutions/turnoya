@@ -517,43 +517,41 @@ function BusinessSettings() {
 
             <TabsContent value="disponibilidad" className="animate-in fade-in slide-in-from-bottom-2">
               <Card className="shadow-sm border-slate-200 overflow-hidden">
-                <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between py-4">
+                <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between py-4 px-6 uppercase tracking-widest text-[10px] font-black text-slate-400">
                   <div>
-                    <CardTitle className="text-base flex items-center gap-2"><Clock className="w-5 h-5 text-slate-500" /> Agenda de Atención</CardTitle>
-                    <CardDescription>Definí qué días y en qué rango horario recibís clientes.</CardDescription>
+                    <CardTitle className="text-base flex items-center gap-2 font-bold text-slate-900"><Clock className="w-4 h-4 text-slate-400" /> Agenda de Atención</CardTitle>
                   </div>
-                  <Button onClick={handleSaveAvailability} disabled={loadingAvailability} size="sm" className="bg-emerald-600 hover:bg-emerald-700 shadow-sm px-6">
+                  <Button onClick={handleSaveAvailability} disabled={loadingAvailability} size="sm" className="bg-emerald-600 hover:bg-emerald-700 shadow-sm px-6 h-9">
                     {loadingAvailability ? 'Guardando...' : 'Guardar Agenda'}
                   </Button>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent className="pt-6 px-6">
+                  <div className="space-y-3">
                     {DAYS.map((day) => (
                       <div
                         key={day.value}
-                        className={`flex flex-col gap-3 p-4 rounded-2xl border transition-all ${
+                        className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border transition-all ${
                           slots[day.value].enabled
-                            ? 'border-indigo-100 bg-white shadow-sm shadow-indigo-50/50'
-                            : 'border-slate-100 bg-slate-50/50 opacity-60'
+                            ? 'border-slate-200 bg-white'
+                            : 'border-slate-100 bg-slate-50/50'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className={`text-sm font-black uppercase tracking-widest ${
-                            slots[day.value].enabled ? 'text-indigo-600' : 'text-slate-400'
+                        <div className="flex items-center justify-between gap-4 w-full sm:w-auto min-w-[140px]">
+                          <span className={`text-sm font-bold ${
+                            slots[day.value].enabled ? 'text-slate-900' : 'text-slate-400'
                           }`}>
                             {day.label}
                           </span>
                           <Switch 
                             checked={slots[day.value].enabled} 
                             onCheckedChange={() => toggleDay(day.value)}
-                            className="data-[state=checked]:bg-indigo-500"
+                            className="data-[state=checked]:bg-emerald-500"
                           />
                         </div>
 
                         {slots[day.value].enabled ? (
-                          <div className="grid grid-cols-2 gap-3 pt-1">
-                            <div className="space-y-1">
-                              <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Abre</Label>
+                          <div className="flex flex-row items-center gap-4 w-full sm:w-auto flex-1">
+                            <div className="flex-1 sm:w-32">
                               {isMobile ? (
                                 <TimePickerModal
                                   label="Abre"
@@ -561,16 +559,19 @@ function BusinessSettings() {
                                   onChange={(val) => handleTime(day.value, 'start', val)}
                                 />
                               ) : (
-                                <input
-                                  type="time"
-                                  value={slots[day.value].start}
-                                  onChange={(e) => handleTime(day.value, 'start', e.target.value)}
-                                  className="w-full text-sm font-bold border border-slate-200 rounded-xl px-3 h-10 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                                />
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Abre</Label>
+                                  <input
+                                    type="time"
+                                    value={slots[day.value].start}
+                                    onChange={(e) => handleTime(day.value, 'start', e.target.value)}
+                                    className="w-full text-sm font-semibold border border-slate-200 rounded-lg px-2 h-10 bg-white"
+                                  />
+                                </div>
                               )}
                             </div>
-                            <div className="space-y-1">
-                              <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Cierra</Label>
+                            <span className="text-slate-300 hidden sm:block mt-6 px-1">a</span>
+                            <div className="flex-1 sm:w-32">
                               {isMobile ? (
                                 <TimePickerModal
                                   label="Cierra"
@@ -578,19 +579,20 @@ function BusinessSettings() {
                                   onChange={(val) => handleTime(day.value, 'end', val)}
                                 />
                               ) : (
-                                <input
-                                  type="time"
-                                  value={slots[day.value].end}
-                                  onChange={(e) => handleTime(day.value, 'end', e.target.value)}
-                                  className="w-full text-sm font-bold border border-slate-200 rounded-xl px-3 h-10 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                                />
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Cierra</Label>
+                                  <input
+                                    type="time"
+                                    value={slots[day.value].end}
+                                    onChange={(e) => handleTime(day.value, 'end', e.target.value)}
+                                    className="w-full text-sm font-semibold border border-slate-200 rounded-lg px-2 h-10 bg-white"
+                                  />
+                                </div>
                               )}
                             </div>
                           </div>
                         ) : (
-                          <div className="h-10 flex items-center bg-slate-100/50 rounded-xl px-3 border border-dashed border-slate-200 mt-5">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cerrado</span>
-                          </div>
+                          <span className="text-sm text-slate-400 italic">Cerrado</span>
                         )}
                       </div>
                     ))}
