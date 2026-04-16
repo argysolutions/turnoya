@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Layout from '@/components/shared/Layout'
 import LockScreen from '@/components/shared/LockScreen'
 import { useAuth } from '@/context/AuthContext'
