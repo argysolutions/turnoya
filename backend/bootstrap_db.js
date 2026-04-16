@@ -202,7 +202,7 @@ async function bootstrap() {
         `INSERT INTO businesses (name, slug, email, password, description)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id`,
-        ['Color Craft Test', 'color-craft-test', OWNER_EMAIL, hashedPassword, 'Negocio de prueba']
+        ['Admin', 'admin', OWNER_EMAIL, hashedPassword, 'Negocio de prueba']
       )
       
       const bId = bizResult.rows[0].id

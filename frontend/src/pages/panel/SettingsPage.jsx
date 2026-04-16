@@ -517,16 +517,23 @@ function BusinessSettings() {
 
             <TabsContent value="disponibilidad" className="animate-in fade-in slide-in-from-bottom-2">
               <Card className="shadow-sm border-slate-200 overflow-hidden">
-                <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between py-4 px-6 uppercase tracking-widest text-[10px] font-black text-slate-400">
-                  <div>
-                    <CardTitle className="text-base flex items-center gap-2 font-bold text-slate-900"><Clock className="w-4 h-4 text-slate-400" /> Agenda de Atención</CardTitle>
+                <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between py-5 px-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                      <Clock className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Agenda de Atención</h3>
                   </div>
-                  <Button onClick={handleSaveAvailability} disabled={loadingAvailability} size="sm" className="bg-emerald-600 hover:bg-emerald-700 shadow-sm px-6 h-9">
+                  <Button 
+                    onClick={handleSaveAvailability} 
+                    disabled={loadingAvailability} 
+                    className="h-10 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black uppercase text-[10px] tracking-widest px-8 shadow-lg shadow-slate-900/10"
+                  >
                     {loadingAvailability ? 'Guardando...' : 'Guardar Agenda'}
                   </Button>
                 </CardHeader>
-                <CardContent className="pt-6 px-6">
-                  <div className="space-y-3">
+                <CardContent className="p-8">
+                  <div className="space-y-4">
                     {DAYS.map((day) => (
                       <div
                         key={day.value}
@@ -550,8 +557,8 @@ function BusinessSettings() {
                         </div>
 
                         {slots[day.value].enabled ? (
-                          <div className="flex flex-row items-center gap-4 w-full sm:w-auto flex-1">
-                            <div className="flex-1 sm:w-32">
+                          <div className="flex flex-row items-center gap-3 w-full sm:w-auto flex-1">
+                            <div className="flex-1 sm:w-36">
                               {isMobile ? (
                                 <TimePickerModal
                                   label="Abre"
@@ -559,19 +566,18 @@ function BusinessSettings() {
                                   onChange={(val) => handleTime(day.value, 'start', val)}
                                 />
                               ) : (
-                                <div className="space-y-1">
-                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Abre</Label>
+                                <div className="space-y-1.5">
+                                  <Label className="text-[9px] font-black text-slate-300 uppercase tracking-widest block ml-1">Abre</Label>
                                   <input
                                     type="time"
                                     value={slots[day.value].start}
                                     onChange={(e) => handleTime(day.value, 'start', e.target.value)}
-                                    className="w-full text-sm font-semibold border border-slate-200 rounded-lg px-2 h-10 bg-white"
+                                    className="w-full text-sm font-bold border border-slate-100 rounded-2xl px-4 h-11 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all text-slate-900"
                                   />
                                 </div>
                               )}
                             </div>
-                            <span className="text-slate-300 hidden sm:block mt-6 px-1">a</span>
-                            <div className="flex-1 sm:w-32">
+                            <div className="flex-1 sm:w-36">
                               {isMobile ? (
                                 <TimePickerModal
                                   label="Cierra"
@@ -579,20 +585,22 @@ function BusinessSettings() {
                                   onChange={(val) => handleTime(day.value, 'end', val)}
                                 />
                               ) : (
-                                <div className="space-y-1">
-                                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Cierra</Label>
+                                <div className="space-y-1.5">
+                                  <Label className="text-[9px] font-black text-slate-300 uppercase tracking-widest block ml-1">Cierra</Label>
                                   <input
                                     type="time"
                                     value={slots[day.value].end}
                                     onChange={(e) => handleTime(day.value, 'end', e.target.value)}
-                                    className="w-full text-sm font-semibold border border-slate-200 rounded-lg px-2 h-10 bg-white"
+                                    className="w-full text-sm font-bold border border-slate-100 rounded-2xl px-4 h-11 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all text-slate-900"
                                   />
                                 </div>
                               )}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-sm text-slate-400 italic">Cerrado</span>
+                          <div className="h-11 flex items-center bg-slate-100/30 rounded-2xl px-4 border border-dashed border-slate-100">
+                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Cerrado</span>
+                          </div>
                         )}
                       </div>
                     ))}

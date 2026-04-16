@@ -30,8 +30,8 @@ const pool = new Pool({
 const OWNER_EMAIL = 'admin@turnoya.com'
 const OWNER_PASSWORD = 'admin'
 const OWNER_PIN = '0000'
-const OWNER_NAME = 'Color Craft Test'
-const OWNER_SLUG = 'color-craft-test'
+const OWNER_NAME = 'Admin'
+const OWNER_SLUG = 'admin'
 
 const STAFF_NAME = 'Juan Perez'
 const STAFF_PIN = '1234'

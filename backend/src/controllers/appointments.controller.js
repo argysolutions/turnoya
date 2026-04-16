@@ -154,7 +154,7 @@ export const blockTime = async (req, reply) => {
     if (!serviceId) throw new Error('No hay servicios creados para enlazar el bloqueo')
     
     // Si es evento, no bloquea turnos (cancelled nativo), si es Receso se vuelve cancelled_occupied
-    const isEmployee = req.user?.role === 'employee'
+    const isEmployee = req.business?.role === 'employee'
     const clientName = isEvent ? '🌟 Evento Destacado' : (isEmployee ? '⏳ Bloqueo Pendiente' : '🛠️ Receso / Bloqueo')
     
     // Si es empleado y no es evento, queda en pendiente de aprobación
@@ -173,8 +173,8 @@ export const blockTime = async (req, reply) => {
       end = `${String(Math.floor(endMins / 60)).padStart(2, '0')}:${String(endMins % 60).padStart(2, '0')}:00`
     }
     
-    const staffId = req.user?.staff_id || null
-    const staffName = req.user?.name || 'Empleado'
+    const staffId = req.business?.staff_id || null
+    const staffName = req.business?.name || 'Empleado'
     
     // Almacenamos metadata del solicitante en las notas
     const metaNotes = JSON.stringify({ 

@@ -150,7 +150,7 @@ export default function Layout({ children }) {
               variant="ghost"
               size="icon"
               onClick={() => navigate('/dashboard/configuracion')}
-              className="h-11 w-11 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all duration-200 flex"
+              className="h-11 w-11 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all duration-200 flex md:hidden"
               title="Configuración"
             >
               <Settings className="h-5 w-5 text-slate-600" />

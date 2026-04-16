@@ -555,31 +555,6 @@ export default function CajaPage() {
     }
   }, [role, clearActiveProfile])
 
-  // ── Inactividad (1 minuto) ────────────────────────────────────────────────
-  useEffect(() => {
-    if (role !== 'owner' || !activeProfile) return
-
-    let timer
-    const resetTimer = () => {
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => {
-        clearActiveProfile()
-        toast.info('Sesión cerrada por inactividad')
-      }, 60000) // 60 segundos
-    }
-
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart']
-    const handleActivity = () => resetTimer()
-    
-    events.forEach(e => document.addEventListener(e, handleActivity))
-    resetTimer()
-
-    return () => {
-      if (timer) clearTimeout(timer)
-      events.forEach(e => document.removeEventListener(e, handleActivity))
-    }
-  }, [role, activeProfile, clearActiveProfile])
-
   // ── State ─────────────────────────────────────────────────────────────────
   const [date, setDate] = useState(today())
   const [sales, setSales] = useState([])

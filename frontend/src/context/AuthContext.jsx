@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
 
 const AuthContext = createContext(null)
 
@@ -124,6 +125,44 @@ export function AuthProvider({ children }) {
     const timer = setTimeout(logout, msUntilExpiry)
     return () => clearTimeout(timer)
   }, [auth?.payload?.exp, logout])
+
+  // ── Inactividad Global Sincronizada (1 minuto) ──────────────────────────
+  useEffect(() => {
+    // Solo auditamos inactividad para dueños que tienen un perfil activo (sesión desbloqueada)
+    if (role !== 'owner' || !activeProfile) return
+
+    const ACTIVITY_KEY = 'turnoya_last_activity'
+    const IDLE_LIMIT = 60 * 1000 // 1 minuto
+
+    const updateActivity = () => {
+      localStorage.setItem(ACTIVITY_KEY, Date.now().toString())
+    }
+
+    const checkInactivity = () => {
+      const lastActivity = parseInt(localStorage.getItem(ACTIVITY_KEY) || '0')
+      if (!lastActivity) return
+      
+      const now = Date.now()
+      if (now - lastActivity >= IDLE_LIMIT) {
+        clearActiveProfile()
+        toast.info('Sesión cerrada por inactividad')
+      }
+    }
+
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart']
+    const handleActivity = () => updateActivity()
+    
+    events.forEach(e => document.addEventListener(e, handleActivity))
+    const interval = setInterval(checkInactivity, 5000)
+    
+    // Marca inicial
+    updateActivity()
+
+    return () => {
+      events.forEach(e => document.removeEventListener(e, handleActivity))
+      clearInterval(interval)
+    }
+  }, [role, activeProfile, clearActiveProfile])
 
   // El rol efectivo depende del perfil activo del kiosco
   const effectiveRole = activeProfile?.role ?? auth?.payload?.role ?? (auth?.payload ? 'owner' : null)

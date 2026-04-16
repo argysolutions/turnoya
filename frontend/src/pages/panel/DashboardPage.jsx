@@ -238,8 +238,7 @@ export default function DashboardPage() {
       payload.duration = durationMins
 
       if (isEmployee || String(role).toLowerCase() === 'employee') {
-        payload.status = 'pending_block'
-        payload.notes = JSON.stringify({ requested_by_name: staffName || 'Empleado' })
+        payload.notes = blockForm.notes || '' 
       }
 
       await createBlock(payload)
