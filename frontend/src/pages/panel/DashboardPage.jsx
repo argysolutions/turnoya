@@ -30,6 +30,8 @@ import { Calendar } from "@/components/ui/calendar"
 import WheelTimePicker from '@/components/ui/wheel-time-picker'
 import WeeklyCalendar from '@/components/ui/weekly-calendar'
 import DateStrip from '@/components/ui/date-strip'
+import DashboardCharts from '@/components/dashboard/DashboardCharts'
+import { TrendingUp as TrendingIcon } from 'lucide-react'
 
 const STATUS_VARIANT = {
   pending: 'secondary',
@@ -71,7 +73,7 @@ const Countdown = ({ targetTime, onFinished }) => {
       if (diff <= 0) {
         setTimeLeft('')
         if (onFinished) onFinished()
-        return
+        return true
       }
       const mins = Math.floor(diff / 60000)
       const secs = Math.floor((diff % 60000) / 1000)
@@ -132,7 +134,9 @@ export default function DashboardPage() {
   const [requestSentModal, setRequestSentModal] = useState(false)
   const [paymentInfo, setPaymentInfo] = useState({ amount: '', method: 'Efectivo' })
   
-  const { isEmployee, role, staffName } = useAuth()
+  const { isOwner, isEmployee, role, hasPermission } = useAuth()
+  const hasAnalyticsAccess = isOwner || hasPermission('view_analytics')
+  const reportTabLabel = isMobile ? 'KPIs' : 'Reportes'
   const business = JSON.parse(localStorage.getItem('business') || '{}')
   const publicLink = `${window.location.origin}/p/${business.slug}`
 
@@ -667,7 +671,16 @@ export default function DashboardPage() {
                   Finalizados {totalCompleted > 0 && <Badge variant="secondary" className="ml-2 h-6 text-xs bg-blue-100 text-blue-700 border-none">{totalCompleted}</Badge>}
                   <TabUnderline value="finalizados" activeTab={activeTab} color="bg-blue-500" />
                 </TabsTrigger>
-              </TabsList>
+                {hasAnalyticsAccess && (
+                <TabsTrigger value="reportes" className="relative px-4 sm:px-8 py-3 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none group transition-all duration-300">
+                  <div className="flex flex-col items-center gap-1">
+                    <TrendingIcon className={`w-4 h-4 transition-colors duration-300 ${activeTab === 'reportes' ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                    <span className={`text-[10px] font-black uppercase tracking-widest transition-colors duration-300 ${activeTab === 'reportes' ? 'text-emerald-700' : 'text-slate-500 group-hover:text-slate-700'}`}>{reportTabLabel}</span>
+                  </div>
+                  <TabUnderline value="reportes" activeTab={activeTab} color="bg-emerald-500" />
+                </TabsTrigger>
+              )}
+            </TabsList>
             </div>
 
 
@@ -847,7 +860,21 @@ export default function DashboardPage() {
                 </motion.div>
               </TabsContent>
             </AnimatePresence>
-          </Tabs>
+            {/* TAB CONTENT: REPORTES (Analytics) */}
+          {hasAnalyticsAccess && (
+            <TabsContent value="reportes" className="mt-0 focus-visible:outline-none border-none outline-none">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+                className="px-4 pb-8"
+              >
+                <DashboardCharts />
+              </motion.div>
+            </TabsContent>
+          )}
+        </Tabs>
         </div>
       </div>
 
@@ -1026,7 +1053,7 @@ export default function DashboardPage() {
                     className={`h-11 rounded-xl text-sm font-medium border transition-all ${
                       paymentInfo.method === m 
                         ? 'border-emerald-600 bg-emerald-50 text-emerald-700 shadow-sm' 
-                        : 'border-slate-100 bg-white text-slate-600 hover:bg-slate-50'
+                        : 'border-border bg-white text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     {m}
@@ -1049,18 +1076,18 @@ export default function DashboardPage() {
         <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader className="mb-2">
              <DialogTitle>Tus Bloqueos / Recesos Activos</DialogTitle>
-             <p className="text-sm text-slate-500">Al deshabilitarlos, la agenda pública vuelve a permitir reservas en esos horarios inmediatamente.</p>
+             <p className="text-sm text-muted-foreground">Al deshabilitarlos, la agenda pública vuelve a permitir reservas en esos horarios inmediatamente.</p>
           </DialogHeader>
           <div className="space-y-3">
              {activeBlocksArray.length === 0 ? (
-               <div className="bg-slate-50 border border-slate-100 rounded-lg p-6 text-center text-slate-500 text-sm">
+               <div className="bg-slate-50 border border-border rounded-lg p-6 text-center text-muted-foreground text-sm">
                  Actualmente no tienes cierres forzados bloqueando la disponibilidad online.
                </div>
              ) : activeBlocksArray.map(b => (
                <div key={b.id} className="flex justify-between items-center p-3 border border-slate-200 shadow-sm rounded-lg hover:border-slate-300 transition-colors bg-white">
                    <div>
                      <p className="font-semibold text-sm text-slate-900">{formatDate(safeDate(b.date))}</p>
-                     <p className="text-xs text-slate-500 font-medium mt-0.5">{b.start_time.slice(0,5)} hs - {b.end_time ? b.end_time.slice(0,5) : 'NaN'} hs</p>
+                     <p className="text-xs text-muted-foreground font-medium mt-0.5">{b.start_time.slice(0,5)} hs - {b.end_time ? b.end_time.slice(0,5) : 'NaN'} hs</p>
                   </div>
                   <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 h-11 sm:h-9" onClick={() => handleStatus(b.id, 'cancelled')}>
                     Deshabilitar
@@ -1082,7 +1109,7 @@ export default function DashboardPage() {
           </DialogHeader>
           <form onSubmit={submitEventPayload}>
             <div className="space-y-4 py-4">
-              <p className="text-sm text-slate-500 leading-relaxed">Coloreá de celeste una fecha especial en tu calendario sin bloquear ni afectar la agenda pública.</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Coloreá de celeste una fecha especial en tu calendario sin bloquear ni afectar la agenda pública.</p>
               
               <div className="grid gap-2">
                 <Label>Fecha del Evento</Label>

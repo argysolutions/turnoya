@@ -13,6 +13,7 @@ import { businessRoutes } from './routes/business.routes.js'
 import { salesRoutes } from './routes/sales.routes.js'
 import { financesRoutes } from './routes/finances.routes.js'
 import { clientsRoutes } from './routes/clients.routes.js'
+import { analyticsRoutes } from './routes/analytics.routes.js'
 
 const app = Fastify({ logger: true })
 
@@ -46,6 +47,7 @@ app.register(businessRoutes, { prefix: '/api' })
 app.register(salesRoutes, { prefix: '/api' })
 app.register(financesRoutes, { prefix: '/api' })
 app.register(clientsRoutes, { prefix: '/api' })
+app.register(analyticsRoutes, { prefix: '/api/analytics' })
 
 app.get('/health', async () => ({ status: 'ok', app: 'TurnoYa' }))
 

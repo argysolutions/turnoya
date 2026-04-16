@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { login } from '@/api/auth'
 import { useAuth } from '@/context/AuthContext'
@@ -12,6 +14,7 @@ export default function LoginPage() {
   const { setToken } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [savedAccount, setSavedAccount] = useState(null)
   
   const passwordInputRef = useRef(null)

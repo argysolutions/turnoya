@@ -12,6 +12,9 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { LogOut, User, Settings, HelpCircle, Share2, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react'
 import NotificationTray from './NotificationTray'
+import GlobalSearch from './GlobalSearch'
+import { useTheme } from 'next-themes'
+import { Sun, Moon, Monitor } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const navItems = [
@@ -22,15 +25,16 @@ const navItems = [
 ]
 
 function NavScrollable({ location }) {
-  const { isOwner, isEmployee, role } = useAuth()
+  const { isOwner, isEmployee, role, hasPermission } = useAuth()
   const scrollRef = useRef(null)
   
-  // Filtrar pestañas por rol
+  // Filtrar pestañas por rol y permisos dinámicos
   const visibleNavItems = navItems.filter(item => {
     const isActuallyEmployee = role === 'employee' || isEmployee
     if (isActuallyEmployee) {
-      // Empleados solo ven Agenda, Clientes, Caja y Configuración (su perfil)
-      return ['Agenda', 'Clientes', 'Caja', 'Configuración'].includes(item.label)
+      if (item.label === 'Clientes') return hasPermission('manage_clients')
+      if (item.label === 'Caja') return hasPermission('view_caja')
+      return ['Agenda', 'Configuración'].includes(item.label)
     }
     return true // Dueño ve todo
   })
@@ -108,6 +112,7 @@ function NavScrollable({ location }) {
 export default function Layout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { theme, setTheme } = useTheme()
 
   const { logout, activeProfile, clearActiveProfile, isEmployee, role } = useAuth()
   const isActuallyEmployee = role === 'employee' || isEmployee
@@ -133,31 +138,53 @@ export default function Layout({ children }) {
   const [business] = useState(() => JSON.parse(localStorage.getItem('business') || '{}'))
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-[60]">
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b border-border sticky top-0 z-[60]">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-4 sm:gap-6 w-full overflow-hidden">
             <div className="flex items-center gap-2 shrink-0">
-              <span className="font-semibold text-slate-900 text-sm">TurnoYa</span>
+              <span className="font-semibold text-foreground text-sm">TurnoYa</span>
               {isActuallyEmployee && (
                 <span className="bg-indigo-600 text-[9px] text-white font-black uppercase px-1.5 py-0.5 rounded-md tracking-widest shrink-0 animate-pulse">Staff Mode</span>
               )}
             </div>
             <Separator orientation="vertical" className="h-4 shrink-0" />
             <NavScrollable location={location} />
+            <div className="ml-2 hidden lg:block">
+              <GlobalSearch />
+            </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate('/dashboard/configuracion')}
-              className="h-11 w-11 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all duration-200 flex md:hidden"
+              className="h-11 w-11 rounded-full bg-muted hover:bg-accent border border-border transition-all duration-200 flex md:hidden"
               title="Configuración"
             >
-              <Settings className="h-5 w-5 text-slate-600" />
+              <Settings className="h-5 w-5 text-muted-foreground" />
             </Button>
 
             <NotificationTray />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200">
+                  {theme === 'dark' ? <Moon className="h-5 w-5 text-indigo-400" /> : <Sun className="h-5 w-5 text-amber-500" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 rounded-xl">
+                <DropdownMenuItem onClick={() => setTheme('light')} className="gap-2 cursor-pointer font-medium">
+                  <Sun className="h-4 w-4" /> Claro
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')} className="gap-2 cursor-pointer font-medium">
+                  <Moon className="h-4 w-4" /> Oscuro
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')} className="gap-2 cursor-pointer font-medium">
+                  <Monitor className="h-4 w-4" /> Sistema
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <DropdownMenu>
               <DropdownMenuTrigger className="relative h-11 w-11 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center border border-slate-200 focus-visible:ring-offset-0 focus-visible:ring-0 transition-all duration-200 overflow-hidden">
@@ -168,7 +195,7 @@ export default function Layout({ children }) {
                   <p className="text-sm font-bold leading-none text-slate-900 truncate max-w-full">
                     {activeProfile ? activeProfile.name : (business.name || 'Mi Negocio')}
                   </p>
-                  <p className="text-[10px] leading-none text-slate-500 font-medium uppercase tracking-wider mt-1">
+                  <p className="text-xs leading-none text-slate-500 font-medium uppercase tracking-wider mt-1.5">
                     {activeProfile ? (activeProfile.role === 'owner' ? 'Administrador' : 'Staff') : 'Terminal'}
                   </p>
                 </div>

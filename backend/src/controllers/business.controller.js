@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt'
-import { findBusinessById, updateBusinessSettings } from '../db/business.queries.js'
+import { findBusinessById, updateBusinessSettings, updateOwnerPinHash } from '../db/business.queries.js'
 import { getStaffByBusiness, createStaff, updateStaffPinHash } from '../db/staff.queries.js'
 
 export const getSettings = async (req, reply) => {
@@ -14,7 +14,14 @@ export const getSettings = async (req, reply) => {
       buffer_time: business.buffer_time || 0,
       whatsapp_enabled: business.whatsapp_enabled || false,
       commission_rate: parseFloat(business.commission_rate || 0),
-      expense_categories: business.expense_categories || ['General', 'Insumos', 'Servicios', 'Alquiler', 'Personal', 'Marketing', 'Otro']
+      expense_categories: business.expense_categories || ['General', 'Insumos', 'Servicios', 'Alquiler', 'Personal', 'Marketing', 'Otro'],
+      staff_permissions: business.staff_permissions || {
+        view_caja: true,
+        manage_clients: true,
+        manage_services: false,
+        delete_appointments: false,
+        view_analytics: false
+      }
     })
   } catch (error) {
     reply.status(500).send({ error: 'Error al obtener la configuración' })
@@ -30,16 +37,18 @@ export const updateSettings = async (req, reply) => {
       buffer_time, 
       whatsapp_enabled,
       commission_rate,
-      expense_categories 
+      expense_categories,
+      staff_permissions
     } = req.body
 
     const updated = await updateBusinessSettings(businessId, {
-      cancellation_policy: cancellation_policy || null,
-      anticipation_margin: anticipation_margin || 0,
-      buffer_time: buffer_time || 0,
-      whatsapp_enabled: whatsapp_enabled || false,
-      commission_rate: commission_rate || 0,
-      expense_categories: expense_categories || []
+      cancellation_policy, 
+      anticipation_margin, 
+      buffer_time, 
+      whatsapp_enabled,
+      commission_rate,
+      expense_categories,
+      staff_permissions
     })
 
     if (!updated) return reply.status(404).send({ error: 'Business no encontrado' })
@@ -50,7 +59,8 @@ export const updateSettings = async (req, reply) => {
       buffer_time: updated.buffer_time || 0,
       whatsapp_enabled: updated.whatsapp_enabled || false,
       commission_rate: parseFloat(updated.commission_rate || 0),
-      expense_categories: updated.expense_categories || []
+      expense_categories: updated.expense_categories || [],
+      staff_permissions: updated.staff_permissions
     })
   } catch (error) {
     reply.status(500).send({ error: 'Error al actualizar la configuración' })

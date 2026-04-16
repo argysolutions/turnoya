@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/shared/ProtectedRoute'
+import { ThemeProvider } from 'next-themes'
 
 import BusinessPage from '@/pages/public/BusinessPage'
 import BookingPage from '@/pages/public/BookingPage'
@@ -21,39 +22,41 @@ export default function App() {
     // AuthProvider envuelve todo: mantiene el JWT en React state
     // y expone role/isOwner/isEmployee a toda la app sin pasar props manualmente.
     <AuthProvider>
-      <TooltipProvider delayDuration={300}>
-        <BrowserRouter>
-          <Toaster position="top-right" />
-          <Routes>
-            {/* ── Públicas ─────────────────────────────────────────────────── */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/staff-login" element={<StaffLoginPage />} />
-            <Route path="/sin-acceso" element={<NoAccessPage />} />
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider delayDuration={300}>
+          <BrowserRouter>
+            <Toaster position="top-right" />
+            <Routes>
+              {/* ── Públicas ─────────────────────────────────────────────────── */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/staff-login" element={<StaffLoginPage />} />
+              <Route path="/sin-acceso" element={<NoAccessPage />} />
 
-            {/* ── Rutas de cliente público ──────────────────────────────────── */}
-            <Route path="/p/:slug" element={<BusinessPage />} />
-            <Route path="/p/:slug/reservar" element={<BookingPage />} />
-            <Route path="/turno/:id" element={<ConfirmationPage />} />
+              {/* ── Rutas de cliente público ──────────────────────────────────── */}
+              <Route path="/p/:slug" element={<BusinessPage />} />
+              <Route path="/p/:slug/reservar" element={<BookingPage />} />
+              <Route path="/turno/:id" element={<ConfirmationPage />} />
 
-            {/* ── Panel: cualquier usuario autenticado ──────────────────────── */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute><DashboardPage /></ProtectedRoute>
-            } />
-            <Route path="/dashboard/caja" element={
-              <ProtectedRoute><CajaPage /></ProtectedRoute>
-            } />
-            <Route path="/dashboard/clientes" element={
-              <ProtectedRoute><ClientsPage /></ProtectedRoute>
-            } />
+              {/* ── Panel: cualquier usuario autenticado ──────────────────────── */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute><DashboardPage /></ProtectedRoute>
+              } />
+              <Route path="/dashboard/caja" element={
+                <ProtectedRoute><CajaPage /></ProtectedRoute>
+              } />
+              <Route path="/dashboard/clientes" element={
+                <ProtectedRoute><ClientsPage /></ProtectedRoute>
+              } />
 
-            <Route path="/dashboard/configuracion" element={
-              <ProtectedRoute><SettingsPage /></ProtectedRoute>
-            } />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              <Route path="/dashboard/configuracion" element={
+                <ProtectedRoute><SettingsPage /></ProtectedRoute>
+              } />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
     </AuthProvider>
   )
 }

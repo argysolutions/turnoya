@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
 
   // ── Perfil activo del Kiosco (no persiste, en memoria) ──────────────────
   const [activeProfile, setActiveProfile] = useState(null)
+  const [permissions, setPermissions] = useState(null)
 
   /**
    * Persiste el token y actualiza el estado en memoria.
@@ -67,7 +68,23 @@ export function AuthProvider({ children }) {
     }
     localStorage.setItem('token', token)
     setAuth({ token, payload })
+    // Disparar carga de permisos al cambiar token
+    fetchPermissions(token)
   }, [])
+
+  const fetchPermissions = async (token) => {
+    try {
+      const resp = await fetch(`${import.meta.env.VITE_API_URL}/api/business/settings`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (resp.ok) {
+        const data = await resp.json()
+        setPermissions(data.staff_permissions)
+      }
+    } catch (err) {
+      console.error('[Auth] Error fetching permissions:', err)
+    }
+  }
 
   /**
    * Cierra sesión: limpia token, payload en memoria y cualquier pref cifrada.
@@ -123,8 +140,14 @@ export function AuthProvider({ children }) {
     const msUntilExpiry = auth.payload.exp * 1000 - Date.now()
     if (msUntilExpiry <= 0) { logout(); return }
     const timer = setTimeout(logout, msUntilExpiry)
+    
+    // Carga inicial de permisos si hay token
+    if (auth?.token && !permissions) {
+      fetchPermissions(auth.token)
+    }
+
     return () => clearTimeout(timer)
-  }, [auth?.payload?.exp, logout])
+  }, [auth?.payload?.exp, logout, auth?.token])
 
   // El rol efectivo depende del perfil activo del kiosco
   const effectiveRole = activeProfile?.role ?? auth?.payload?.role ?? (auth?.payload ? 'owner' : null)
@@ -180,6 +203,17 @@ export function AuthProvider({ children }) {
     // Shortcuts
     isOwner: roleString === 'owner',
     isEmployee: roleString === 'employee',
+    permissions: permissions || {
+      view_caja: true,
+      manage_clients: true,
+      manage_services: false,
+      delete_appointments: false,
+      view_analytics: false
+    },
+    hasPermission: (key) => {
+      if (roleString === 'owner') return true
+      return !!(permissions && permissions[key])
+    },
     // Backward compat
     loading: false,
     // Kiosco

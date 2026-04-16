@@ -18,16 +18,35 @@ import {
   Users,
   ChevronRight,
   TrendingUp,
-  History
+  History,
+  Lock
 } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 export default function ClientsPage() {
+  const { isOwner, hasPermission, loading: authLoading } = useAuth()
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedClient, setSelectedClient] = useState(null)
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
+
+  if (authLoading) return null
+
+  if (!isOwner && !hasPermission('manage_clients')) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+          <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center">
+            <Lock className="w-8 h-8 text-amber-500" />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900">Acceso Restringido</h1>
+          <p className="text-slate-500 max-w-xs px-6">Tu perfil no tiene permisos habilitados para ver el directorio de clientes.</p>
+        </div>
+      </Layout>
+    )
+  }
 
   const fetchClients = async () => {
     setLoading(true)
@@ -95,13 +114,13 @@ export default function ClientsPage() {
           </div>
           
           <div className="flex gap-4">
-             <div className="bg-white border border-slate-100 shadow-sm rounded-2xl px-4 py-2 flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Total Clientes</span>
-                <span className="text-lg font-black text-slate-800">{clients.length}</span>
+             <div className="bg-white border border-slate-100 shadow-sm rounded-2xl px-4 py-3 flex flex-col min-w-[120px]">
+                <span className="text-xs uppercase font-bold text-slate-400">Total Clientes</span>
+                <span className="text-xl font-black text-slate-800">{clients.length}</span>
              </div>
-             <div className="bg-white border border-slate-100 shadow-sm rounded-2xl px-4 py-2 flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Frecuentes</span>
-                <span className="text-lg font-black text-indigo-600">
+             <div className="bg-white border border-slate-100 shadow-sm rounded-2xl px-4 py-3 flex flex-col min-w-[120px]">
+                <span className="text-xs uppercase font-bold text-slate-400">Frecuentes</span>
+                <span className="text-xl font-black text-indigo-600">
                   {clients.filter(c => c.total_visits > 2).length}
                 </span>
              </div>
@@ -215,32 +234,32 @@ export default function ClientsPage() {
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                              <div className="flex items-center gap-2 mb-2">
                                 <History className="w-4 h-4 text-emerald-500" />
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Visitas</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase">Visitas</span>
                              </div>
                              <span className="text-xl font-black text-slate-800">{selectedClient.total_visits}</span>
                           </div>
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                              <div className="flex items-center gap-2 mb-2">
                                 <Calendar className="w-4 h-4 text-blue-500" />
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Última</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase">Última</span>
                              </div>
-                             <span className="text-sm font-bold text-slate-700">{formatDate(selectedClient.last_visit)}</span>
+                             <span className="text-base font-bold text-slate-700">{formatDate(selectedClient.last_visit)}</span>
                           </div>
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                              <div className="flex items-center gap-2 mb-2">
                                 <TrendingUp className="w-4 h-4 text-indigo-500" />
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Frecuencia</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase">Frecuencia</span>
                              </div>
-                             <span className="text-sm font-bold text-slate-700">
+                             <span className="text-base font-bold text-slate-700">
                                 {selectedClient.total_visits > 5 ? 'Muy Alta' : selectedClient.total_visits > 2 ? 'Media' : 'Baja'}
                              </span>
                           </div>
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                              <div className="flex items-center gap-2 mb-2">
                                 <Calendar className="w-4 h-4 text-purple-500" />
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Ingreso</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase">Ingreso</span>
                              </div>
-                             <span className="text-sm font-bold text-slate-700">{formatDate(selectedClient.created_at)}</span>
+                             <span className="text-base font-bold text-slate-700">{formatDate(selectedClient.created_at)}</span>
                           </div>
                        </div>
 
@@ -251,7 +270,7 @@ export default function ClientsPage() {
                                 Anotaciones Internas (Staff Only)
                              </h3>
                              {selectedClient.internal_notes !== notes && (
-                                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-amber-600 font-bold bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
                                    Cambios sin guardar
                                 </motion.span>
                              )}
@@ -267,7 +286,7 @@ export default function ClientsPage() {
                             <Button 
                               onClick={handleSaveNotes}
                               disabled={saving || selectedClient.internal_notes === notes}
-                              className={`absolute bottom-4 right-4 h-11 px-6 rounded-xl font-bold transition-all shadow-lg ${
+                              className={`absolute bottom-4 right-4 h-12 px-8 rounded-xl font-bold transition-all shadow-lg ${
                                 selectedClient.internal_notes === notes 
                                   ? 'bg-slate-200 text-slate-400' 
                                   : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'
@@ -281,7 +300,7 @@ export default function ClientsPage() {
                               )}
                             </Button>
                           </div>
-                          <p className="text-[11px] text-slate-400 italic text-center">
+                          <p className="text-xs text-slate-400 italic text-center">
                              Estas notas son privadas y solo visibles para el personal del negocio.
                           </p>
                        </div>

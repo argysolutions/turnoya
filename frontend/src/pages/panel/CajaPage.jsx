@@ -105,17 +105,17 @@ function SessionBanner({ session, onOpen, onOpenCierre, loading, isOwner }) {
       <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black uppercase text-emerald-900 tracking-wider">Sesión Abierta</span>
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-black uppercase text-emerald-900 tracking-wider">Sesión Abierta</span>
           </div>
-          <div className="h-3 w-px bg-emerald-200 hidden sm:block" />
-          <span className="text-[10px] font-bold text-emerald-600 hidden sm:block">Inicio: {fmt(session.initial_amount)}</span>
+          <div className="h-4 w-px bg-emerald-200 hidden sm:block" />
+          <span className="text-xs font-bold text-emerald-600 hidden sm:block">Inicio: {fmt(session.initial_amount)}</span>
         </div>
         {isOwner && (
           <Button
             onClick={onOpenCierre}
             variant="ghost"
-            className="h-7 px-3 text-[9px] font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
+            className="h-9 px-4 text-xs font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
           >
             Cerrar Caja
           </Button>
@@ -128,8 +128,8 @@ function SessionBanner({ session, onOpen, onOpenCierre, loading, isOwner }) {
   if (!isOwner) {
     return (
       <div className="rounded-2xl border border-slate-100 bg-slate-50/50 px-4 py-2.5 flex items-center gap-2">
-        <ShieldOff className="w-3.5 h-3.5 text-slate-300" />
-        <span className="text-[10px] font-bold text-slate-400">Sesión en espera de apertura por el dueño</span>
+        <ShieldOff className="w-4 h-4 text-slate-300" />
+        <span className="text-xs font-bold text-slate-400">Sesión en espera de apertura por el dueño</span>
       </div>
     )
   }
@@ -162,14 +162,14 @@ function AperturaBanner({ onOpen, inline = false }) {
       <div className="rounded-2xl border border-amber-100 bg-amber-50/40 px-4 py-3 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Unlock className="w-3.5 h-3.5 text-amber-600" />
-            <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider">Caja Cerrada</span>
+            <Unlock className="w-4 h-4 text-amber-600" />
+            <span className="text-xs font-black uppercase text-amber-900 tracking-wider">Caja Cerrada</span>
           </div>
           {!formOpen && (
             <Button
               onClick={() => setFormOpen(true)}
               variant="ghost"
-              className="h-7 px-3 text-[9px] font-black uppercase bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg"
+              className="h-9 px-4 text-xs font-black uppercase bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg"
             >
               Abrir Sesión
             </Button>
@@ -224,11 +224,11 @@ function AperturaBanner({ onOpen, inline = false }) {
           <Unlock className="w-6 h-6 text-amber-600" />
         </div>
         <div className="text-center">
-          <p className="text-xs font-black uppercase text-amber-900 tracking-widest">Iniciar Sesión</p>
-          <p className="text-[10px] text-amber-600 font-bold">Fijar fondo inicial de efectivo</p>
+          <p className="text-sm font-black uppercase text-amber-900 tracking-widest">Iniciar Sesión</p>
+          <p className="text-xs text-amber-600 font-bold">Fijar fondo inicial de efectivo</p>
         </div>
         {!formOpen ? (
-          <Button onClick={() => setFormOpen(true)} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl">Configurar Apertura</Button>
+          <Button onClick={() => setFormOpen(true)} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl">Configurar Apertura</Button>
         ) : (
           <div className="flex flex-col w-full gap-2">
             <input
@@ -241,8 +241,8 @@ function AperturaBanner({ onOpen, inline = false }) {
               autoFocus
             />
             <div className="flex gap-2">
-              <Button onClick={() => setFormOpen(false)} variant="ghost" className="flex-1 h-10 text-[10px] font-black uppercase tracking-widest">Cancelar</Button>
-              <Button onClick={handleOpen} disabled={saving} className="flex-[2] h-10 bg-amber-900 text-white font-black uppercase text-[10px] rounded-xl tracking-widest">{saving ? 'Abriendo...' : 'Confirmar'}</Button>
+              <Button onClick={() => setFormOpen(false)} variant="ghost" className="flex-1 h-11 text-xs font-black uppercase tracking-widest">Cancelar</Button>
+              <Button onClick={handleOpen} disabled={saving} className="flex-[2] h-11 bg-amber-900 text-white font-black uppercase text-xs rounded-xl tracking-widest">{saving ? 'Abriendo...' : 'Confirmar'}</Button>
             </div>
           </div>
         )}
@@ -275,32 +275,32 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-sm rounded-[2.5rem]">
-        <DialogHeader><DialogTitle className="uppercase tracking-widest text-[10px] font-black text-slate-400">Resumen de Cierre</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="uppercase tracking-widest text-xs font-black text-slate-400">Resumen de Cierre</DialogTitle></DialogHeader>
         <div className="space-y-6 py-2">
           <div className="grid grid-cols-2 gap-3">
             <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-              <span className="text-[8px] font-black uppercase text-emerald-600 block mb-1">Ventas Brutas</span>
-              <span className="text-sm font-black text-emerald-900">{fmt(summary?.totalIncome)}</span>
+              <span className="text-xs font-black uppercase text-emerald-600 block mb-1">Ventas Brutas</span>
+              <span className="text-base font-black text-emerald-900">{fmt(summary?.totalIncome)}</span>
             </div>
             <div className="p-4 rounded-2xl bg-red-50 border border-red-100">
-              <span className="text-[8px] font-black uppercase text-red-600 block mb-1">Egresos Totales</span>
-              <span className="text-sm font-black text-red-900">{fmt(summary?.totalExpenses)}</span>
+              <span className="text-xs font-black uppercase text-red-600 block mb-1">Egresos Totales</span>
+              <span className="text-base font-black text-red-900">{fmt(summary?.totalExpenses)}</span>
             </div>
           </div>
 
           <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-xl flex justify-between items-center">
             <div>
-              <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Efectivo Esperado</p>
-              <p className="text-xl font-black">{fmt(session?.expected_cash)}</p>
+              <p className="text-xs uppercase font-black text-slate-500 mb-1">Efectivo Esperado</p>
+              <p className="text-2xl font-black">{fmt(session?.expected_cash)}</p>
             </div>
             <div className="text-right">
-              <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Cant. Cobros</p>
-              <p className="text-xl font-black">{summary?.salesCount || 0}</p>
+              <p className="text-xs uppercase font-black text-slate-500 mb-1">Cant. Cobros</p>
+              <p className="text-2xl font-black">{summary?.salesCount || 0}</p>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] uppercase font-black text-slate-400 px-1">Efectivo contado físico</label>
+            <label className="text-xs uppercase font-black text-slate-400 px-1">Efectivo contado físico</label>
             <input
               type="text"
               inputMode="numeric"

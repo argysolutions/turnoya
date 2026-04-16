@@ -78,7 +78,14 @@ function BusinessSettings() {
     buffer_time: 0,
     whatsapp_enabled: false,
     commission_rate: 0,
-    expense_categories: []
+    expense_categories: [],
+    staff_permissions: {
+      view_caja: true,
+      manage_clients: true,
+      manage_services: false,
+      delete_appointments: false,
+      view_analytics: false
+    }
   })
   const [newCategory, setNewCategory] = useState('')
   const [ownerPin, setOwnerPin] = useState('')
@@ -136,7 +143,14 @@ function BusinessSettings() {
           buffer_time: settingsRes.data.buffer_time || 0,
           whatsapp_enabled: settingsRes.data.whatsapp_enabled || false,
           commission_rate: settingsRes.data.commission_rate || 0,
-          expense_categories: settingsRes.data.expense_categories || []
+          expense_categories: settingsRes.data.expense_categories || [],
+          staff_permissions: settingsRes.data.staff_permissions || {
+            view_caja: true,
+            manage_clients: true,
+            manage_services: false,
+            delete_appointments: false,
+            view_analytics: false
+          }
         })
         
         setGoogleStatus(googleRes.data)
@@ -405,25 +419,28 @@ function BusinessSettings() {
             <ShieldCheck className="w-8 h-8 text-red-600" />
           </div>
           <h1 className="text-xl font-bold text-slate-900">Acceso Restringido</h1>
-          <p className="text-slate-500 max-w-xs">No tenés permisos de administrador para ver o modificar la configuración de este negocio.</p>
+          <p className="text-muted-foreground max-w-xs">No tenés permisos de administrador para ver o modificar la configuración de este negocio.</p>
         </div>
       ) : (
         <>
           <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between pt-1">
             <div>
               <h1 className="text-xl font-semibold text-slate-900">Configuración</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Gestioná los servicios, horarios y reglas de tu negocio.</p>
+              <p className="text-sm text-muted-foreground mt-0.5">Gestioná los servicios, horarios y reglas de tu negocio.</p>
             </div>
             <div id="settings-save-root"></div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-8 bg-slate-100 p-1 rounded-xl h-auto md:h-12 gap-1 overflow-hidden">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8 bg-slate-100 p-1 rounded-xl h-auto md:h-12 gap-1 overflow-hidden">
               <TabsTrigger value="servicios" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                 <Briefcase className="w-4 h-4 mr-2" /> Servicios
               </TabsTrigger>
               <TabsTrigger value="disponibilidad" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                 <Clock className="w-4 h-4 mr-2" /> Disponibilidad
+              </TabsTrigger>
+              <TabsTrigger value="equipo" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
+                <Users className="w-4 h-4 mr-2" /> Equipo
               </TabsTrigger>
               <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                 <Settings2 className="w-4 h-4 mr-2" /> Reglas
@@ -445,8 +462,8 @@ function BusinessSettings() {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">
                       <Card className="shadow-sm border-slate-200">
-                        <CardHeader className="pb-3 border-b border-slate-50 mb-3">
-                          <CardTitle className="text-base uppercase text-[11px] font-black tracking-widest text-slate-400">
+                        <CardHeader className="pb-4 border-b border-slate-50 mb-4">
+                          <CardTitle className="text-xs uppercase font-black tracking-widest text-slate-400">
                             {editingService ? 'Editar servicio' : 'Nuevo servicio'}
                           </CardTitle>
                         </CardHeader>
@@ -503,16 +520,16 @@ function BusinessSettings() {
                           ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               {services.map((s) => (
-                                <div key={s.id} className="flex flex-col p-4 rounded-xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50/50 transition-all group">
-                                  <div className="flex justify-between items-start mb-2">
-                                    <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-[11px] tracking-widest">{s.name}</p>
+                                <div key={s.id} className="flex flex-col p-4 rounded-xl border border-border hover:border-slate-300 hover:bg-muted/50 transition-all group">
+                                  <div className="flex justify-between items-start mb-3">
+                                    <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-sm tracking-widest">{s.name}</p>
                                     <div className="flex gap-1">
                                       <button onClick={() => handleEditService(s)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-white rounded-md transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
                                       <button onClick={() => handleDeleteService(s.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-3 mt-auto">
-                                    <Badge variant="outline" className="text-[10px] font-bold bg-white">{s.duration} MIN</Badge>
+                                  <div className="flex items-center gap-3 mt-auto pt-2">
+                                    <Badge variant="outline" className="text-xs font-bold bg-white">{s.duration} MIN</Badge>
                                     {s.price && <span className="text-sm font-black text-slate-700">${Number(s.price).toLocaleString('es-AR')}</span>}
                                   </div>
                                 </div>
@@ -534,10 +551,10 @@ function BusinessSettings() {
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
                 >
-                  <div className="bg-white -mx-4 px-4 pt-1 pb-4 border-b border-slate-100/80 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="bg-white -mx-4 px-4 pt-1 pb-4 border-b border-border/80 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                     <div>
                       <h2 className="text-xl font-semibold text-slate-900">Disponibilidad</h2>
-                      <p className="text-sm text-slate-500 mt-0.5">Configurá qué días y horarios atendés</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">Configurá qué días y horarios atendés</p>
                     </div>
                     <Button onClick={handleSaveAvailability} disabled={loadingAvailability} className="w-full sm:w-auto h-11 sm:h-10 shadow-md">
                       {loadingAvailability ? 'Guardando...' : 'Guardar cambios'}
@@ -556,7 +573,7 @@ function BusinessSettings() {
                             className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-lg border transition-colors ${
                               slots[day.value].enabled
                                 ? 'border-slate-200 bg-white'
-                                : 'border-slate-100 bg-slate-50'
+                                : 'border-border bg-slate-50'
                             }`}
                           >
                             <div className="flex items-center justify-between gap-4 w-full sm:w-auto min-w-[140px]">
@@ -591,12 +608,12 @@ function BusinessSettings() {
                                     />
                                   ) : (
                                     <>
-                                      <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Abre</Label>
+                                      <Label className="text-xs uppercase text-slate-400 font-bold mb-1.5 block">Abre</Label>
                                       <input
                                         type="time"
                                         value={slots[day.value].start}
                                         onChange={(e) => handleTime(day.value, 'start', e.target.value)}
-                                        className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                        className="w-full text-base border border-slate-200 rounded-lg px-3 h-11 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                                       />
                                     </>
                                   )}
@@ -611,12 +628,12 @@ function BusinessSettings() {
                                     />
                                   ) : (
                                     <>
-                                      <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Cierra</Label>
+                                      <Label className="text-xs uppercase text-slate-400 font-bold mb-1.5 block">Cierra</Label>
                                       <input
                                         type="time"
                                         value={slots[day.value].end}
                                         onChange={(e) => handleTime(day.value, 'end', e.target.value)}
-                                        className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                        className="w-full text-base border border-slate-200 rounded-lg px-3 h-11 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                                       />
                                     </>
                                   )}
@@ -641,8 +658,8 @@ function BusinessSettings() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
                 >
-                  <div className="flex justify-end mb-4">
-                     <Button onClick={handleSave} disabled={saving} size="sm" className="shadow-sm bg-slate-900 text-white rounded-xl uppercase text-[10px] font-black tracking-widest px-6">
+                  <div className="flex justify-end mb-6">
+                     <Button onClick={handleSave} disabled={saving} size="sm" className="shadow-sm bg-slate-900 text-white rounded-xl uppercase text-xs font-black tracking-widest px-8 h-11">
                        {saving ? 'Guardando...' : 'Guardar Cambios'}
                      </Button>
                   </div>
@@ -749,12 +766,59 @@ function BusinessSettings() {
                       </CardContent>
                     </Card>
 
+              {/* === EQUIPO === */}
+              <TabsContent key="equipo" value="equipo" className="focus-visible:outline-none border-none outline-none">
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Permisos Granulares */}
+                    <Card className="shadow-sm border-slate-200">
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-indigo-500" /> Permisos del Staff</CardTitle>
+                        <CardDescription>Controlá qué funciones pueden usar tus empleados.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {[
+                          { key: 'view_caja', label: 'Ver Totales de Caja', desc: 'Permite ver saldo y cierres.' },
+                          { key: 'manage_clients', label: 'Gestionar Clientes', desc: 'Ver historial y notas.' },
+                          { key: 'manage_services', label: 'Modificar Servicios', desc: 'Editar precios y nombres.' },
+                          { key: 'delete_appointments', label: 'Eliminar Turnos', desc: 'Borrar turnos ya agendados.' },
+                          { key: 'view_analytics', label: 'Ver Estadísticas', desc: 'Acceso a gráficos de ingresos.' },
+                        ].map((p) => (
+                          <div key={p.key} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                            <div className="space-y-0.5">
+                              <Label className="text-sm font-bold text-slate-800">{p.label}</Label>
+                              <p className="text-[10px] text-slate-400 font-medium">{p.desc}</p>
+                            </div>
+                            <Switch 
+                              checked={settings.staff_permissions[p.key]} 
+                              onCheckedChange={(val) => setSettings({
+                                ...settings,
+                                staff_permissions: { ...settings.staff_permissions, [p.key]: val }
+                              })}
+                            />
+                          </div>
+                        ))}
+                        <div className="pt-4 mt-4 border-t border-border">
+                           <Button onClick={handleSave} disabled={saving} className="w-full bg-indigo-600 text-white font-bold h-11 rounded-xl gap-2">
+                             {saving ? 'Guardando...' : 'Aplicar Permisos'}
+                           </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Gestión de Lista de Staff */}
                     <Card className="shadow-sm border-slate-200 md:col-span-2">
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div>
-                            <CardTitle className="text-lg flex items-center gap-2"><Users className="w-5 h-5 text-slate-500" /> Gestión de Staff</CardTitle>
-                            <CardDescription>Creá y administrá los perfiles de tu equipo para el Kiosco POS.</CardDescription>
+                            <CardTitle className="text-lg flex items-center gap-2"><Users className="w-5 h-5 text-muted-foreground" /> Miembros del Equipo</CardTitle>
+                            <CardDescription>Creá perfiles para que tus empleados entren al Kiosco.</CardDescription>
                           </div>
                           <Button 
                             type="button"
@@ -763,7 +827,7 @@ function BusinessSettings() {
                             size="sm"
                           >
                             <UserPlus className="w-4 h-4" />
-                            Agregar miembro
+                            Agregar
                           </Button>
                         </div>
                       </CardHeader>
@@ -772,12 +836,12 @@ function BusinessSettings() {
                           <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                             <Info className="w-4 h-4 text-blue-600" />
                           </div>
-                          <p className="text-xs text-blue-700">Tu Business ID es: <span className="font-bold font-mono">{businessId}</span>. Compartilo con tus empleados para que se registren.</p>
+                          <p className="text-xs text-blue-700">Business ID: <span className="font-bold font-mono">{businessId}</span></p>
                         </div>
 
                         {showAddForm && (
-                          <div className="p-4 rounded-xl border-2 border-slate-100 bg-slate-50/50 space-y-4 animate-in fade-in slide-in-from-top-2">
-                            <p className="text-sm font-bold text-slate-900 px-1 uppercase tracking-widest text-[10px]">Nuevo Miembro</p>
+                          <div className="p-4 rounded-xl border-2 border-border bg-muted/50 space-y-4 animate-in fade-in slide-in-from-top-2">
+                            <p className="text-xs font-bold text-slate-900 px-1 uppercase tracking-widest">Nuevo Miembro</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="space-y-1.5">
                                 <Label>Nombre Completo</Label>
@@ -811,9 +875,9 @@ function BusinessSettings() {
                         ) : staffList.length === 0 ? (
                           <p className="text-center py-8 text-sm text-slate-400">No hay otros miembros en este negocio.</p>
                         ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 gap-3">
                             {staffList.map((member) => (
-                              <div key={member.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white hover:border-slate-300 transition-all shadow-sm">
+                              <div key={member.id} className="flex items-center justify-between p-3 rounded-xl border border-border bg-white hover:border-slate-300 transition-all shadow-sm">
                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${member.role === 'owner' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-600'}`}>
                                     {member.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}
@@ -838,7 +902,6 @@ function BusinessSettings() {
                                         }`}>
                                           {member.role === 'owner' ? 'Admin' : 'Empleado'}
                                         </span>
-                                        {!member.has_pin && <span className="text-[10px] text-amber-600 font-bold">Sin PIN</span>}
                                       </div>
                                       {member.professional_name && (
                                         <p className="text-xs text-slate-400 truncate">{member.professional_name}</p>
@@ -880,10 +943,10 @@ function BusinessSettings() {
                 >
                   <div className="max-w-2xl">
                     <Card className="shadow-sm border-slate-200 overflow-hidden">
-                      <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                      <CardHeader className="bg-muted/50 border-b border-border">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+                            <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-border flex items-center justify-center">
                               <Cloud className="w-6 h-6 text-blue-500" />
                             </div>
                             <div>
@@ -900,20 +963,20 @@ function BusinessSettings() {
                       </CardHeader>
                       <CardContent className="pt-6 space-y-6">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                          <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2">
+                          <div className="p-4 rounded-xl border border-border bg-muted/50 space-y-2">
                             <Loader2 className="w-5 h-5 text-blue-500" />
                             <p className="text-xs font-bold">Contactos</p>
-                            <p className="text-[10px] text-slate-500">Agendar pacientes automáticamente.</p>
+                            <p className="text-[10px] text-muted-foreground">Agendar pacientes automáticamente.</p>
                           </div>
-                          <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2">
+                          <div className="p-4 rounded-xl border border-border bg-muted/50 space-y-2">
                             <Cloud className="w-5 h-5 text-emerald-500" />
                             <p className="text-xs font-bold">Drive Backup</p>
-                            <p className="text-[10px] text-slate-500">Respaldos diarios de tu base selectiva.</p>
+                            <p className="text-[10px] text-muted-foreground">Respaldos diarios de tu base selectiva.</p>
                           </div>
-                          <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2">
+                          <div className="p-4 rounded-xl border border-border bg-muted/50 space-y-2">
                             <ExternalLink className="w-5 h-5 text-purple-500" />
                             <p className="text-xs font-bold">Gmail SMS</p>
-                            <p className="text-[10px] text-slate-500">Notificaciones vía SMTP de Google.</p>
+                            <p className="text-[10px] text-muted-foreground">Notificaciones vía SMTP de Google.</p>
                           </div>
                         </div>
 

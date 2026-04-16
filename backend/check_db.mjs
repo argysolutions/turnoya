@@ -25,6 +25,12 @@ async function run() {
     
     const r5 = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'business_connections' ORDER BY ordinal_position");
     console.log('business_connections:', r5.rows.map(r => r.column_name));
+
+    const r6 = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'clients' ORDER BY ordinal_position");
+    console.log('clients:', r6.rows.map(r => r.column_name));
+
+    const r7 = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'appointments' ORDER BY ordinal_position");
+    console.log('appointments:', r7.rows.map(r => r.column_name));
   } catch (err) {
     console.error('Error:', err.message);
   } finally {

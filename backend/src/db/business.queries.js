@@ -42,7 +42,8 @@ export const updateBusinessSettings = async (id, settings) => {
     buffer_time, 
     whatsapp_enabled,
     commission_rate,
-    expense_categories 
+    expense_categories,
+    staff_permissions
   } = settings
 
   const result = await pool.query(
@@ -52,8 +53,9 @@ export const updateBusinessSettings = async (id, settings) => {
          buffer_time = $3, 
          whatsapp_enabled = $4,
          commission_rate = $5,
-         expense_categories = $6
-     WHERE id = $7
+         expense_categories = $6,
+         staff_permissions = COALESCE($7, staff_permissions)
+     WHERE id = $8
      RETURNING *`,
     [
       cancellation_policy, 
@@ -62,8 +64,17 @@ export const updateBusinessSettings = async (id, settings) => {
       whatsapp_enabled,
       commission_rate || 0,
       expense_categories || ['General', 'Insumos', 'Servicios', 'Alquiler', 'Personal', 'Marketing', 'Otro'],
+      staff_permissions ? JSON.stringify(staff_permissions) : null,
       id
     ]
+  )
+  return result.rows[0]
+}
+
+export const updateOwnerPinHash = async (id, hash) => {
+  const result = await pool.query(
+    'UPDATE businesses SET owner_pin_hash = $1 WHERE id = $2 RETURNING id',
+    [hash, id]
   )
   return result.rows[0]
 }
