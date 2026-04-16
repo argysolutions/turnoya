@@ -64,23 +64,25 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
     }
   }, [selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const visibleDays = days.slice(offset, offset + VISIBLE_DAYS);
+  // Calculate center shift
+  const totalStripWidth = days.length * (DAY_WIDTH + DAY_GAP);
+  const xOffset = -offset * (DAY_WIDTH + DAY_GAP);
 
   return (
-    <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 -mx-4 px-4 py-3 mb-4">
+    <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 -mx-4 px-4 py-3 mb-4 select-none">
       <div className="flex items-center justify-between mb-2">
         <div className="flex flex-col">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Turnos del</span>
-          <h2 className="text-base font-semibold text-slate-900 tracking-tight leading-tight">
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Turnos del</span>
+          <h2 className="text-base font-bold text-slate-900 tracking-tight leading-tight">
             {format(selectedDate, 'eeee d \'de\' MMMM', { locale: es })}
           </h2>
         </div>
         <button 
           onClick={onExpand}
-          className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-wider active:scale-95 transition-all outline-none"
+          className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all outline-none shadow-lg shadow-slate-200"
         >
-          <CalendarIcon className="w-3 h-3" />
-          Cambiar Fecha
+          <CalendarIcon className="w-3 h-3 text-slate-400" />
+          Calendario
         </button>
       </div>
 
@@ -90,10 +92,10 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
         <button
           onClick={goLeft}
           disabled={!canGoLeft}
-          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+          className={`w-7 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
             canGoLeft
-              ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90'
-              : 'text-slate-200 cursor-default'
+              ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 active:scale-90'
+              : 'text-slate-200 cursor-default opacity-0'
           }`}
         >
           <ChevronLeft className="w-4 h-4" />
@@ -102,17 +104,17 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
         {/* Days container */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-hidden"
+          className="flex-1 overflow-hidden relative h-[65px]"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <motion.div
-            className="flex justify-center"
+            className="flex absolute left-0 top-0 h-full"
             style={{ gap: `${DAY_GAP}px` }}
-            animate={{ x: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            animate={{ x: xOffset }}
+            transition={{ type: 'spring', stiffness: 400, damping: 40, mass: 0.8 }}
           >
-            {visibleDays.map((day) => {
+            {days.map((day) => {
               const isSelected = isSameDay(day, selectedDate);
               const isToday = isSameDay(day, now);
               const isCurrentMonth = day.getMonth() === now.getMonth();
@@ -121,33 +123,39 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
                 <button
                   key={day.toString()}
                   onClick={() => onSelect(day)}
-                  className={`flex flex-col items-center justify-center flex-1 min-w-0 h-[60px] rounded-xl transition-all relative ${
+                  style={{ width: `${DAY_WIDTH}px` }}
+                  className={`flex flex-col items-center justify-center shrink-0 h-[60px] rounded-xl transition-colors relative group ${
                     isSelected
-                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-200 z-10'
+                      ? 'text-white z-10'
                       : isToday
-                        ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200'
+                        ? 'text-slate-900'
                         : isCurrentMonth
-                          ? 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                          : 'bg-slate-50/50 text-slate-300'
+                          ? 'text-slate-600 hover:bg-slate-50'
+                          : 'text-slate-300'
                   }`}
                 >
-                  <span className="text-[9px] uppercase font-bold mb-0.5 opacity-60">
+                  {/* Background selection synchronized */}
+                  {isSelected && (
+                    <motion.div
+                      layoutId="strip-active"
+                      className="absolute inset-0 bg-slate-900 rounded-xl shadow-lg shadow-slate-200 z-0"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                    />
+                  )}
+
+                  {!isSelected && isToday && (
+                    <div className="absolute inset-0 border border-slate-200 rounded-xl z-0 bg-slate-50/50" />
+                  )}
+
+                  <span className={`text-[9px] uppercase font-black mb-0.5 relative z-10 ${isSelected ? 'opacity-70' : 'opacity-40'}`}>
                     {format(day, 'eee', { locale: es })}
                   </span>
-                  <span className="text-sm font-bold tabular-nums leading-none">
+                  <span className="text-[15px] font-black tabular-nums leading-none relative z-10">
                     {format(day, 'd')}
                   </span>
 
                   {isToday && !isSelected && (
-                    <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />
-                  )}
-
-                  {isSelected && (
-                    <motion.div
-                      layoutId="strip-active"
-                      className="absolute inset-0 border-2 border-slate-900 rounded-xl"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
+                    <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-slate-900 rounded-full z-10" />
                   )}
                 </button>
               );
@@ -159,10 +167,10 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
         <button
           onClick={goRight}
           disabled={!canGoRight}
-          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+          className={`w-7 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
             canGoRight
-              ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90'
-              : 'text-slate-200 cursor-default'
+              ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 active:scale-90'
+              : 'text-slate-200 cursor-default opacity-0'
           }`}
         >
           <ChevronRight className="w-4 h-4" />

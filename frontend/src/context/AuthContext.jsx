@@ -126,10 +126,14 @@ export function AuthProvider({ children }) {
     return () => clearTimeout(timer)
   }, [auth?.payload?.exp, logout])
 
+  // El rol efectivo depende del perfil activo del kiosco
+  const effectiveRole = activeProfile?.role ?? auth?.payload?.role ?? (auth?.payload ? 'owner' : null)
+  const roleString = String(effectiveRole || '').toLowerCase()
+
   // ── Inactividad Global Sincronizada (1 minuto) ──────────────────────────
   useEffect(() => {
     // Solo auditamos inactividad para dueños que tienen un perfil activo (sesión desbloqueada)
-    if (role !== 'owner' || !activeProfile) return
+    if (effectiveRole !== 'owner' || !activeProfile) return
 
     const ACTIVITY_KEY = 'turnoya_last_activity'
     const IDLE_LIMIT = 60 * 1000 // 1 minuto
@@ -162,23 +166,20 @@ export function AuthProvider({ children }) {
       events.forEach(e => document.removeEventListener(e, handleActivity))
       clearInterval(interval)
     }
-  }, [role, activeProfile, clearActiveProfile])
-
-  // El rol efectivo depende del perfil activo del kiosco
-  const effectiveRole = activeProfile?.role ?? auth?.payload?.role ?? (auth?.payload ? 'owner' : null)
+  }, [effectiveRole, activeProfile, clearActiveProfile])
 
   const value = {
     // Estado
     isAuthenticated: !!auth,
     token: auth?.token ?? null,
-    role: effectiveRole,
+    role: roleString,
     businessId: auth?.payload?.business_id ?? null,
     staffId: activeProfile?.staff_id ?? auth?.payload?.staff_id ?? null,
     professionalName: activeProfile?.professional_name ?? auth?.payload?.professional_name ?? null,
     staffName: activeProfile?.name ?? auth?.payload?.name ?? null,
     // Shortcuts
-    isOwner: effectiveRole === 'owner',
-    isEmployee: effectiveRole === 'employee',
+    isOwner: roleString === 'owner',
+    isEmployee: roleString === 'employee',
     // Backward compat
     loading: false,
     // Kiosco

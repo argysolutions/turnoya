@@ -613,7 +613,14 @@ export default function DashboardPage() {
             </div>
 
 
-            <TabsContent value="pendientes" className="space-y-3 outline-none">
+            <AnimatePresence mode="wait">
+              <TabsContent key="pendientes" value="pendientes" className="space-y-3 outline-none border-none">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
               
               {pendingAtrasados.length > 0 && (
                 <Card className="border-red-100 shadow-sm">
@@ -649,124 +656,139 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(pendingProx, 'Vacío')}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </motion.div>
+              </TabsContent>
 
-            <TabsContent value="confirmados" className="space-y-3 outline-none">
-              {confirmedAtrasados.length > 0 && (
-                <Card className="border-emerald-100 shadow-sm">
-                  <CardHeader className="pb-3 bg-emerald-50/50">
-                    <CardTitle className="text-sm flex items-center gap-2 text-emerald-700">
-                      <Clock className="w-4 h-4" /> Pasados sin cobrar
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {renderAppointmentList(confirmedAtrasados)}
-                  </CardContent>
-                </Card>
-              )}
+              <TabsContent key="confirmados" value="confirmados" className="space-y-3 outline-none border-none">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {confirmedAtrasados.length > 0 && (
+                    <Card className="border-emerald-100 shadow-sm">
+                      <CardHeader className="pb-3 bg-emerald-50/50">
+                        <CardTitle className="text-sm flex items-center gap-2 text-emerald-700">
+                          <Clock className="w-4 h-4" /> Pasados sin cobrar
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {renderAppointmentList(confirmedAtrasados)}
+                      </CardContent>
+                    </Card>
+                  )}
 
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-500" />
-                    {date === todayStr ? 'Para Hoy' : `Confirmados para el ${formatDate(date)}`}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(confirmedForDate, 'Día libre. No hay confirmados.')}
-                </CardContent>
-              </Card>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
+                        <Check className="w-4 h-4 text-emerald-500" />
+                        {date === todayStr ? 'Para Hoy' : `Confirmados para el ${formatDate(date)}`}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(confirmedForDate, 'Día libre. No hay confirmados.')}
+                    </CardContent>
+                  </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(confirmedSemana, 'No hay turnos confirmados para los próximos 7 días')}
-                </CardContent>
-              </Card>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(confirmedSemana, 'No hay turnos confirmados para los próximos 7 días')}
+                    </CardContent>
+                  </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(confirmedProx, 'Vacío')}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(confirmedProx, 'Vacío')}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
 
-            <TabsContent value="cancelados" className="space-y-3 outline-none">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
-                    <X className="w-4 h-4 text-red-500" />
-                    {date === todayStr ? 'Cancelados Hoy' : `Cancelados del ${formatDate(date)}`}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(cancelledForDate, 'Ningún turno fue cancelado este día.')}
-                </CardContent>
-              </Card>
+              <TabsContent key="cancelados" value="cancelados" className="outline-none border-none">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
+                        <X className="w-4 h-4 text-red-500" />
+                        {date === todayStr ? 'Cancelados Hoy' : `Cancelados del ${formatDate(date)}`}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(cancelledForDate, 'Ningún turno fue cancelado este día.')}
+                    </CardContent>
+                  </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(cancelledSemana, 'Vacío')}
-                </CardContent>
-              </Card>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(cancelledSemana, 'Vacío')}
+                    </CardContent>
+                  </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(cancelledProx, 'Vacío')}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(cancelledProx, 'Vacío')}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
 
-            <TabsContent value="finalizados" className="space-y-3 outline-none">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-blue-500" />
-                    {date === todayStr ? 'Finalizados Hoy' : `Cobrados el ${formatDate(date)}`}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(completedForDate, 'No hay cobros registrados para esta fecha.')}
-                </CardContent>
-              </Card>
+              <TabsContent key="finalizados" value="finalizados" className="outline-none border-none">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500 flex items-center gap-2">
+                        <Check className="w-4 h-4 text-blue-500" />
+                        {date === todayStr ? 'Finalizados Hoy' : `Cobrados el ${formatDate(date)}`}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(completedForDate, 'No hay cobros registrados para esta fecha.')}
+                    </CardContent>
+                  </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(completedSemana, 'Vacío')}
-                </CardContent>
-              </Card>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Esta Semana</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(completedSemana, 'Vacío')}
+                    </CardContent>
+                  </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="pb-3 border-b border-slate-100">
-                  <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {renderAppointmentList(completedProx, 'Vacío')}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100">
+                      <CardTitle className="text-sm uppercase tracking-wide text-slate-500">Próximamente</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderAppointmentList(completedProx, 'Vacío')}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
+            </AnimatePresence>
           </Tabs>
         </div>
       </div>
