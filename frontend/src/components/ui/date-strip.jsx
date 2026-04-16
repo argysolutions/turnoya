@@ -27,7 +27,6 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
   const initialOffset = Math.max(0, Math.min(todayIndex - Math.floor(VISIBLE_DAYS / 2), days.length - VISIBLE_DAYS));
 
   const [offset, setOffset] = useState(initialOffset);
-  const touchStartRef = useRef(null);
   const containerRef = useRef(null);
 
   const canGoLeft = offset > 0;
@@ -41,19 +40,26 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
     setOffset(prev => Math.min(days.length - VISIBLE_DAYS, prev + 1));
   }, [days.length]);
 
-  // Swipe handling
-  const handleTouchStart = (e) => {
-    touchStartRef.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e) => {
-    if (touchStartRef.current === null) return;
-    const diff = touchStartRef.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 30) {
-      if (diff > 0) goRight(); // swipe left → next days
-      else goLeft(); // swipe right → prev days
+  // Swipe/Drag handling
+  const handleDragEnd = (_, info) => {
+    const daySize = DAY_WIDTH + DAY_GAP;
+    // Calculate how many days to move based on momentum and current position
+    const dragDistance = info.offset.x;
+    const velocity = info.velocity.x;
+    
+    // Sensitivity: how much velocity helps move extra days
+    const velocityFactor = velocity * 0.1;
+    const combinedDiff = dragDistance + velocityFactor;
+    
+    // Number of days to skip
+    const daysToSkip = Math.round(-combinedDiff / daySize);
+    
+    if (Math.abs(daysToSkip) > 0) {
+      setOffset(prev => {
+        const next = prev + daysToSkip;
+        return Math.max(0, Math.min(days.length - VISIBLE_DAYS, next));
+      });
     }
-    touchStartRef.current = null;
   };
 
   // Scroll selected day into view when tapped from outside
@@ -65,7 +71,6 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
   }, [selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Calculate center shift
-  const totalStripWidth = days.length * (DAY_WIDTH + DAY_GAP);
   const xOffset = -offset * (DAY_WIDTH + DAY_GAP);
 
   return (
@@ -105,14 +110,17 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
         <div
           ref={containerRef}
           className="flex-1 overflow-hidden relative h-[65px]"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
         >
           <motion.div
-            className="flex absolute left-0 top-0 h-full"
+            drag="x"
+            dragConstraints={{ left: -((days.length - VISIBLE_DAYS) * (DAY_WIDTH + DAY_GAP)), right: 0 }}
+            dragElastic={0.2}
+            dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+            onDragEnd={handleDragEnd}
+            className="flex absolute left-0 top-0 h-full cursor-grab active:cursor-grabbing"
             style={{ gap: `${DAY_GAP}px` }}
             animate={{ x: xOffset }}
-            transition={{ type: 'spring', stiffness: 400, damping: 40, mass: 0.8 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 35, mass: 0.8 }}
           >
             {days.map((day) => {
               const isSelected = isSameDay(day, selectedDate);

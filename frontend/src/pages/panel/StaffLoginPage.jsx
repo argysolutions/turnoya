@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { staffLogin } from '@/api/auth'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
-import { Lock, Building2, ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { Lock, Building2, ArrowLeft, Eye, EyeOff, Check, Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 
 export default function StaffLoginPage() {
@@ -12,6 +13,7 @@ export default function StaffLoginPage() {
   const [form, setForm] = useState({ business_id: '', pin: '' })
   const [showPin, setShowPin] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [pinDigits, setPinDigits] = useState(['', '', '', ''])
   const [savedStaff, setSavedStaff] = useState(null)
 
@@ -30,10 +32,45 @@ export default function StaffLoginPage() {
     const next = [...pinDigits]
     next[idx] = digit
     setPinDigits(next)
-    setForm(f => ({ ...f, pin: next.join('') }))
+    
+    const fullPin = next.join('')
+    setForm(f => ({ ...f, pin: fullPin }))
+    
     // Auto-foco al siguiente input
     if (digit && idx < 3) {
       document.getElementById(`pin-${idx + 1}`)?.focus()
+    }
+
+    // Auto-submit si están los 4
+    if (digit && idx === 3 && fullPin.length === 4) {
+       handleAutoSubmit(fullPin)
+    }
+  }
+
+  const handleAutoSubmit = async (pin) => {
+    if (!form.business_id) return
+    setLoading(true)
+    try {
+      const { data } = await staffLogin({
+        business_id: parseInt(form.business_id, 10),
+        pin: pin,
+      })
+      setIsSuccess(true)
+      setToken(data.token)
+      localStorage.setItem('turno_ya_last_staff_business_id', form.business_id)
+      if (data.staff?.name) localStorage.setItem('turno_ya_last_staff_name', data.staff.name)
+      
+      setTimeout(() => {
+        navigate('/dashboard/caja', { replace: true })
+        toast.success('Sesión iniciada')
+      }, 800)
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'PIN incorrecto'
+      toast.error(msg)
+      setPinDigits(['', '', '', ''])
+      document.getElementById('pin-0')?.focus()
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -48,23 +85,7 @@ export default function StaffLoginPage() {
     if (!form.business_id || form.pin.length !== 4) {
       return toast.error('Ingresá el ID del negocio y tu PIN de 4 dígitos')
     }
-    setLoading(true)
-    try {
-      const { data } = await staffLogin({
-        business_id: parseInt(form.business_id, 10),
-        pin: form.pin,
-      })
-      setToken(data.token)
-      localStorage.setItem('turno_ya_last_staff_business_id', form.business_id)
-      if (data.staff?.name) localStorage.setItem('turno_ya_last_staff_name', data.staff.name)
-      toast.success('Sesión iniciada')
-      navigate('/dashboard/caja', { replace: true })
-    } catch (err) {
-      const msg = err?.response?.data?.error || 'PIN incorrecto'
-      toast.error(msg)
-    } finally {
-      setLoading(false)
-    }
+    handleAutoSubmit(form.pin)
   }
 
   const handleClearAccount = () => {
@@ -77,7 +98,7 @@ export default function StaffLoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm relative">
 
         {/* Header */}
         <div className="text-center mb-8">
@@ -92,89 +113,113 @@ export default function StaffLoginPage() {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 space-y-6">
+        <div className="relative overflow-hidden rounded-[2rem]">
+          <AnimatePresence>
+            {isSuccess && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center"
+              >
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="w-20 h-20 bg-[#34C759] rounded-full flex items-center justify-center shadow-lg shadow-emerald-100"
+                >
+                  <Check className="w-10 h-10 text-white" />
+                </motion.div>
+                <p className="mt-4 text-emerald-600 font-black uppercase tracking-widest text-[10px]">Verificado</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Business ID */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                ID del Negocio
-              </label>
-              {form.business_id && savedStaff && (
-                <button type="button" onClick={handleClearAccount} className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700">Cambiar cuenta</button>
-              )}
-            </div>
-            <div className="relative">
-              <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="Ej: 12"
-                autoFocus={!savedStaff}
-                readOnly={!!savedStaff}
-                value={form.business_id}
-                onChange={e => setForm(f => ({ ...f, business_id: e.target.value.replace(/\D/g, '') }))}
-                className={`w-full h-12 rounded-2xl border transition-all pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 font-semibold ${
-                  savedStaff ? 'bg-slate-100 border-transparent text-slate-500 cursor-not-allowed' : 'bg-slate-50 border-slate-100'
-                }`}
-              />
-            </div>
-          </div>
+          <form onSubmit={handleSubmit} className="bg-white shadow-sm border border-slate-100 p-8 space-y-6">
 
-          {/* PIN — 4 dígitos separados */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Tu PIN
-            </label>
-            <div className="flex gap-3 justify-center">
-              {pinDigits.map((digit, idx) => (
+            {/* Business ID */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  ID del Negocio
+                </label>
+                {form.business_id && savedStaff && (
+                  <button type="button" onClick={handleClearAccount} className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700">Cambiar cuenta</button>
+                )}
+              </div>
+              <div className="relative">
+                <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                 <input
-                  key={idx}
-                  id={`pin-${idx}`}
-                  type={showPin ? 'text' : 'password'}
+                  type="text"
                   inputMode="numeric"
-                  maxLength={1}
-                  autoFocus={savedStaff && idx === 0}
-                  value={digit}
-                  onChange={e => handlePinChange(e.target.value, idx)}
-                  onKeyDown={e => handlePinKeyDown(e, idx)}
-                  className="w-12 h-14 rounded-2xl border border-slate-200 bg-slate-50 text-center text-xl font-black focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                  placeholder="Ej: 12"
+                  autoFocus={!savedStaff}
+                  readOnly={!!savedStaff}
+                  value={form.business_id}
+                  onChange={e => setForm(f => ({ ...f, business_id: e.target.value.replace(/\D/g, '') }))}
+                  className={`w-full h-12 rounded-2xl border transition-all pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 font-semibold ${
+                    savedStaff ? 'bg-slate-100 border-transparent text-slate-500 cursor-not-allowed' : 'bg-slate-50 border-slate-100'
+                  }`}
                 />
-              ))}
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowPin(s => !s)}
-              className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-slate-600 mx-auto mt-1 transition-colors"
-            >
-              {showPin ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              {showPin ? 'Ocultar PIN' : 'Mostrar PIN'}
-            </button>
-          </div>
 
-          {/* Submit */}
-          <Button
-            type="submit"
-            disabled={loading || form.pin.length !== 4 || !form.business_id}
-            className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl transition-all disabled:opacity-40"
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Verificando...
-              </span>
-            ) : 'Ingresar'}
-          </Button>
-        </form>
+            {/* PIN — 4 dígitos separados */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Tu PIN
+              </label>
+              <div className="flex gap-3 justify-center">
+                {pinDigits.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    id={`pin-${idx}`}
+                    type={showPin ? 'text' : 'password'}
+                    inputMode="numeric"
+                    maxLength={1}
+                    autoFocus={savedStaff && idx === 0}
+                    value={digit}
+                    onChange={e => handlePinChange(e.target.value, idx)}
+                    onKeyDown={e => handlePinKeyDown(e, idx)}
+                    disabled={loading || isSuccess}
+                    className={`w-12 h-14 rounded-2xl border border-slate-200 bg-slate-50 text-center text-xl font-black focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all ${isSuccess ? 'opacity-0' : ''}`}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPin(s => !s)}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-slate-600 mx-auto mt-1 transition-colors"
+              >
+                {showPin ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                {showPin ? 'Ocultar PIN' : 'Mostrar PIN'}
+              </button>
+            </div>
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={loading || form.pin.length !== 4 || !form.business_id || isSuccess}
+              className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl transition-all disabled:opacity-40"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Verificando...
+                </span>
+              ) : 'Ingresar'}
+            </Button>
+          </form>
+        </div>
 
         {/* Link al login de dueño */}
-        <Link
-          to="/login"
-          className="flex items-center justify-center gap-1.5 mt-6 text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors"
-        >
-          <ArrowLeft className="w-3 h-3" />
-          Acceso de Dueño
-        </Link>
+        {!isSuccess && (
+          <Link
+            to="/login"
+            className="flex items-center justify-center gap-1.5 mt-6 text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            Acceso de Dueño
+          </Link>
+        )}
       </div>
     </div>
   )

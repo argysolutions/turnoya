@@ -526,7 +526,7 @@ function BusinessSettings() {
                 </motion.div>
               </TabsContent>
 
-              {/* === DISPONIBILIDAD === */}
+              {/* === DISPONIBILIDAD (Diseño Original Restaurado) === */}
               <TabsContent key="disponibilidad" value="disponibilidad" className="focus-visible:outline-none border-none outline-none">
                 <motion.div
                   initial={{ opacity: 0, x: 10 }}
@@ -534,49 +534,55 @@ function BusinessSettings() {
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
                 >
-                  <Card className="shadow-sm border-slate-200 overflow-hidden">
-                    <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between py-5 px-8">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                          <Clock className="w-4 h-4 text-slate-400" />
-                        </div>
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Agenda de Atención</h3>
-                      </div>
-                      <Button 
-                        onClick={handleSaveAvailability} 
-                        disabled={loadingAvailability} 
-                        className="h-10 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black uppercase text-[10px] tracking-widest px-8 shadow-lg shadow-slate-900/10"
-                      >
-                        {loadingAvailability ? 'Guardando...' : 'Guardar Agenda'}
-                      </Button>
+                  <div className="bg-white -mx-4 px-4 pt-1 pb-4 border-b border-slate-100/80 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-semibold text-slate-900">Disponibilidad</h2>
+                      <p className="text-sm text-slate-500 mt-0.5">Configurá qué días y horarios atendés</p>
+                    </div>
+                    <Button onClick={handleSaveAvailability} disabled={loadingAvailability} className="w-full sm:w-auto h-11 sm:h-10 shadow-md">
+                      {loadingAvailability ? 'Guardando...' : 'Guardar cambios'}
+                    </Button>
+                  </div>
+
+                  <Card>
+                    <CardHeader className="pb-3 border-b border-slate-50 mb-3">
+                      <CardTitle className="text-base">Horarios por día</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-8">
-                      <div className="space-y-4">
+                    <CardContent>
+                      <div className="space-y-3">
                         {DAYS.map((day) => (
                           <div
                             key={day.value}
-                            className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border transition-all ${
+                            className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-lg border transition-colors ${
                               slots[day.value].enabled
                                 ? 'border-slate-200 bg-white'
-                                : 'border-slate-100 bg-slate-50/50'
+                                : 'border-slate-100 bg-slate-50'
                             }`}
                           >
                             <div className="flex items-center justify-between gap-4 w-full sm:w-auto min-w-[140px]">
-                              <span className={`text-sm font-bold ${
+                              <span className={`text-sm flex-1 font-bold ${
                                 slots[day.value].enabled ? 'text-slate-900' : 'text-slate-400'
                               }`}>
                                 {day.label}
                               </span>
-                              <Switch 
-                                checked={slots[day.value].enabled} 
-                                onCheckedChange={() => toggleDay(day.value)}
-                                className="data-[state=checked]:bg-emerald-500"
-                              />
+
+                              <button
+                                onClick={() => toggleDay(day.value)}
+                                className={`w-11 h-6 rounded-full transition-all flex-shrink-0 relative ${
+                                  slots[day.value].enabled ? 'bg-[#34C759]' : 'bg-slate-200'
+                                }`}
+                              >
+                                <span
+                                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+                                    slots[day.value].enabled ? 'translate-x-5' : 'translate-x-0'
+                                  }`}
+                                />
+                              </button>
                             </div>
 
                             {slots[day.value].enabled ? (
-                              <div className="flex flex-row items-center gap-3 w-full sm:w-auto flex-1">
-                                <div className="flex-1 sm:w-36">
+                              <div className="flex flex-row items-center gap-4 w-full sm:w-auto flex-1">
+                                <div className="flex-1 w-full sm:w-32">
                                   {isMobile ? (
                                     <TimePickerModal
                                       label="Abre"
@@ -584,18 +590,19 @@ function BusinessSettings() {
                                       onChange={(val) => handleTime(day.value, 'start', val)}
                                     />
                                   ) : (
-                                    <div className="space-y-1.5">
-                                      <Label className="text-[9px] font-black text-slate-300 uppercase tracking-widest block ml-1">Abre</Label>
+                                    <>
+                                      <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Abre</Label>
                                       <input
                                         type="time"
                                         value={slots[day.value].start}
                                         onChange={(e) => handleTime(day.value, 'start', e.target.value)}
-                                        className="w-full text-sm font-bold border border-slate-100 rounded-2xl px-4 h-11 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all text-slate-900"
+                                        className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                                       />
-                                    </div>
+                                    </>
                                   )}
                                 </div>
-                                <div className="flex-1 sm:w-36">
+                                <span className="text-slate-400 text-sm hidden sm:block mt-6">a</span>
+                                <div className="flex-1 w-full sm:w-32">
                                   {isMobile ? (
                                     <TimePickerModal
                                       label="Cierra"
@@ -603,22 +610,20 @@ function BusinessSettings() {
                                       onChange={(val) => handleTime(day.value, 'end', val)}
                                     />
                                   ) : (
-                                    <div className="space-y-1.5">
-                                      <Label className="text-[9px] font-black text-slate-300 uppercase tracking-widest block ml-1">Cierra</Label>
+                                    <>
+                                      <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Cierra</Label>
                                       <input
                                         type="time"
                                         value={slots[day.value].end}
                                         onChange={(e) => handleTime(day.value, 'end', e.target.value)}
-                                        className="w-full text-sm font-bold border border-slate-100 rounded-2xl px-4 h-11 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all text-slate-900"
+                                        className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
                                       />
-                                    </div>
+                                    </>
                                   )}
                                 </div>
                               </div>
                             ) : (
-                              <div className="h-11 flex items-center bg-slate-100/30 rounded-2xl px-4 border border-dashed border-slate-100">
-                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Cerrado</span>
-                              </div>
+                              <span className="text-sm text-slate-400 hidden sm:inline-block">No disponible</span>
                             )}
                           </div>
                         ))}

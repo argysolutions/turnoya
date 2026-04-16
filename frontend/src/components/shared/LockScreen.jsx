@@ -68,12 +68,15 @@ export default function LockScreen({ onUnlock }) {
     }
   }
 
+  const [isSuccess, setIsSuccess] = useState(false)
+
   const handleVerify = async (pin) => {
     setVerifying(true)
     setError('')
     try {
       const { data } = await verifyPin({ profile_id: 'owner', pin })
       if (data.valid) {
+        setIsSuccess(true)
         const profile = {
           id: 'owner',
           name: data.name,
@@ -81,9 +84,13 @@ export default function LockScreen({ onUnlock }) {
           staff_id: null,
           professional_name: data.name,
         }
-        setActiveProfile(profile)
-        toast.success(`Bienvenido, ${data.name}`)
-        onUnlock?.(profile)
+        
+        // Efecto visual antes de entrar
+        setTimeout(() => {
+          setActiveProfile(profile)
+          onUnlock?.(profile)
+          toast.success(`Bienvenido, ${data.name}`)
+        }, 800)
       }
     } catch (err) {
       const msg = err?.response?.data?.error || 'PIN incorrecto'
@@ -120,8 +127,35 @@ export default function LockScreen({ onUnlock }) {
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-        className="relative z-10 w-full max-w-sm bg-white rounded-[3rem] p-8 sm:p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100"
+        className="relative z-10 w-full max-w-sm bg-white rounded-[3rem] p-8 sm:p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100 overflow-hidden"
       >
+        <AnimatePresence>
+          {isSuccess && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center"
+            >
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', damping: 15 }}
+                className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-200"
+              >
+                <Check className="w-10 h-10 text-white" />
+              </motion.div>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-4 text-emerald-600 font-black uppercase tracking-widest text-xs"
+              >
+                Acceso Concedido
+              </motion.p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="text-center mb-10">
           <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-slate-900/20">
             <ShieldCheck className="w-7 h-7 text-white" />
@@ -147,7 +181,7 @@ export default function LockScreen({ onUnlock }) {
                   value={digit}
                   onChange={e => handlePinChange(e.target.value, idx)}
                   onKeyDown={e => handlePinKeyDown(e, idx)}
-                  disabled={verifying}
+                  disabled={verifying || isSuccess}
                   className={`w-14 h-16 rounded-2xl bg-slate-50 border-2 ${error ? 'border-red-200' : 'border-slate-100'} text-center text-2xl font-black text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all disabled:opacity-50`}
                   placeholder="•"
                 />
@@ -168,12 +202,12 @@ export default function LockScreen({ onUnlock }) {
           </AnimatePresence>
         </div>
 
-        {verifying ? (
+        {verifying && !isSuccess ? (
           <div className="flex items-center justify-center gap-2 text-slate-400 py-2">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span className="text-[10px] font-black uppercase tracking-widest">Verificando...</span>
           </div>
-        ) : (
+        ) : !isSuccess ? (
           <div className="text-center pt-2">
             <button
               type="button"
@@ -183,7 +217,7 @@ export default function LockScreen({ onUnlock }) {
               ¿Olvidaste tu PIN?
             </button>
           </div>
-        )}
+        ) : <div className="h-6" />}
 
         <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-10">
           TurnoYa Secure Access

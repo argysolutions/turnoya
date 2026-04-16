@@ -40,14 +40,18 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const { data } = await login(form)
+      setIsSuccess(true)
       setToken(data.token)
       // Save identity payload for next time
       localStorage.setItem('turno_ya_last_business', JSON.stringify({ email: form.email, name: data.business.name }))
-      navigate('/dashboard')
+      
+      setTimeout(() => {
+        navigate('/dashboard')
+      }, 800)
     } catch (err) {
       toast.error(err.response?.data?.error || 'Error al ingresar')
     } finally {
-      setLoading(false)
+      if (!isSuccess) setLoading(false)
     }
   }
 
@@ -68,7 +72,34 @@ export default function LoginPage() {
           )}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/50">
+        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+          <AnimatePresence>
+            {isSuccess && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center"
+              >
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', damping: 15 }}
+                  className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-200"
+                >
+                  <Check className="w-10 h-10 text-white" />
+                </motion.div>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="mt-4 text-emerald-600 font-black uppercase tracking-widest text-xs"
+                >
+                  ¡Bienvenido!
+                </motion.p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <div className="flex items-center justify-between ml-1">
