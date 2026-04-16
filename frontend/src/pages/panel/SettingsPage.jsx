@@ -443,9 +443,11 @@ function BusinessSettings() {
               <TabsTrigger value="equipo" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                 <Users className="w-4 h-4 mr-2" /> Equipo
               </TabsTrigger>
-              <TabsTrigger value="permisos" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
-                <ShieldCheck className="w-4 h-4 mr-2" /> Permisos
-              </TabsTrigger>
+              {isOwner && (
+                <TabsTrigger value="permisos" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
+                  <ShieldCheck className="w-4 h-4 mr-2" /> Permisos
+                </TabsTrigger>
+              )}
               <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                 <Settings2 className="w-4 h-4 mr-2" /> Reglas
               </TabsTrigger>

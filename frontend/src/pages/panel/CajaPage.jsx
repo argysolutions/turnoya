@@ -367,10 +367,8 @@ const Item = ({ icon: IconComponent, label, onClick, accent = 'blue' }) => {
 }
 
 // ─── Management Content ───────────────────────────────────────────────────────
-function ManagementContent({
-  session, summary, professionals, businessSettings,
   onOpenExpenseModal, onOpenCierre, display,
-  date, isOwner,
+  date, isOwner, hasPermission,
 }) {
   const byMethod = summary?.byMethod || {}
   const isToday = date === today()
@@ -416,13 +414,13 @@ function ManagementContent({
 
   return (
     <div className="space-y-5">
-      {/* Operaciones — solo visibles para el dueño */}
-      {isOwner && (
+      {/* Operaciones — solo visibles para el dueño o quien tenga permiso */}
+      {(isOwner || hasPermission('view_caja')) && (
         <div>
           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-1">Operaciones</p>
           <div className="space-y-0.5">
             <Item icon={PlusCircle} label="Registrar Gasto" onClick={onOpenExpenseModal} />
-            {session?.status === 'open' && (
+            {(isOwner || hasPermission('view_caja')) && session?.status === 'open' && (
               <Item icon={Lock} label="Cierre Definitivo" onClick={onOpenCierre} accent="red" />
             )}
           </div>
@@ -530,7 +528,7 @@ function ManagementDrawer({ onClose, ...contentProps }) {
 // ════════════════════════════════════════════════════════════════════════════
 export default function CajaPage() {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const { isOwner, isEmployee, activeProfile, clearActiveProfile, setActiveProfile, staffId, professionalName, staffName, role, loading: authLoading } = useAuth()
+  const { isOwner, isEmployee, activeProfile, clearActiveProfile, setActiveProfile, staffId, professionalName, staffName, role, loading: authLoading, hasPermission } = useAuth()
   const prefs = useEncryptedPrefs()
 
   // Empleados: auto-activar perfil (ya autenticados por staff-login, sin LockScreen)
@@ -694,6 +692,7 @@ export default function CajaPage() {
     display,
     date,
     isOwner,
+    hasPermission,
   }
 
   const changeDate = (delta) =>
@@ -794,10 +793,8 @@ export default function CajaPage() {
 
               {/* Spacer invisible para desktop (mantiene la fecha centrada) */}
               <div className="hidden lg:block w-[36px] shrink-0" />
-            </div>
-
-            {/* ── SESSION BANNER (Solo Dueño) ───────────── */}
-            {String(role).toLowerCase() !== 'employee' && (
+            {/* ── SESSION BANNER (Solo si tiene permiso) ───────────── */}
+            {hasPermission('view_caja') && (
               <SessionBanner
                 session={session}
                 loading={sessionLoading}
@@ -807,8 +804,8 @@ export default function CajaPage() {
               />
             )}
 
-            {/* ── DOS TARJETAS PRINCIPALES (Solo Dueño) ───────────── */}
-            {isOwner && (
+            {/* ── DOS TARJETAS PRINCIPALES (Solo si tiene permiso) ───────────── */}
+            {hasPermission('view_caja') && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Disponible Digital */}
                 <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
