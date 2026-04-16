@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { verifyPin } from '@/api/auth'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'

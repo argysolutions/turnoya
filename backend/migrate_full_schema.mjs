@@ -27,7 +27,8 @@ async function migrate() {
         ADD COLUMN IF NOT EXISTS whatsapp_enabled     BOOLEAN DEFAULT FALSE,
         ADD COLUMN IF NOT EXISTS commission_rate      DECIMAL(5,2) DEFAULT 0,
         ADD COLUMN IF NOT EXISTS expense_categories   TEXT[] DEFAULT ARRAY['General','Insumos','Servicios','Alquiler','Personal','Marketing','Otro'],
-        ADD COLUMN IF NOT EXISTS owner_pin_hash       TEXT DEFAULT NULL;
+        ADD COLUMN IF NOT EXISTS owner_pin_hash       TEXT DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS staff_permissions    JSONB DEFAULT NULL;
     `);
     console.log('   ✅ businesses OK\n');
 

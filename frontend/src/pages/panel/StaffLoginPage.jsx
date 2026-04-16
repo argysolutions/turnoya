@@ -4,7 +4,7 @@ import { staffLogin } from '@/api/auth'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
 import { Lock, Building2, ArrowLeft, Eye, EyeOff, Check, Loader2 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Button } from '@/components/ui/button'
 
 export default function StaffLoginPage() {

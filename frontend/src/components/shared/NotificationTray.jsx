@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Inbox, Bell, Check, Trash2, Calendar, DollarSign, ShieldCheck, X } from 'lucide-react'
 import {
   DropdownMenu,

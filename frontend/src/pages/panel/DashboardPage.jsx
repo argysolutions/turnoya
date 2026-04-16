@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { getAppointments, updateStatus, createBlock } from '@/api/appointments'
 import { useAuth } from '@/context/AuthContext'
 import { es } from 'react-day-picker/locale'

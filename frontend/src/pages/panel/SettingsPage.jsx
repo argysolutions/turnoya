@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import Layout from '@/components/shared/Layout'
 import EmployeeProfile from '@/pages/panel/EmployeeProfile'
+import PermissionsSettings from './PermissionsSettings'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -442,6 +443,9 @@ function BusinessSettings() {
               <TabsTrigger value="equipo" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                 <Users className="w-4 h-4 mr-2" /> Equipo
               </TabsTrigger>
+              <TabsTrigger value="permisos" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
+                <ShieldCheck className="w-4 h-4 mr-2" /> Permisos
+              </TabsTrigger>
               <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                 <Settings2 className="w-4 h-4 mr-2" /> Reglas
               </TabsTrigger>
@@ -776,44 +780,8 @@ function BusinessSettings() {
                   className="space-y-6"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Permisos Granulares */}
-                    <Card className="shadow-sm border-slate-200">
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-indigo-500" /> Permisos del Staff</CardTitle>
-                        <CardDescription>Controlá qué funciones pueden usar tus empleados.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {[
-                          { key: 'view_caja', label: 'Ver Totales de Caja', desc: 'Permite ver saldo y cierres.' },
-                          { key: 'manage_clients', label: 'Gestionar Clientes', desc: 'Ver historial y notas.' },
-                          { key: 'manage_services', label: 'Modificar Servicios', desc: 'Editar precios y nombres.' },
-                          { key: 'delete_appointments', label: 'Eliminar Turnos', desc: 'Borrar turnos ya agendados.' },
-                          { key: 'view_analytics', label: 'Ver Estadísticas', desc: 'Acceso a gráficos de ingresos.' },
-                        ].map((p) => (
-                          <div key={p.key} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                            <div className="space-y-0.5">
-                              <Label className="text-sm font-bold text-slate-800">{p.label}</Label>
-                              <p className="text-[10px] text-slate-400 font-medium">{p.desc}</p>
-                            </div>
-                            <Switch 
-                              checked={settings.staff_permissions[p.key]} 
-                              onCheckedChange={(val) => setSettings({
-                                ...settings,
-                                staff_permissions: { ...settings.staff_permissions, [p.key]: val }
-                              })}
-                            />
-                          </div>
-                        ))}
-                        <div className="pt-4 mt-4 border-t border-border">
-                           <Button onClick={handleSave} disabled={saving} className="w-full bg-indigo-600 text-white font-bold h-11 rounded-xl gap-2">
-                             {saving ? 'Guardando...' : 'Aplicar Permisos'}
-                           </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-
                     {/* Gestión de Lista de Staff */}
-                    <Card className="shadow-sm border-slate-200 md:col-span-2">
+                    <Card className="shadow-sm border-slate-200 md:col-span-3">
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div>
@@ -930,6 +898,18 @@ function BusinessSettings() {
                       </CardContent>
                     </Card>
                   </div>
+                </motion.div>
+              </TabsContent>
+
+              {/* === PERMISOS === */}
+              <TabsContent key="permisos" value="permisos" className="focus-visible:outline-none border-none outline-none">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <PermissionsSettings />
                 </motion.div>
               </TabsContent>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { getClients, updateClientNotes } from '@/api/clients'
 import Layout from '@/components/shared/Layout'
 import { Card, CardContent } from '@/components/ui/card'
