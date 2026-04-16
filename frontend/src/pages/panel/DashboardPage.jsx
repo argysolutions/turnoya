@@ -378,20 +378,20 @@ export default function DashboardPage() {
               }}
             >
               <div className="flex gap-4 sm:gap-6 w-full min-w-0 flex-1 pr-2 sm:pr-4 cursor-default">
-                <div className="text-sm font-semibold text-slate-900 w-12 pt-0.5 shrink-0 tabular-nums">
+                <div className="text-base sm:text-sm font-bold text-slate-900 w-12 pt-0.5 shrink-0 tabular-nums">
                   {a.start_time.slice(0, 5)}
                 </div>
                 
                 <div className="flex flex-col min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-slate-900 truncate">
+                    <p className="text-base sm:text-sm font-bold text-slate-900 truncate">
                       {a.status === 'pending_block' ? `Bache: ${getStaffRequestData(a.notes).text || 'Sin motivo'}` : a.client_name}
                     </p>
                     {isLiberating && <span className="text-xs text-yellow-600 font-normal truncate">(Liberando slot temporalmente...)</span>}
                     {(() => {
                       const count = a.client_history_count || 1;
-                      if (count === 1) return <span className="text-[11px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded shadow-sm">NUEVO 🥇</span>
-                      if (count > 1) return <span className="text-[11px] font-bold bg-purple-100 text-purple-700 px-2 py-1 rounded shadow-sm">FRECUENTE 🔥</span>
+                      if (count === 1) return <span className="text-xs sm:text-[11px] font-bold bg-amber-100 text-amber-700 px-2.5 py-1.5 sm:py-1 rounded shadow-sm">NUEVO 🥇</span>
+                      if (count > 1) return <span className="text-xs sm:text-[11px] font-bold bg-purple-100 text-purple-700 px-2.5 py-1.5 sm:py-1 rounded shadow-sm">FRECUENTE 🔥</span>
                       return null
                     })()}
                   </div>
@@ -413,16 +413,16 @@ export default function DashboardPage() {
                   ) : (
                     <div className="flex items-center gap-2.5 mt-1 flex-wrap">
                       {a.status === 'pending_block' ? (
-                        <span className="text-xs uppercase font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100 italic">
+                        <span className="text-sm sm:text-xs uppercase font-bold text-amber-600 bg-amber-50 px-2.5 py-1.5 sm:py-1 rounded border border-amber-100 italic">
                           Solicitado por: {getStaffRequestData(a.notes).requestedBy}
                         </span>
                       ) : (
                         <>
-                          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                          <span className="text-sm sm:text-xs text-blue-600 bg-blue-50 px-2.5 py-1 sm:py-0.5 rounded-full whitespace-nowrap">
                             {a.service_name}
                           </span>
-                          <span className="text-xs text-slate-400 whitespace-nowrap">{a.duration} min</span>
-                          <span className="text-xs text-slate-400 whitespace-nowrap">{a.client_phone}</span>
+                          <span className="text-sm sm:text-xs text-slate-400 whitespace-nowrap">{a.duration} min</span>
+                          <span className="text-sm sm:text-xs text-slate-400 whitespace-nowrap">{a.client_phone}</span>
                         </>
                       )}
                     </div>
@@ -431,7 +431,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex flex-col items-end gap-2 shrink-0">
-                <Badge variant={STATUS_VARIANT[a.status]}>
+                <Badge variant={STATUS_VARIANT[a.status]} className="text-xs sm:text-[11px] px-2.5 py-1 sm:py-0.5">
                   {STATUS_LABEL[a.status]}
                 </Badge>
                  { (a.status === 'pending' || a.status === 'pending_block') && (
