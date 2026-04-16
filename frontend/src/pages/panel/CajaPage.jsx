@@ -813,24 +813,24 @@ export default function CajaPage() {
                 {/* Disponible Digital */}
                 <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                   <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                      <Smartphone className="w-4 h-4 text-blue-500" />
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <Smartphone className="w-5 h-5 text-blue-500" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
                   </div>
                   <p className="text-[2rem] font-semibold text-slate-900 tracking-tight leading-none mb-3">
                     {display(digitalTotal)}
                   </p>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-semibold text-slate-400">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs font-semibold text-slate-400">
                     {(byMethod['Transferencia']?.total ?? 0) > 0 && (
-                      <span className="flex items-center gap-1">
-                        <ArrowLeftRight className="w-2.5 h-2.5" />
+                      <span className="flex items-center gap-1.5">
+                        <ArrowLeftRight className="w-3 h-3" />
                         {display(byMethod['Transferencia'].total)}
                       </span>
                     )}
                     {(byMethod['Tarjeta']?.total ?? 0) > 0 && (
-                      <span className="flex items-center gap-1">
-                        <CreditCard className="w-2.5 h-2.5" />
+                      <span className="flex items-center gap-1.5">
+                        <CreditCard className="w-3 h-3" />
                         {display(byMethod['Tarjeta'].total)}
                       </span>
                     )}
@@ -840,17 +840,17 @@ export default function CajaPage() {
                 {/* Efectivo en Cajón */}
                 <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                   <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
-                      <Banknote className="w-4 h-4 text-emerald-500" />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <Banknote className="w-5 h-5 text-emerald-500" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
                   </div>
                   <p className="text-[2rem] font-semibold text-slate-900 tracking-tight leading-none mb-3">
                     {display(efectivoTotal)}
                   </p>
                   {session?.status === 'open' && (
-                    <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                    <p className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
                       Esperado: {display(session.expected_cash)}
                     </p>
                   )}
@@ -864,10 +864,10 @@ export default function CajaPage() {
                 <button
                   id="detail-expand-toggle"
                   onClick={() => setIsDetailExpanded(!isDetailExpanded)}
-                  className="w-full px-5 py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors"
+                  className="w-full px-5 py-4 flex items-center justify-center gap-2.5 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors"
                 >
                   <span>Ver detalle</span>
-                  <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${isDetailExpanded ? 'rotate-90' : ''}`} />
+                  <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isDetailExpanded ? 'rotate-90' : ''}`} />
                 </button>
 
                 <AnimatePresence>
@@ -879,20 +879,20 @@ export default function CajaPage() {
                       transition={{ duration: 0.22, ease: 'easeInOut' }}
                       className="overflow-hidden"
                     >
-                      <div className="px-5 pb-5 grid grid-cols-3 gap-3 border-t border-slate-50">
+                      <div className="px-5 pb-6 grid grid-cols-3 gap-4 border-t border-slate-50">
                         <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100/60 mt-4">
-                          <p className="text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
-                          <p className="text-lg font-semibold text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
+                          <p className="text-xs font-black uppercase text-slate-400 mb-2">Balance Neto</p>
+                          <p className="text-lg font-bold text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
                         </div>
                         <div className="text-center p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/40 mt-4">
-                          <p className="text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
-                          <p className="text-lg font-semibold text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
-                          <p className="text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
+                          <p className="text-xs font-black uppercase text-emerald-600 mb-2">Ventas Brutas</p>
+                          <p className="text-lg font-bold text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
+                          <p className="text-[10px] font-bold text-emerald-400 mt-1.5">{summary?.salesCount || 0} cobros</p>
                         </div>
                         <div className="text-center p-4 rounded-2xl bg-red-50/50 border border-red-100/30 mt-4">
-                          <p className="text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos Totales</p>
-                          <p className="text-lg font-semibold text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
-                          <p className="text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
+                          <p className="text-xs font-black uppercase text-red-500 mb-2">Gastos Totales</p>
+                          <p className="text-lg font-bold text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
+                          <p className="text-[10px] font-bold text-red-400 mt-1.5">{summary?.expensesCount || 0} egresos</p>
                         </div>
                       </div>
                     </motion.div>
@@ -934,9 +934,9 @@ export default function CajaPage() {
                     <div className="w-5 h-5 border-2 border-slate-100 border-t-slate-400 rounded-full animate-spin mx-auto" />
                   </div>
                 ) : ledgerEntries.length === 0 ? (
-                  <div className="py-20 text-center px-6">
-                    <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Sin movimientos</p>
-                    <p className="text-[11px] text-slate-400">Finalizá turnos o agregá gastos para verlos aquí.</p>
+                  <div className="py-24 text-center px-8">
+                    <p className="text-sm font-black text-slate-300 uppercase tracking-widest mb-3">Sin movimientos</p>
+                    <p className="text-xs text-slate-400">Finalizá turnos o agregá gastos para verlos aquí.</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-50">
@@ -961,12 +961,12 @@ export default function CajaPage() {
                             <p className="text-sm font-semibold text-slate-800 truncate leading-snug">
                               {entry.description}
                             </p>
-                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 mt-0.5">
+                            <div className="flex items-center gap-2 text-xs font-medium text-slate-400 mt-1.5">
                               <span>{fmtTime(entry.time)}</span>
                               {entry.method && (
                                 <>
                                   <span className="text-slate-200">·</span>
-                                  <span className="flex items-center gap-0.5">
+                                  <span className="flex items-center gap-1">
                                     {METHOD_ICON[entry.method]}
                                     {entry.method}
                                   </span>
@@ -975,7 +975,7 @@ export default function CajaPage() {
                               {isOwner && entry.raw?.professional_name && (
                                 <>
                                   <span className="text-slate-200">·</span>
-                                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold text-[9px]">
+                                  <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-bold text-[11px]">
                                     {entry.raw.professional_name}
                                   </span>
                                 </>

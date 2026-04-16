@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const VISIBLE_DAYS = 7;
-const DAY_WIDTH = 46; // px per day cell
-const DAY_GAP = 6;    // px gap between cells
+const DAY_WIDTH = 54; // px per day cell
+const DAY_GAP = 8;    // px gap between cells
 
 export default function DateStrip({ selectedDate, onSelect, onExpand }) {
   // Generate all days of the current month + padding
@@ -74,19 +74,19 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
   const xOffset = -offset * (DAY_WIDTH + DAY_GAP);
 
   return (
-    <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 -mx-4 px-4 py-3 mb-4 select-none">
-      <div className="flex items-center justify-between mb-2">
+    <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 -mx-4 px-4 py-4 mb-6 select-none">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex flex-col">
-          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Turnos del</span>
-          <h2 className="text-base font-bold text-slate-900 tracking-tight leading-tight">
+          <span className="text-xs font-black text-slate-300 uppercase tracking-widest">Turnos del</span>
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">
             {format(selectedDate, 'eeee d \'de\' MMMM', { locale: es })}
           </h2>
         </div>
         <button 
           onClick={onExpand}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all outline-none shadow-lg shadow-slate-200"
+          className="flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-full text-xs font-black uppercase tracking-widest active:scale-95 transition-all outline-none shadow-lg shadow-slate-200"
         >
-          <CalendarIcon className="w-3 h-3 text-slate-400" />
+          <CalendarIcon className="w-4 h-4 text-slate-400" />
           Calendario
         </button>
       </div>
@@ -109,7 +109,7 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
         {/* Days container */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-hidden relative h-[65px]"
+          className="flex-1 overflow-hidden relative h-[84px]"
         >
           <motion.div
             drag="x"
@@ -132,7 +132,7 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
                   key={day.toString()}
                   onClick={() => onSelect(day)}
                   style={{ width: `${DAY_WIDTH}px` }}
-                  className={`flex flex-col items-center justify-center shrink-0 h-[60px] rounded-xl transition-colors relative group ${
+                  className={`flex flex-col items-center justify-center shrink-0 h-[78px] rounded-xl transition-colors relative group ${
                     isSelected
                       ? 'text-white z-10'
                       : isToday
@@ -155,10 +155,10 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
                     <div className="absolute inset-0 border border-slate-200 rounded-xl z-0 bg-slate-50/50" />
                   )}
 
-                  <span className={`text-[9px] uppercase font-black mb-0.5 relative z-10 ${isSelected ? 'opacity-70' : 'opacity-40'}`}>
+                  <span className={`text-xs uppercase font-black mb-1 relative z-10 ${isSelected ? 'opacity-70' : 'opacity-40'}`}>
                     {format(day, 'eee', { locale: es })}
                   </span>
-                  <span className="text-[15px] font-black tabular-nums leading-none relative z-10">
+                  <span className="text-xl font-black tabular-nums leading-none relative z-10">
                     {format(day, 'd')}
                   </span>
 

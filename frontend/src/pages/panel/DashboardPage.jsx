@@ -387,8 +387,8 @@ export default function DashboardPage() {
                     {isLiberating && <span className="text-xs text-yellow-600 font-normal truncate">(Liberando slot temporalmente...)</span>}
                     {(() => {
                       const count = a.client_history_count || 1;
-                      if (count === 1) return <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shadow-sm">NUEVO 🥇</span>
-                      if (count > 1) return <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded shadow-sm">FRECUENTE 🔥</span>
+                      if (count === 1) return <span className="text-[11px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded shadow-sm">NUEVO 🥇</span>
+                      if (count > 1) return <span className="text-[11px] font-bold bg-purple-100 text-purple-700 px-2 py-1 rounded shadow-sm">FRECUENTE 🔥</span>
                       return null
                     })()}
                   </div>
@@ -408,9 +408,9 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <div className="flex items-center gap-2.5 mt-1 flex-wrap">
                       {a.status === 'pending_block' ? (
-                        <span className="text-[10px] uppercase font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 italic">
+                        <span className="text-xs uppercase font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100 italic">
                           Solicitado por: {getStaffRequestData(a.notes).requestedBy}
                         </span>
                       ) : (
@@ -435,19 +435,19 @@ export default function DashboardPage() {
                   <div className="flex gap-1 sm:gap-2">
                      <Button 
                       size="sm" 
-                      className={`h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 bg-[#34C759] hover:bg-[#2eaa4d] text-white border-none shadow-md shadow-emerald-100 rounded-xl sm:rounded-md transition-all active:scale-95`} 
+                      className={`h-11 sm:h-10 w-11 sm:w-auto px-0 sm:px-4 bg-[#34C759] hover:bg-[#2eaa4d] text-white border-none shadow-md shadow-emerald-100 rounded-xl transition-all active:scale-95`} 
                       onClick={() => handleStatus(a.id, a.status === 'pending_block' ? 'cancelled_occupied' : 'confirmed')}
                      >
-                       <Check className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                       <Check className="h-6 w-6 sm:h-5 sm:w-5 sm:mr-1.5" />
                        <span className="hidden sm:inline">Confirmar</span>
                      </Button>
                      <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 text-red-600 bg-red-50 hover:bg-red-100/80 hover:text-red-700 border-none rounded-xl sm:rounded-md transition-all active:scale-95" 
+                      className="h-11 sm:h-10 w-11 sm:w-auto px-0 sm:px-4 text-red-600 bg-red-50 hover:bg-red-100/80 hover:text-red-700 border-none rounded-xl transition-all active:scale-95" 
                       onClick={() => a.status === 'pending_block' ? handleStatus(a.id, 'cancelled') : setPendingCancelModal(a)}
                      >
-                       <X className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
+                       <X className="h-6 w-6 sm:h-5 sm:w-5 sm:mr-1.5" />
                        <span className="hidden sm:inline">Rechazar</span>
                      </Button>
                   </div>
@@ -514,10 +514,10 @@ export default function DashboardPage() {
         </div>
 
         {business.slug && (
-          <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-xl border border-slate-100 shadow-sm max-w-[280px] sm:max-w-sm shrink-0">
+          <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm max-w-[280px] sm:max-w-sm shrink-0">
             <div className="flex flex-col overflow-hidden px-1">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Link público</span>
-              <span className="text-xs text-slate-600 truncate w-32 sm:w-48 font-medium">{publicLink}</span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Link público</span>
+              <span className="text-sm text-slate-600 truncate w-32 sm:w-48 font-medium">{publicLink}</span>
             </div>
             <Button variant="ghost" className="h-9 w-9 px-0 flex-shrink-0 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center" onClick={copyLink}>
               <Copy className="h-4 w-4" />
@@ -535,11 +535,11 @@ export default function DashboardPage() {
             onExpand={() => setIsCalendarExpanded(true)}
           />
           {/* Acciones rápidas mobile */}
-          <div className="flex gap-2 -mt-2 mb-4">
-            <Button size="sm" className="flex-1 h-9 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
+          <div className="flex gap-3 -mt-2 mb-6">
+            <Button size="sm" className="flex-1 h-12 text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
               Bloquear Día/Horario
             </Button>
-            <Button size="sm" variant="outline" className="flex-1 h-9 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
+            <Button size="sm" variant="outline" className="flex-1 h-12 text-xs text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
               Destacar Día/Evento
             </Button>
           </div>
@@ -640,31 +640,31 @@ export default function DashboardPage() {
         <div className="flex-1 min-w-0 w-full">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="overflow-x-auto no-scrollbar mask-fade-edges pb-2 -mb-2">
-              <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-xl flex w-max min-w-full justify-start sm:justify-center border-none">
-                <TabsTrigger value="pendientes" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-amber-700 data-[state=active]:shadow-none">
+              <TabsList className="mb-6 bg-slate-100/50 p-1.5 rounded-xl flex w-max min-w-full justify-start sm:justify-center border-none">
+                <TabsTrigger value="pendientes" className="relative rounded-lg h-11 px-5 transition-all data-[state=active]:bg-transparent data-[state=active]:text-amber-700 data-[state=active]:shadow-none text-sm font-semibold">
                   Pendientes {totalPending > 0 && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       className="ml-2"
                     >
-                      <Badge className="h-5 text-[10px] bg-amber-500 text-white border-none shadow-sm shadow-amber-200">
+                      <Badge className="h-6 text-xs bg-amber-500 text-white border-none shadow-sm shadow-amber-200">
                         {totalPending}
                       </Badge>
                     </motion.div>
                   )}
                   <TabUnderline value="pendientes" activeTab={activeTab} color="bg-amber-500" />
                 </TabsTrigger>
-                <TabsTrigger value="confirmados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-[#269442] data-[state=active]:shadow-none">
-                  Confirmados {totalConfirmed > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-emerald-100 text-[#269442] border-none">{totalConfirmed}</Badge>}
+                <TabsTrigger value="confirmados" className="relative rounded-lg h-11 px-5 transition-all data-[state=active]:bg-transparent data-[state=active]:text-[#269442] data-[state=active]:shadow-none text-sm font-semibold">
+                  Confirmados {totalConfirmed > 0 && <Badge variant="secondary" className="ml-2 h-6 text-xs bg-emerald-100 text-[#269442] border-none">{totalConfirmed}</Badge>}
                   <TabUnderline value="confirmados" activeTab={activeTab} color="bg-[#34C759]" />
                 </TabsTrigger>
-                <TabsTrigger value="cancelados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-red-700 data-[state=active]:shadow-none">
-                  Cancelados {totalCancelled > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-red-100 text-red-700 border-none">{totalCancelled}</Badge>}
+                <TabsTrigger value="cancelados" className="relative rounded-lg h-11 px-5 transition-all data-[state=active]:bg-transparent data-[state=active]:text-red-700 data-[state=active]:shadow-none text-sm font-semibold">
+                  Cancelados {totalCancelled > 0 && <Badge variant="secondary" className="ml-2 h-6 text-xs bg-red-100 text-red-700 border-none">{totalCancelled}</Badge>}
                   <TabUnderline value="cancelados" activeTab={activeTab} color="bg-red-500" />
                 </TabsTrigger>
-                <TabsTrigger value="finalizados" className="relative rounded-lg h-10 px-4 transition-all data-[state=active]:bg-transparent data-[state=active]:text-blue-700 data-[state=active]:shadow-none">
-                  Finalizados {totalCompleted > 0 && <Badge variant="secondary" className="ml-2 h-5 text-[10px] bg-blue-100 text-blue-700 border-none">{totalCompleted}</Badge>}
+                <TabsTrigger value="finalizados" className="relative rounded-lg h-11 px-5 transition-all data-[state=active]:bg-transparent data-[state=active]:text-blue-700 data-[state=active]:shadow-none text-sm font-semibold">
+                  Finalizados {totalCompleted > 0 && <Badge variant="secondary" className="ml-2 h-6 text-xs bg-blue-100 text-blue-700 border-none">{totalCompleted}</Badge>}
                   <TabUnderline value="finalizados" activeTab={activeTab} color="bg-blue-500" />
                 </TabsTrigger>
               </TabsList>
