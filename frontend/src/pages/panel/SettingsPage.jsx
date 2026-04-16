@@ -9,11 +9,16 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import {
+import { 
   getSettings, updateSettings, updateOwnerPin,
   listStaff, addStaff, editStaff, updateMemberPin, removeStaff,
 } from '@/api/business'
 import { getGoogleAuthUrl, getGoogleStatus, unlinkGoogle } from '@/api/google'
+import { getServices, createService, updateService, deleteService } from '@/api/services'
+import client from '@/api/client'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import TimePickerModal from '@/components/ui/time-picker-modal'
 import { 
   CheckCircle2, 
   Info, 
@@ -29,7 +34,25 @@ import {
   Key,
   Pencil,
   X,
+  Clock,
+  Briefcase,
 } from 'lucide-react'
+
+const DAYS = [
+  { label: 'Domingo', value: 0 },
+  { label: 'Lunes', value: 1 },
+  { label: 'Martes', value: 2 },
+  { label: 'Miércoles', value: 3 },
+  { label: 'Jueves', value: 4 },
+  { label: 'Viernes', value: 5 },
+  { label: 'Sábado', value: 6 },
+]
+
+const defaultSlots = () => Object.fromEntries(
+  DAYS.map(d => [d.value, { enabled: false, start: '09:00', end: '18:00' }])
+)
+
+const emptyServiceForm = { name: '', duration: '', price: '', description: '' }
 
 export default function SettingsPage() {
   const { role, isEmployee, loading } = useAuth()
@@ -75,14 +98,34 @@ function BusinessSettings() {
   const [pinChangeId, setPinChangeId] = useState(null)
   const [newPinValue, setNewPinValue] = useState('')
 
+  // Services State
+  const [services, setServices] = useState([])
+  const [serviceForm, setServiceForm] = useState(emptyServiceForm)
+  const [editingService, setEditingService] = useState(null)
+  const [loadingServices, setLoadingServices] = useState(false)
+
+  // Availability State
+  const [slots, setSlots] = useState(defaultSlots())
+  const [loadingAvailability, setLoadingAvailability] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia("(max-width: 768px)").matches)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   useEffect(() => {
     const fetchData = async () => {
       if (authLoading) return
       try {
-        const [settingsRes, googleRes, staffRes] = await Promise.all([
+        const [settingsRes, googleRes, staffRes, servicesRes, availabilityRes] = await Promise.all([
           getSettings(),
           getGoogleStatus(),
           listStaff().catch(() => ({ data: { staff: [] } })),
+          getServices(),
+          client.get('/availability')
         ])
         
         setSettings({
@@ -96,6 +139,18 @@ function BusinessSettings() {
         
         setGoogleStatus(googleRes.data)
         setStaffList(staffRes.data.staff || [])
+        setServices(servicesRes.data)
+
+        // Availability Parse
+        const updatedSlots = defaultSlots()
+        availabilityRes.data.forEach(({ day_of_week, start_time, end_time }) => {
+          updatedSlots[day_of_week] = {
+            enabled: true,
+            start: start_time.slice(0, 5),
+            end: end_time.slice(0, 5),
+          }
+        })
+        setSlots(updatedSlots)
       } catch {
         toast.error('Error al cargar la configuración')
       } finally {
@@ -197,6 +252,96 @@ function BusinessSettings() {
     }
   }
 
+  // ── Services Handlers ───────────────────────────────────────────────────
+  const fetchServices = async () => {
+    try {
+      const { data } = await getServices()
+      setServices(data)
+    } catch {
+      toast.error('Error al cargar servicios')
+    }
+  }
+
+  const handleServiceSubmit = async (e) => {
+    e.preventDefault()
+    setLoadingServices(true)
+    try {
+      if (editingService) {
+        await updateService(editingService, serviceForm)
+        toast.success('Servicio actualizado')
+        setEditingService(null)
+      } else {
+        await createService(serviceForm)
+        toast.success('Servicio creado')
+      }
+      setServiceForm(emptyServiceForm)
+      fetchServices()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al guardar servicio')
+    } finally {
+      setLoadingServices(false)
+    }
+  }
+
+  const handleEditService = (service) => {
+    setEditingService(service.id)
+    setServiceForm({
+      name: service.name,
+      duration: service.duration,
+      price: service.price,
+      description: service.description || ''
+    })
+  }
+
+  const handleDeleteService = async (id) => {
+    if (!confirm('¿Eliminar este servicio?')) return
+    try {
+      await deleteService(id)
+      toast.success('Servicio eliminado')
+      fetchServices()
+    } catch {
+      toast.error('Error al eliminar servicio')
+    }
+  }
+
+  // ── Availability Handlers ────────────────────────────────────────────────
+  const toggleDay = (day) => {
+    setSlots(prev => ({
+      ...prev,
+      [day]: { ...prev[day], enabled: !prev[day].enabled }
+    }))
+  }
+
+  const handleTime = (day, field, value) => {
+    setSlots(prev => ({
+      ...prev,
+      [day]: { ...prev[day], [field]: value }
+    }))
+  }
+
+  const handleSaveAvailability = async () => {
+    setLoadingAvailability(true)
+    try {
+      for (const day of DAYS) {
+        const slot = slots[day.value]
+        if (slot.enabled) {
+          await client.post('/availability', {
+            day_of_week: day.value,
+            start_time: slot.start,
+            end_time: slot.end,
+          })
+        } else {
+          await client.delete(`/availability/${day.value}`).catch(() => {})
+        }
+      }
+      toast.success('Disponibilidad guardada')
+    } catch {
+      toast.error('Error al guardar disponibilidad')
+    } finally {
+      setLoadingAvailability(false)
+    }
+  }
+
   // ── Staff Management Handlers ──────────────────────────────────────────────
   const handleAddStaff = async () => {
     if (!newMember.name.trim()) return toast.error('El nombre es obligatorio')
@@ -265,25 +410,201 @@ function BusinessSettings() {
           <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between pt-1">
             <div>
               <h1 className="text-xl font-semibold text-slate-900">Configuración</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Gestioná las reglas de tu negocio e integraciones.</p>
+              <p className="text-sm text-slate-500 mt-0.5">Gestioná los servicios, horarios y reglas de tu negocio.</p>
             </div>
-            <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto h-11 sm:h-10 shadow-md">
-              {saving ? 'Guardando...' : 'Guardar cambios'}
-            </Button>
+            <div id="settings-save-root"></div>
           </div>
 
-          <Tabs defaultValue="reglas" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 rounded-xl h-12">
-              <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Settings2 className="w-4 h-4 mr-2" /> Reglas de Negocio
+          <Tabs defaultValue="servicios" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-8 bg-slate-100 p-1 rounded-xl h-auto md:h-12 gap-1 overflow-hidden">
+              <TabsTrigger value="servicios" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
+                <Briefcase className="w-4 h-4 mr-2" /> Servicios
               </TabsTrigger>
-              <TabsTrigger value="integraciones" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger value="disponibilidad" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
+                <Clock className="w-4 h-4 mr-2" /> Disponibilidad
+              </TabsTrigger>
+              <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
+                <Settings2 className="w-4 h-4 mr-2" /> Reglas
+              </TabsTrigger>
+              <TabsTrigger value="integraciones" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2">
                 <Share2 className="w-4 h-4 mr-2" /> Integraciones
               </TabsTrigger>
             </TabsList>
 
+            <TabsContent value="servicios" className="animate-in fade-in slide-in-from-bottom-2">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <Card className="shadow-sm border-slate-200">
+                    <CardHeader className="pb-3 border-b border-slate-50 mb-3">
+                      <CardTitle className="text-base">
+                        {editingService ? 'Editar servicio' : 'Nuevo servicio'}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <form onSubmit={handleServiceSubmit} className="space-y-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="s-name">Nombre *</Label>
+                          <Input id="s-name" name="name" placeholder="Corte de pelo" value={serviceForm.name} onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })} required />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="s-duration">Duración (min) *</Label>
+                          <Input id="s-duration" name="duration" type="number" placeholder="30" value={serviceForm.duration} onChange={(e) => setServiceForm({ ...serviceForm, duration: e.target.value })} required />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="s-price">Precio</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-2.5 text-slate-400 text-sm">$</span>
+                            <Input id="s-price" name="price" type="number" placeholder="2500" className="pl-7" value={serviceForm.price} onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })} />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="s-desc">Descripción</Label>
+                          <Input id="s-desc" name="description" placeholder="Opcional" value={serviceForm.description} onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })} />
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <Button type="submit" className="flex-1 bg-slate-900" disabled={loadingServices}>
+                            {loadingServices ? '...' : editingService ? 'Actualizar' : 'Crear'}
+                          </Button>
+                          {editingService && (
+                            <Button type="button" variant="ghost" onClick={() => { setEditingService(null); setServiceForm(emptyServiceForm) }}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="lg:col-span-2">
+                  <Card className="shadow-sm border-slate-200">
+                    <CardHeader className="pb-3 border-b border-slate-50 mb-3 flex flex-row items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        Mis servicios
+                        <Badge variant="secondary" className="font-normal">{services.length}</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {services.length === 0 ? (
+                        <div className="py-12 text-center text-slate-400">
+                          <Briefcase className="w-10 h-10 mx-auto opacity-20 mb-3" />
+                          <p className="text-sm">No tenés servicios configurados.</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {services.map((s) => (
+                            <div key={s.id} className="flex flex-col p-4 rounded-xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50/50 transition-all group">
+                              <div className="flex justify-between items-start mb-2">
+                                <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-[11px] tracking-widest">{s.name}</p>
+                                <div className="flex gap-1">
+                                  <button onClick={() => handleEditService(s)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-white rounded-md transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                                  <button onClick={() => handleDeleteService(s.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 mt-auto">
+                                <Badge variant="outline" className="text-[10px] font-bold bg-white">{s.duration} MIN</Badge>
+                                {s.price && <span className="text-sm font-black text-slate-700">${Number(s.price).toLocaleString('es-AR')}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="disponibilidad" className="animate-in fade-in slide-in-from-bottom-2">
+              <Card className="shadow-sm border-slate-200 overflow-hidden">
+                <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between py-4">
+                  <div>
+                    <CardTitle className="text-base flex items-center gap-2"><Clock className="w-5 h-5 text-slate-500" /> Agenda de Atención</CardTitle>
+                    <CardDescription>Definí qué días y en qué rango horario recibís clientes.</CardDescription>
+                  </div>
+                  <Button onClick={handleSaveAvailability} disabled={loadingAvailability} size="sm" className="bg-emerald-600 hover:bg-emerald-700 shadow-sm px-6">
+                    {loadingAvailability ? 'Guardando...' : 'Guardar Agenda'}
+                  </Button>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {DAYS.map((day) => (
+                      <div
+                        key={day.value}
+                        className={`flex flex-col gap-3 p-4 rounded-2xl border transition-all ${
+                          slots[day.value].enabled
+                            ? 'border-indigo-100 bg-white shadow-sm shadow-indigo-50/50'
+                            : 'border-slate-100 bg-slate-50/50 opacity-60'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`text-sm font-black uppercase tracking-widest ${
+                            slots[day.value].enabled ? 'text-indigo-600' : 'text-slate-400'
+                          }`}>
+                            {day.label}
+                          </span>
+                          <Switch 
+                            checked={slots[day.value].enabled} 
+                            onCheckedChange={() => toggleDay(day.value)}
+                            className="data-[state=checked]:bg-indigo-500"
+                          />
+                        </div>
+
+                        {slots[day.value].enabled ? (
+                          <div className="grid grid-cols-2 gap-3 pt-1">
+                            <div className="space-y-1">
+                              <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Abre</Label>
+                              {isMobile ? (
+                                <TimePickerModal
+                                  label="Abre"
+                                  value={slots[day.value].start}
+                                  onChange={(val) => handleTime(day.value, 'start', val)}
+                                />
+                              ) : (
+                                <input
+                                  type="time"
+                                  value={slots[day.value].start}
+                                  onChange={(e) => handleTime(day.value, 'start', e.target.value)}
+                                  className="w-full text-sm font-bold border border-slate-200 rounded-xl px-3 h-10 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                />
+                              )}
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Cierra</Label>
+                              {isMobile ? (
+                                <TimePickerModal
+                                  label="Cierra"
+                                  value={slots[day.value].end}
+                                  onChange={(val) => handleTime(day.value, 'end', val)}
+                                />
+                              ) : (
+                                <input
+                                  type="time"
+                                  value={slots[day.value].end}
+                                  onChange={(e) => handleTime(day.value, 'end', e.target.value)}
+                                  className="w-full text-sm font-bold border border-slate-200 rounded-xl px-3 h-10 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-10 flex items-center bg-slate-100/50 rounded-xl px-3 border border-dashed border-slate-200 mt-5">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cerrado</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="reglas" className="animate-in fade-in slide-in-from-bottom-2">
-              {/* ... (existing content) ... */}
+              <div className="flex justify-end mb-4">
+                 <Button onClick={handleSave} disabled={saving} size="sm" className="shadow-sm">
+                   {saving ? 'Guardando...' : 'Guardar Reglas'}
+                 </Button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="shadow-sm border-slate-200">
                   <CardHeader>

@@ -12,8 +12,6 @@ import RegisterPage from '@/pages/panel/RegisterPage'
 import StaffLoginPage from '@/pages/panel/StaffLoginPage'
 import NoAccessPage from '@/pages/panel/NoAccessPage'
 import DashboardPage from '@/pages/panel/DashboardPage'
-import ServicesPage from '@/pages/panel/ServicesPage'
-import AvailabilityPage from '@/pages/panel/AvailabilityPage'
 import SettingsPage from '@/pages/panel/SettingsPage'
 import CajaPage from '@/pages/panel/CajaPage'
 
@@ -42,20 +40,10 @@ export default function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute><DashboardPage /></ProtectedRoute>
             } />
-            <Route path="/servicios" element={
-              <ProtectedRoute><ServicesPage /></ProtectedRoute>
-            } />
-            <Route path="/disponibilidad" element={
-              <ProtectedRoute><AvailabilityPage /></ProtectedRoute>
-            } />
-
-            {/* ── Panel: CAJA — acceso para dueño y empleado ───────────────── */}
-            {/*   El empleado puede ver su propia vista filtrada por professionalName */}
             <Route path="/dashboard/caja" element={
               <ProtectedRoute><CajaPage /></ProtectedRoute>
             } />
 
-            {/* ── Panel: configuración — bifurcada por rol ───────────────── */}
             <Route path="/dashboard/configuracion" element={
               <ProtectedRoute><SettingsPage /></ProtectedRoute>
             } />

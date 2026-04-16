@@ -16,10 +16,8 @@ import { Button } from '@/components/ui/button'
 
 const navItems = [
   { label: 'Agenda', path: '/dashboard' },
-  { label: 'Servicios', path: '/servicios' },
-  { label: 'Disponibilidad', path: '/disponibilidad' },
   { label: 'Caja', path: '/dashboard/caja' },
-  { label: 'Configuración', path: '/dashboard/configuracion' }
+  { label: 'Configuración', path: '/dashboard/configuracion', hideMobile: true }
 ]
 
 function NavScrollable({ location }) {
@@ -76,6 +74,8 @@ function NavScrollable({ location }) {
             key={item.path}
             to={item.path}
             className={`relative text-[13px] sm:text-sm px-2.5 sm:px-4 h-11 flex items-center justify-center transition-all shrink-0 ${
+              item.hideMobile ? 'hidden sm:flex' : 'flex'
+            } ${
               location.pathname === item.path
                 ? 'text-slate-900 font-bold'
                 : 'text-slate-500 hover:text-slate-900'
