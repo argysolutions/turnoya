@@ -33,6 +33,7 @@ import DateStrip from '@/components/ui/date-strip'
 
 const STATUS_VARIANT = {
   pending: 'secondary',
+  pending_block: 'warning',
   confirmed: 'default',
   cancelled: 'destructive',
   cancelled_occupied: 'destructive',
@@ -41,6 +42,7 @@ const STATUS_VARIANT = {
 
 const STATUS_LABEL = {
   pending: 'Pendiente',
+  pending_block: 'Solicitud Bloqueo',
   confirmed: 'Confirmado',
   cancelled: 'Libre',
   cancelled_occupied: 'Bloqueado',
@@ -289,13 +291,26 @@ export default function DashboardPage() {
     }
   }
 
+  const getStaffRequestData = (notesStr) => {
+    try {
+      const data = JSON.parse(notesStr || '{}')
+      return { 
+        text: data.text || '', 
+        requestedBy: data.requested_by_name || 'Empleado' 
+      }
+    } catch {
+      return { text: notesStr || '', requestedBy: 'Empleado' }
+    }
+  }
+
   // ===== LÓGICA DE FILTROS =====
   const todayStr = today()
   const next7DaysStr = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
 
   const safeDate = (dbDate) => (dbDate ? dbDate.split('T')[0] : '')
 
-  const allPending = appointments.filter(a => a.status === 'pending')
+  const allPending = appointments.filter(a => a.status === 'pending' || a.status === 'pending_block')
+  const totalBlockRequests = appointments.filter(a => a.status === 'pending_block').length
   const pendingForDate = allPending.filter(a => safeDate(a.date) === date)
   const pendingSemana = allPending.filter(a => safeDate(a.date) > todayStr && safeDate(a.date) <= next7DaysStr && safeDate(a.date) !== date)
   const pendingProx = allPending.filter(a => safeDate(a.date) > next7DaysStr && safeDate(a.date) !== date)
@@ -367,7 +382,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-slate-900 truncate">
-                      {a.client_name}
+                      {a.status === 'pending_block' ? `Bache: ${getStaffRequestData(a.notes).text || 'Sin motivo'}` : a.client_name}
                     </p>
                     {isLiberating && <span className="text-xs text-yellow-600 font-normal truncate">(Liberando slot temporalmente...)</span>}
                     {(() => {
@@ -394,11 +409,19 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {a.service_name}
-                      </span>
-                      <span className="text-xs text-slate-400 whitespace-nowrap">{a.duration} min</span>
-                      <span className="text-xs text-slate-400 whitespace-nowrap">{a.client_phone}</span>
+                      {a.status === 'pending_block' ? (
+                        <span className="text-[10px] uppercase font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 italic">
+                          Solicitado por: {getStaffRequestData(a.notes).requestedBy}
+                        </span>
+                      ) : (
+                        <>
+                          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                            {a.service_name}
+                          </span>
+                          <span className="text-xs text-slate-400 whitespace-nowrap">{a.duration} min</span>
+                          <span className="text-xs text-slate-400 whitespace-nowrap">{a.client_phone}</span>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -408,13 +431,22 @@ export default function DashboardPage() {
                 <Badge variant={STATUS_VARIANT[a.status]}>
                   {STATUS_LABEL[a.status]}
                 </Badge>
-                 {a.status === 'pending' && (
+                 { (a.status === 'pending' || a.status === 'pending_block') && (
                   <div className="flex gap-1 sm:gap-2">
-                     <Button size="sm" className="h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 bg-[#34C759] hover:bg-[#2eaa4d] text-white border-none shadow-md shadow-emerald-100 rounded-xl sm:rounded-md transition-all active:scale-95" onClick={() => handleStatus(a.id, 'confirmed')}>
+                     <Button 
+                      size="sm" 
+                      className={`h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 bg-[#34C759] hover:bg-[#2eaa4d] text-white border-none shadow-md shadow-emerald-100 rounded-xl sm:rounded-md transition-all active:scale-95`} 
+                      onClick={() => handleStatus(a.id, a.status === 'pending_block' ? 'cancelled_occupied' : 'confirmed')}
+                     >
                        <Check className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
                        <span className="hidden sm:inline">Confirmar</span>
                      </Button>
-                     <Button size="sm" variant="ghost" className="h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 text-red-600 bg-red-50 hover:bg-red-100/80 hover:text-red-700 border-none rounded-xl sm:rounded-md transition-all active:scale-95" onClick={() => setPendingCancelModal(a)}>
+                     <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 text-red-600 bg-red-50 hover:bg-red-100/80 hover:text-red-700 border-none rounded-xl sm:rounded-md transition-all active:scale-95" 
+                      onClick={() => a.status === 'pending_block' ? handleStatus(a.id, 'cancelled') : setPendingCancelModal(a)}
+                     >
                        <X className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
                        <span className="hidden sm:inline">Rechazar</span>
                      </Button>
@@ -446,6 +478,32 @@ export default function DashboardPage() {
   return (
     <Layout>
       {/* FLOATING AUTHORIZATION NOTIFICATION (ONLY OWNER) */}
+      {role === 'owner' && totalBlockRequests > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 bg-amber-50 border border-amber-200 rounded-3xl p-4 flex items-center justify-between shadow-sm animate-pulse-slow"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shrink-0">
+               <ShieldCheck className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-slate-900 leading-tight">Autorización Pendiente</p>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Tenés <span className="text-amber-600 font-bold">{totalBlockRequests} solicitudes</span> de bloqueo de tu equipo esperando revisión.
+              </p>
+            </div>
+          </div>
+          <Button 
+            size="sm" 
+            className="bg-amber-100 hover:bg-amber-200 text-amber-900 border-none rounded-xl font-bold px-4 h-10 transition-all"
+            onClick={() => setActiveTab('pendientes')}
+          >
+            Ver solicitudes
+          </Button>
+        </motion.div>
+      )}
 
       <div className="mb-6 flex flex-col sm:flex-row items-baseline justify-between gap-4 pt-1">
         <div>
