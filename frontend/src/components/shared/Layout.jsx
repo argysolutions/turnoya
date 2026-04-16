@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 
 const navItems = [
   { label: 'Agenda', path: '/dashboard' },
+  { label: 'Clientes', path: '/dashboard/clientes' },
   { label: 'Caja', path: '/dashboard/caja' },
   { label: 'Configuración', path: '/dashboard/configuracion', hideMobile: true }
 ]
@@ -28,8 +29,8 @@ function NavScrollable({ location }) {
   const visibleNavItems = navItems.filter(item => {
     const isActuallyEmployee = role === 'employee' || isEmployee
     if (isActuallyEmployee) {
-      // Empleados solo ven Agenda, Caja y Configuración (su perfil)
-      return ['Agenda', 'Caja', 'Configuración'].includes(item.label)
+      // Empleados solo ven Agenda, Clientes, Caja y Configuración (su perfil)
+      return ['Agenda', 'Clientes', 'Caja', 'Configuración'].includes(item.label)
     }
     return true // Dueño ve todo
   })

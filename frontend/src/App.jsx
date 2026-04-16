@@ -14,6 +14,7 @@ import NoAccessPage from '@/pages/panel/NoAccessPage'
 import DashboardPage from '@/pages/panel/DashboardPage'
 import SettingsPage from '@/pages/panel/SettingsPage'
 import CajaPage from '@/pages/panel/CajaPage'
+import ClientsPage from '@/pages/panel/ClientsPage'
 
 export default function App() {
   return (
@@ -42,6 +43,9 @@ export default function App() {
             } />
             <Route path="/dashboard/caja" element={
               <ProtectedRoute><CajaPage /></ProtectedRoute>
+            } />
+            <Route path="/dashboard/clientes" element={
+              <ProtectedRoute><ClientsPage /></ProtectedRoute>
             } />
 
             <Route path="/dashboard/configuracion" element={
