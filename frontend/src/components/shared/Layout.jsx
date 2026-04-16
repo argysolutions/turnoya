@@ -74,7 +74,7 @@ function NavScrollable({ location }) {
           <Link
             key={item.path}
             to={item.path}
-            className={`relative text-[13px] sm:text-sm px-2.5 sm:px-4 h-11 flex items-center justify-center transition-all shrink-0 ${
+            className={`relative text-base sm:text-sm px-4 sm:px-4 h-12 sm:h-11 flex items-center justify-center transition-all shrink-0 ${
               item.hideMobile ? 'hidden sm:flex' : 'flex'
             } ${
               location.pathname === item.path

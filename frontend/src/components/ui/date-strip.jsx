@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const VISIBLE_DAYS = 7;
-const DAY_WIDTH = 54; // px per day cell
-const DAY_GAP = 8;    // px gap between cells
+const DAY_WIDTH = 60; // Aumentado para mejor toque
+const DAY_GAP = 10;    // Aumentado el espacio entre celdas
 
 export default function DateStrip({ selectedDate, onSelect, onExpand }) {
   // Generate all days of the current month + padding
@@ -77,8 +77,8 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
     <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 -mx-4 px-4 py-4 mb-6 select-none">
       <div className="flex items-center justify-between mb-3">
         <div className="flex flex-col">
-          <span className="text-xs font-black text-slate-300 uppercase tracking-widest">Turnos del</span>
-          <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">
+          <span className="text-sm font-black text-slate-300 uppercase tracking-widest">Turnos del</span>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-tight">
             {format(selectedDate, 'eeee d \'de\' MMMM', { locale: es })}
           </h2>
         </div>
@@ -155,10 +155,10 @@ export default function DateStrip({ selectedDate, onSelect, onExpand }) {
                     <div className="absolute inset-0 border border-slate-200 rounded-xl z-0 bg-slate-50/50" />
                   )}
 
-                  <span className={`text-xs uppercase font-black mb-1 relative z-10 ${isSelected ? 'opacity-70' : 'opacity-40'}`}>
+                  <span className={`text-sm sm:text-xs uppercase font-black mb-1 relative z-10 ${isSelected ? 'opacity-70' : 'opacity-40'}`}>
                     {format(day, 'eee', { locale: es })}
                   </span>
-                  <span className="text-xl font-black tabular-nums leading-none relative z-10">
+                  <span className="text-2xl sm:text-xl font-black tabular-nums leading-none relative z-10">
                     {format(day, 'd')}
                   </span>
 

@@ -139,16 +139,16 @@ export default function ClientsPage() {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold ${
                         selectedClient?.id === client.id ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-600'
                       }`}>
                         {client.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex flex-col">
-                        <span className={`text-sm font-bold ${selectedClient?.id === client.id ? 'text-white' : 'text-slate-900'}`}>
+                        <span className={`text-base sm:text-sm font-bold ${selectedClient?.id === client.id ? 'text-white' : 'text-slate-900'}`}>
                           {client.name}
                         </span>
-                        <span className={`text-xs ${selectedClient?.id === client.id ? 'text-indigo-100' : 'text-slate-500'}`}>
+                        <span className={`text-sm sm:text-xs ${selectedClient?.id === client.id ? 'text-indigo-100' : 'text-slate-500'}`}>
                           {client.phone}
                         </span>
                       </div>
@@ -215,9 +215,9 @@ export default function ClientsPage() {
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                              <div className="flex items-center gap-2 mb-2">
                                 <History className="w-4 h-4 text-emerald-500" />
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Visitas</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase">Visitas</span>
                              </div>
-                             <span className="text-xl font-black text-slate-800">{selectedClient.total_visits}</span>
+                             <span className="text-2xl font-black text-slate-800">{selectedClient.total_visits}</span>
                           </div>
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                              <div className="flex items-center gap-2 mb-2">
@@ -262,7 +262,7 @@ export default function ClientsPage() {
                               value={notes}
                               onChange={e => setNotes(e.target.value)}
                               placeholder="Escribe aquí detalles relevantes: alergias, preferencias, comportamiento, etc..."
-                              className="w-full h-48 bg-slate-50 border border-slate-100 rounded-2xl p-6 text-sm text-slate-700 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none resize-none shadow-inner"
+                              className="w-full h-48 bg-slate-50 border border-slate-100 rounded-2xl p-6 text-base sm:text-sm text-slate-700 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none resize-none shadow-inner"
                             />
                             <Button 
                               onClick={handleSaveNotes}
