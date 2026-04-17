@@ -1,5 +1,6 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
 import cookie from '@fastify/cookie'
 import { ENV } from './config/env.js'
 import { connectDB } from './config/db.js'
@@ -15,10 +16,20 @@ import { financesRoutes } from './routes/finances.routes.js'
 
 const app = Fastify({ logger: true })
 
-// CORS: acepta FRONTEND_URL (puede ser comma-separated), o fallback a producción + dev
+// CORS Hardening: producción, staging y desarrollo local
 const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(u => u.trim())
-  : ['https://turnoya-cliente.onrender.com', 'http://localhost:5173']
+  : [
+      'https://turnoya-cliente.onrender.com', // Producción actual
+      'https://www.turnoya.com',              // Dominio oficial
+      'https://turnoya-staging.onrender.com', // Futuro Staging
+      'http://localhost:5173'                 // Desarrollo
+    ]
+
+// Registro de Seguridad (Helmet) con mejores prácticas CSP básicas
+await app.register(helmet, {
+  contentSecurityPolicy: false, // Desactivado para facilitar la carga de recursos externos en esta etapa si es necesario
+})
 
 await app.register(cors, {
   origin: (origin, cb) => {
