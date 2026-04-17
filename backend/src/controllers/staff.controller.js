@@ -13,7 +13,7 @@ import {
  */
 export const listStaff = async (req, reply) => {
   try {
-    const staff = await getStaffByBusiness(req.business.id)
+    const staff = await getStaffByBusiness(req.user.business_id)
     reply.send({
       staff: staff.map(s => ({
         id: s.id,
@@ -36,7 +36,7 @@ export const listStaff = async (req, reply) => {
  * Body: { name, pin, role?, professional_name? }
  */
 export const addStaff = async (req, reply) => {
-  const businessId = req.business.id
+  const businessId = req.user.business_id
   const { name, pin, role = 'employee', professional_name = null } = req.body
 
   if (!name || !name.trim()) {
@@ -77,7 +77,7 @@ export const addStaff = async (req, reply) => {
  */
 export const editStaff = async (req, reply) => {
   const { id } = req.params
-  const businessId = req.business.id
+  const businessId = req.user.business_id
 
   try {
     const existing = await findStaffById(id)
@@ -114,7 +114,7 @@ export const editStaff = async (req, reply) => {
  */
 export const updateMemberPin = async (req, reply) => {
   const { id } = req.params
-  const businessId = req.business.id
+  const businessId = req.user.business_id
   const { pin } = req.body
 
   if (!pin || !/^\d{4}$/.test(String(pin))) {
@@ -143,7 +143,7 @@ export const updateMemberPin = async (req, reply) => {
  */
 export const removeStaff = async (req, reply) => {
   const { id } = req.params
-  const businessId = req.business.id
+  const businessId = req.user.business_id
 
   try {
     const existing = await findStaffById(id)

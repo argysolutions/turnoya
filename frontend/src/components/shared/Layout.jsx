@@ -19,6 +19,8 @@ const navItems = [
   { label: 'Servicios', path: '/servicios' },
   { label: 'Disponibilidad', path: '/disponibilidad' },
   { label: 'Caja', path: '/dashboard/caja' },
+  { label: 'Clientes', path: '/dashboard/clientes' },
+  { label: 'Incidencias', path: '/dashboard/incidencias' },
   { label: 'Configuración', path: '/dashboard/configuracion' }
 ]
 
@@ -30,8 +32,8 @@ function NavScrollable({ location }) {
   const visibleNavItems = navItems.filter(item => {
     const isActuallyEmployee = role === 'employee' || isEmployee
     if (isActuallyEmployee) {
-      // Empleados solo ven Agenda, Caja y Configuración (su perfil)
-      return ['Agenda', 'Caja', 'Configuración'].includes(item.label)
+      // Empleados solo ven Agenda, Caja, Clientes e Incidencias (solo reporte) y Configuración (su perfil)
+      return ['Agenda', 'Caja', 'Clientes', 'Incidencias', 'Configuración'].includes(item.label)
     }
     return true // Dueño ve todo
   })

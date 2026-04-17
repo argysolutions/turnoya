@@ -16,6 +16,8 @@ import ServicesPage from '@/pages/panel/ServicesPage'
 import AvailabilityPage from '@/pages/panel/AvailabilityPage'
 import SettingsPage from '@/pages/panel/SettingsPage'
 import CajaPage from '@/pages/panel/CajaPage'
+import ClientesPage from '@/pages/panel/ClientesPage'
+import IncidenciasList from '@/pages/panel/IncidenciasPage'
 
 export default function App() {
   return (
@@ -39,26 +41,28 @@ export default function App() {
             <Route path="/turno/:id" element={<ConfirmationPage />} />
 
             {/* ── Panel: cualquier usuario autenticado ──────────────────────── */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute><DashboardPage /></ProtectedRoute>
-            } />
-            <Route path="/servicios" element={
-              <ProtectedRoute><ServicesPage /></ProtectedRoute>
-            } />
-            <Route path="/disponibilidad" element={
-              <ProtectedRoute><AvailabilityPage /></ProtectedRoute>
-            } />
+            {/* ── Panel: Rutas anidadas bajo /dashboard ────────────────────── */}
+            <Route path="/dashboard">
+              <Route index element={
+                <ProtectedRoute><DashboardPage /></ProtectedRoute>
+              } />
+              
+              <Route path="caja" element={
+                <ProtectedRoute><CajaPage /></ProtectedRoute>
+              } />
 
-            {/* ── Panel: CAJA — acceso para dueño y empleado ───────────────── */}
-            {/*   El empleado puede ver su propia vista filtrada por professionalName */}
-            <Route path="/dashboard/caja" element={
-              <ProtectedRoute><CajaPage /></ProtectedRoute>
-            } />
+              <Route path="configuracion" element={
+                <ProtectedRoute><SettingsPage /></ProtectedRoute>
+              } />
 
-            {/* ── Panel: configuración — bifurcada por rol ───────────────── */}
-            <Route path="/dashboard/configuracion" element={
-              <ProtectedRoute><SettingsPage /></ProtectedRoute>
-            } />
+              <Route path="clientes" element={
+                <ProtectedRoute><ClientesPage /></ProtectedRoute>
+              } />
+
+              <Route path="incidencias" element={
+                <ProtectedRoute><IncidenciasList /></ProtectedRoute>
+              } />
+            </Route>
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

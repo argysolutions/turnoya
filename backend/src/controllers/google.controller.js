@@ -4,11 +4,11 @@ import { findConnection, removeConnection } from '../db/connections.queries.js'
 const FRONTEND_ORIGIN = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 export const getGoogleAuthUrlHandler = async (req, reply) => {
-  if (!req.business || !req.business.id) {
+  if (!req.user || !req.user.business_id) {
     return reply.status(401).send({ error: 'No autorizado' })
   }
 
-  const url = getGoogleAuthUrl(req.business.id)
+  const url = getGoogleAuthUrl(req.user.business_id)
   reply.send({ url })
 }
 
@@ -67,12 +67,12 @@ export const googleCallbackHandler = async (req, reply) => {
  * Devuelve el estado de la conexión Google para el negocio
  */
 export const getGoogleStatusHandler = async (req, reply) => {
-  if (!req.business || !req.business.id) {
+  if (!req.user || !req.user.business_id) {
     return reply.status(401).send({ error: 'No autorizado' })
   }
 
   try {
-    const connection = await findConnection(req.business.id, 'google')
+    const connection = await findConnection(req.user.business_id, 'google')
     reply.send({
       linked: !!(connection && connection.refresh_token),
       updated_at: connection?.updated_at || null
@@ -83,12 +83,12 @@ export const getGoogleStatusHandler = async (req, reply) => {
 }
 
 export const removeGoogleAuthHandler = async (req, reply) => {
-  if (!req.business || !req.business.id) {
+  if (!req.user || !req.user.business_id) {
     return reply.status(401).send({ error: 'No autorizado' })
   }
   
   try {
-    await removeConnection(req.business.id, 'google')
+    await removeConnection(req.user.business_id, 'google')
     reply.send({ success: true, message: 'Google desvinculado exitosamente' })
   } catch (err) {
     reply.status(500).send({ error: 'Error al desvincular la cuenta' })

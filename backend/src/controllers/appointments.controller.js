@@ -86,7 +86,7 @@ export const getAppointment = async (req, reply) => {
 
 export const listAppointments = async (req, reply) => {
   const { date } = req.query
-  const appointments = await getAppointmentsByBusiness(req.business.id, date)
+  const appointments = await getAppointmentsByBusiness(req.user.business_id, date)
   reply.send(appointments)
 }
 
@@ -104,15 +104,15 @@ export const updateStatus = async (req, reply) => {
       const liberatesAt = new Date(Date.now() + 120000)
 
       // Lo fijamos como occupied para que nadie lo pueda usar en estos 2 minutos
-      await updateAppointmentStatus(id, req.business.id, 'cancelled_occupied')
-      await setAppointmentLiberationTime(id, req.business.id, liberatesAt)
+      await updateAppointmentStatus(id, req.user.business_id, 'cancelled_occupied')
+      await setAppointmentLiberationTime(id, req.user.business_id, liberatesAt)
 
       // Disparamos timer no bloqueante blindado con validación de estado real
       setTimeout(async () => {
         try {
           const current = await getAppointmentById(id)
           if (current && current.liberates_at !== null) {
-            await deleteAppointment(id, req.business.id)
+            await deleteAppointment(id, req.user.business_id)
             console.log(`⏱️ Turno ${id} liberado y eliminado permanentemente luego de 2 minutos.`)
           } else {
             console.log(`🛑 Liberación de turno ${id} cancelada. El administrador presionó deshacer.`)
@@ -127,15 +127,15 @@ export const updateStatus = async (req, reply) => {
 
     // Si apretó "Deshacer" o forzó keep_occupied, le quitamos la fecha límite
     if (status === 'cancelled_occupied' || status === 'confirmed') {
-      await setAppointmentLiberationTime(id, req.business.id, null)
+      await setAppointmentLiberationTime(id, req.user.business_id, null)
     }
 
     // Lógicas estándar (incluye INSERT en sales si status === 'completed')
     const staffContext = {
-      staff_id: req.business?.staff_id || null,
+      staff_id: req.user.id,
       professional_name: paymentInfo?.professional_name || null,
     }
-    const updated = await updateAppointmentStatus(id, req.business.id, status, paymentInfo, staffContext)
+    const updated = await updateAppointmentStatus(id, req.user.business_id, status, paymentInfo, staffContext)
     if (!updated) return reply.status(404).send({ error: 'Turno no encontrado' })
 
     reply.send(updated)
@@ -147,7 +147,7 @@ export const updateStatus = async (req, reply) => {
 
 export const blockTime = async (req, reply) => {
   const { date, start_time, duration, isEvent, notes } = req.body
-  const businessId = req.business.id
+  const businessId = req.user.business_id
   try {
     const { rows } = await pool.query('SELECT id FROM services WHERE business_id=$1 LIMIT 1', [businessId])
     const serviceId = rows[0]?.id
@@ -173,8 +173,8 @@ export const blockTime = async (req, reply) => {
       end = `${String(Math.floor(endMins / 60)).padStart(2, '0')}:${String(endMins % 60).padStart(2, '0')}:00`
     }
     
-    const staffId = req.user?.staff_id || null
-    const staffName = req.user?.name || 'Empleado'
+    const staffId = req.user.id
+    const staffName = req.user.name || 'Staff'
     
     // Almacenamos metadata del solicitante en las notas
     const metaNotes = JSON.stringify({ 

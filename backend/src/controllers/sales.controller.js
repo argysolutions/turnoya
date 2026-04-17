@@ -2,7 +2,7 @@ import { getSalesByBusiness } from '../db/sales.queries.js'
 
 export const listSales = async (req, reply) => {
   try {
-    const businessId = req.business.id
+    const businessId = req.user.business_id
     const { date } = req.query
 
     const { sales, total, count } = await getSalesByBusiness(businessId, date || null)

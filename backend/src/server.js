@@ -13,8 +13,10 @@ import { googleRoutes } from './routes/google.routes.js'
 import { businessRoutes } from './routes/business.routes.js'
 import { salesRoutes } from './routes/sales.routes.js'
 import { financesRoutes } from './routes/finances.routes.js'
+import { clientesRoutes } from './routes/clientes.routes.js'
+import { incidenciasRoutes } from './routes/incidencias.routes.js'
 
-const app = Fastify({ logger: true })
+export const app = Fastify({ logger: true })
 
 // CORS Hardening: producción, staging y desarrollo local
 const allowedOrigins = process.env.FRONTEND_URL
@@ -54,13 +56,24 @@ app.register(appointmentsRoutes, { prefix: '/api' })
 app.register(googleRoutes, { prefix: '/api' })
 app.register(businessRoutes, { prefix: '/api' })
 app.register(salesRoutes, { prefix: '/api' })
-app.register(financesRoutes, { prefix: '/api' })
+await app.register(financesRoutes, { prefix: '/api' })
+await app.register(clientesRoutes, { prefix: '/api' })
+await app.register(incidenciasRoutes, { prefix: '/api' })
 
 app.get('/health', async () => ({ status: 'ok', app: 'TurnoYa' }))
 
-const start = async () => {
+export const start = async () => {
   await connectDB()
-  await app.listen({ port: ENV.PORT, host: '0.0.0.0' })
+  try {
+    await app.listen({ port: ENV.PORT, host: '0.0.0.0' })
+  } catch (err) {
+    app.log.error(err)
+    process.exit(1)
+  }
 }
 
-start()
+// Solo arrancar automáticamente si no estamos en modo script/test (ej: si es el archivo principal)
+const isMain = import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`
+if (isMain) {
+  start()
+}

@@ -13,12 +13,9 @@ const normalizeRole = (role) => {
 }
 
 /**
- * Verifica el JWT y adjunta el payload decodificado a req.business.
+ * Verifica el JWT y adjunta el payload decodificado a req.user.
  * Compatible con tokens legacy { role: 'dueño' | 'empleado' }
  * y tokens nuevos { role: 'owner' | 'employee' }.
- *
- * Normaliza req.business.id = req.business.business_id para retrocompatibilidad
- * con controllers que usen req.business.id.
  */
 export const verifyToken = async (req, reply) => {
   const authHeader = req.headers['authorization']
@@ -31,11 +28,17 @@ export const verifyToken = async (req, reply) => {
 
   try {
     const decoded = jwt.verify(token, ENV.JWT_SECRET)
-    req.business = {
+    
+    // Unificación Total: req.user
+    // id: ID único del sujeto (Owner o Staff)
+    // business_id: ID único del Negocio (SaaS Tenant)
+    req.user = {
       ...decoded,
-      id: decoded.business_id ?? decoded.id,
-      role: normalizeRole(decoded.role), // siempre normalizado a ASCII
+      id: decoded.id, 
+      business_id: decoded.business_id,
+      role: normalizeRole(decoded.role),
     }
+
   } catch (err) {
     return reply.status(401).send({ error: 'Token inválido o expirado' })
   }
@@ -44,18 +47,16 @@ export const verifyToken = async (req, reply) => {
 /**
  * Middleware de autorización por rol.
  * Devuelve 403 Forbidden (no 401) cuando el usuario está autenticado
- * pero su rol es insuficiente. El frontend distingue:
- *   401 → no autenticado → logout
- *   403 → autenticado pero sin permisos → mostrar "sin acceso" sin desloguear
+ * pero su rol es insuficiente.
  *
- * @param {...string} allowedRoles - 'owner' | 'employee' (acepta múltiples)
+ * @param {...string} allowedRoles - 'owner' | 'employee'
  */
 export const requireRole = (...allowedRoles) => async (req, reply) => {
-  if (!req.business) {
+  if (!req.user) {
     return reply.status(401).send({ error: 'Token requerido' })
   }
 
-  const actualRole = req.business.role // ya normalizado por verifyToken
+  const actualRole = req.user.role // ya normalizado por verifyToken
 
   if (!allowedRoles.includes(actualRole)) {
     return reply.status(403).send({

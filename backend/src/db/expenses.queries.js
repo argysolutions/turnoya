@@ -12,14 +12,14 @@ export const createExpense = async (
   created_at,
   isAdvance = false,
   professionalName = null,
-  createdByStaffId = null
+  createdById = null
 ) => {
   const { rows } = await pool.query(
     `INSERT INTO expenses
-       (business_id, description, amount, category, created_at, is_advance, professional_name, created_by_staff_id)
+       (business_id, description, amount, category, created_at, is_advance, professional_name, created_by_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
-    [businessId, description, amount, category, created_at || new Date(), isAdvance, professionalName, createdByStaffId]
+    [businessId, description, amount, category, created_at || new Date(), isAdvance, professionalName, createdById]
   )
   return rows[0]
 }

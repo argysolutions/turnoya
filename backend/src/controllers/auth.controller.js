@@ -34,9 +34,9 @@ export const register = async (req, reply) => {
   const hashed = await bcrypt.hash(password, 10)
   const business = await createBusiness({ name, slug, email, password: hashed, phone, address, description })
 
-  // JWT minimalista: solo role + business_id (sin email ni nombres)
+  // JWT: id (sujeto) + business_id (tenant) + role
   const token = jwt.sign(
-    { business_id: business.id, role: 'owner', staff_id: null },
+    { id: business.id, business_id: business.id, role: 'owner' },
     ENV.JWT_SECRET,
     { expiresIn: '7d' }
   )
@@ -65,9 +65,9 @@ export const login = async (req, reply) => {
     return reply.status(401).send({ error: 'Credenciales inválidas' })
   }
 
-  // JWT minimalista: role + business_id + staff_id: null
+  // JWT: id (sujeto) + business_id (tenant) + role
   const token = jwt.sign(
-    { business_id: business.id, role: 'owner', staff_id: null },
+    { id: business.id, business_id: business.id, role: 'owner' },
     ENV.JWT_SECRET,
     { expiresIn: '7d' }
   )
@@ -126,9 +126,9 @@ export const staffLogin = async (req, reply) => {
 
   const token = jwt.sign(
     {
+      id: matchedStaff.id,
       business_id: matchedStaff.business_id,
       role: normalizedRole,
-      staff_id: matchedStaff.id,
       name: matchedStaff.name,
       professional_name: matchedStaff.professional_name || matchedStaff.name,
     },
@@ -146,7 +146,7 @@ export const staffLogin = async (req, reply) => {
  * Devuelve la lista de perfiles (dueño + staff) para el Lock Screen.
  */
 export const getProfiles = async (req, reply) => {
-  const businessId = req.business.id
+  const businessId = req.user.business_id
 
   try {
     const business = await findBusinessById(businessId)
@@ -190,7 +190,7 @@ export const getProfiles = async (req, reply) => {
  * Devuelve: { valid: true, role, staff_id, name }
  */
 export const verifyPin = async (req, reply) => {
-  const businessId = req.business.id
+  const businessId = req.user.business_id
   const { profile_id, pin } = req.body
 
   if (!profile_id || !pin) {
@@ -265,7 +265,7 @@ export const verifyPin = async (req, reply) => {
  * Body: { pin: '1234' }
  */
 export const updateOwnerPin = async (req, reply) => {
-  const businessId = req.business.id
+  const businessId = req.user.business_id
   const { pin } = req.body
 
   if (!pin || !/^\d{4}$/.test(String(pin))) {

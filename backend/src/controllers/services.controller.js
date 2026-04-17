@@ -7,7 +7,7 @@ import {
 } from '../db/services.queries.js'
 
 export const listServices = async (req, reply) => {
-  const services = await getServicesByBusiness(req.business.id)
+  const services = await getServicesByBusiness(req.user.business_id)
   reply.send(services)
 }
 
@@ -19,7 +19,7 @@ export const createServiceHandler = async (req, reply) => {
   }
 
   const service = await createService({
-    businessId: req.business.id,
+    businessId: req.user.business_id,
     name,
     duration,
     price,
@@ -32,23 +32,23 @@ export const createServiceHandler = async (req, reply) => {
 export const updateServiceHandler = async (req, reply) => {
   const { id } = req.params
 
-  const existing = await getServiceById(id, req.business.id)
+  const existing = await getServiceById(id, req.user.business_id)
   if (!existing) {
     return reply.status(404).send({ error: 'Servicio no encontrado' })
   }
 
-  const updated = await updateService(id, req.business.id, req.body)
+  const updated = await updateService(id, req.user.business_id, req.body)
   reply.send(updated)
 }
 
 export const deleteServiceHandler = async (req, reply) => {
   const { id } = req.params
 
-  const existing = await getServiceById(id, req.business.id)
+  const existing = await getServiceById(id, req.user.business_id)
   if (!existing) {
     return reply.status(404).send({ error: 'Servicio no encontrado' })
   }
 
-  await deleteService(id, req.business.id)
+  await deleteService(id, req.user.business_id)
   reply.send({ message: 'Servicio eliminado' })
 }

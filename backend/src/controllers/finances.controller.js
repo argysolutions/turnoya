@@ -11,7 +11,7 @@ import {
 
 export const financesSummary = async (req, reply) => {
   try {
-    const businessId = req.business.id
+    const businessId = req.user.business_id
     const { startDate, endDate, date, includeTrend } = req.query
 
     let start = startDate || date || null
@@ -49,7 +49,7 @@ export const financesSummary = async (req, reply) => {
 
 export const listExpenses = async (req, reply) => {
   try {
-    const businessId = req.business.id
+    const businessId = req.user.business_id
     const { startDate, endDate, date } = req.query
 
     const start = startDate || date || null
@@ -72,7 +72,7 @@ export const listExpenses = async (req, reply) => {
  */
 export const getSession = async (req, reply) => {
   try {
-    const businessId = req.business.id
+    const businessId = req.user.business_id
     const { date } = req.query
 
     // Primero intentamos la sesión abierta (tiene prioridad)
@@ -101,7 +101,7 @@ export const getSession = async (req, reply) => {
  */
 export const openSession = async (req, reply) => {
   try {
-    const businessId    = req.business.id
+    const businessId    = req.user.business_id
     const initialAmount = parseFloat(req.body?.initial_amount ?? 0)
 
     if (isNaN(initialAmount) || initialAmount < 0) {
@@ -126,7 +126,7 @@ export const openSession = async (req, reply) => {
  */
 export const closeSession = async (req, reply) => {
   try {
-    const businessId    = req.business.id
+    const businessId    = req.user.business_id
     const countedAmount = parseFloat(req.body?.counted_amount)
 
     if (isNaN(countedAmount) || countedAmount < 0) {

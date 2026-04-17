@@ -4,7 +4,7 @@ import { getStaffByBusiness, createStaff, updateStaffPinHash } from '../db/staff
 
 export const getSettings = async (req, reply) => {
   try {
-    const businessId = req.business.id
+    const businessId = req.user.business_id
     const business = await findBusinessById(businessId)
     if (!business) return reply.status(404).send({ error: 'Business no encontrado' })
 
@@ -23,7 +23,7 @@ export const getSettings = async (req, reply) => {
 
 export const updateSettings = async (req, reply) => {
   try {
-    const businessId = req.business.id
+    const businessId = req.user.business_id
     const { 
       cancellation_policy, 
       anticipation_margin, 
@@ -59,7 +59,7 @@ export const updateSettings = async (req, reply) => {
 
 export const updateStaffPin = async (req, reply) => {
   try {
-    const businessId = req.business.id
+    const businessId = req.user.business_id
     const { pin } = req.body
 
     if (!pin || !/^\d{4}$/.test(String(pin))) {

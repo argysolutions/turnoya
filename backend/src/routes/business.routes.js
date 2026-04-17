@@ -22,8 +22,8 @@ export const businessRoutes = async (app) => {
 
   // Self-service: employee updates own PIN (any authenticated user with staff_id)
   app.put('/staff/me/pin', { preHandler: [verifyToken] }, async (req, reply) => {
-    const staffId = req.business?.staff_id
-    const businessId = req.business?.id
+    const staffId = req.user.id
+    const businessId = req.user.business_id
     const { pin } = req.body
 
     if (!staffId) return reply.status(400).send({ error: 'No se encontró un perfil de staff asociado' })

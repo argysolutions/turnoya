@@ -15,12 +15,22 @@ dotenv.config()
 
 const { Pool } = pg
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ...(process.env.NODE_ENV === 'production' && {
-    ssl: { rejectUnauthorized: false },
-  }),
-})
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ...(process.env.NODE_ENV === 'production' && {
+          ssl: { rejectUnauthorized: false },
+        }),
+      }
+    : {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        database: process.env.DB_NAME,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+      }
+)
 
 const OWNER_EMAIL = 'admin@turnoya.com'
 const OWNER_PASSWORD = 'admin'
@@ -182,13 +192,39 @@ async function bootstrap() {
     `)
     console.log('   ✅ Tabla: cash_sessions')
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS client_business_notes (
+        client_id   INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+        business_id INTEGER NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+        internal_notes TEXT,
+        PRIMARY KEY (client_id, business_id)
+      );
+    `)
+    console.log('   ✅ Tabla: client_business_notes')
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS incidencias (
+        id                SERIAL PRIMARY KEY,
+        business_id       INTEGER NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+        sintoma           TEXT NOT NULL,
+        causa_raiz        TEXT NOT NULL,
+        solucion          TEXT NOT NULL,
+        accion_preventiva TEXT NOT NULL,
+        created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `)
+    console.log('   ✅ Tabla: incidencias')
+
     // ── 3. Migraciones de Columnas Específicas ──────────────────────────────
 
     await client.query(`
       ALTER TABLE businesses ADD COLUMN IF NOT EXISTS owner_pin_hash TEXT DEFAULT NULL;
       ALTER TABLE sales ADD COLUMN IF NOT EXISTS professional_name TEXT;
+      ALTER TABLE expenses ADD COLUMN IF NOT EXISTS is_advance BOOLEAN DEFAULT FALSE;
+      ALTER TABLE expenses ADD COLUMN IF NOT EXISTS professional_name TEXT;
+      ALTER TABLE expenses ADD COLUMN IF NOT EXISTS created_by_id INTEGER;
     `)
-    console.log('   ✅ Columnas de seguridad y Caja Pro')
+    console.log('   ✅ Columnas de seguridad, Auditoría y Caja Pro')
 
     // ── 4. Seeding (Datos de prueba si no existen) ──────────────────────────
 

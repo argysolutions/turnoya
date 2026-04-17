@@ -2,8 +2,8 @@ import { createExpense, deleteExpenseById } from '../db/expenses.queries.js'
 
 export const addExpense = async (req, reply) => {
   try {
-    const businessId = req.business.id
-    const staffId    = req.business.staff_id ?? null // null para el dueño
+    const businessId = req.user.business_id
+    const userId     = req.user.id
     const { description, amount, category, created_at, is_advance, professional_name } = req.body
 
     if (!description || !amount) {
@@ -23,7 +23,7 @@ export const addExpense = async (req, reply) => {
       created_at || null,
       Boolean(is_advance),
       professional_name || null,
-      staffId
+      userId
     )
 
     reply.status(201).send(expense)
@@ -35,7 +35,7 @@ export const addExpense = async (req, reply) => {
 
 export const removeExpense = async (req, reply) => {
   try {
-    const businessId = req.business.id
+    const businessId = req.user.business_id
     const { id } = req.params
 
     const deleted = await deleteExpenseById(id, businessId)
