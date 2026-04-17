@@ -17,7 +17,7 @@ import AvailabilityPage from '@/pages/panel/AvailabilityPage'
 import SettingsPage from '@/pages/panel/SettingsPage'
 import CajaPage from '@/pages/panel/CajaPage'
 import ClientesPage from '@/pages/panel/ClientesPage'
-import IncidenciasList from '@/pages/panel/IncidenciasPage'
+import IncidenciasPage from '@/pages/panel/IncidenciasPage'
 
 export default function App() {
   return (
@@ -42,6 +42,7 @@ export default function App() {
 
             {/* ── Panel: cualquier usuario autenticado ──────────────────────── */}
             {/* ── Panel: Rutas anidadas bajo /dashboard ────────────────────── */}
+            {/* ── Panel: Rutas anidadas bajo /dashboard ────────────────────── */}
             <Route path="/dashboard">
               <Route index element={
                 <ProtectedRoute><DashboardPage /></ProtectedRoute>
@@ -60,9 +61,21 @@ export default function App() {
               } />
 
               <Route path="incidencias" element={
-                <ProtectedRoute><IncidenciasList /></ProtectedRoute>
+                <ProtectedRoute><IncidenciasPage /></ProtectedRoute>
+              } />
+
+              <Route path="servicios" element={
+                <ProtectedRoute><ServicesPage /></ProtectedRoute>
+              } />
+
+              <Route path="disponibilidad" element={
+                <ProtectedRoute><AvailabilityPage /></ProtectedRoute>
               } />
             </Route>
+
+            {/* Redirecciones de compatibilidad o rutas directas si se prefiere */}
+            <Route path="/servicios" element={<Navigate to="/dashboard/servicios" replace />} />
+            <Route path="/disponibilidad" element={<Navigate to="/dashboard/disponibilidad" replace />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

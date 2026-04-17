@@ -3,7 +3,6 @@ import { useIncidencias } from '@/hooks/useIncidencias'
 import { useAuth } from '@/context/AuthContext'
 import IncidenciasList from '@/components/Incidencias/IncidenciasList'
 import IncidenciasForm from '@/components/Incidencias/IncidenciasForm'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Terminal, ShieldAlert } from 'lucide-react'
 import Layout from '@/components/shared/Layout'
 
@@ -58,13 +57,16 @@ export default function IncidenciasPage() {
               onRefresh={fetchIncidencias}
             />
           ) : (
-            <Alert className="bg-amber-50 border-amber-200">
-              <ShieldAlert className="h-4 w-4 text-amber-600" />
-              <AlertTitle className="text-amber-900 font-bold">Acceso Restringido</AlertTitle>
-              <AlertDescription className="text-amber-800 text-xs">
-                Como miembro del staff, puedes enviar reportes pero el historial de incidencias es de acceso exclusivo para la administración.
-              </AlertDescription>
-            </Alert>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8 flex items-start gap-3">
+              <ShieldAlert className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-bold text-amber-900 leading-none mb-1">Control de Calidad y Resolución</h3>
+                <p className="text-xs text-amber-800">
+                  Como <strong>Dueño</strong>, podés visualizar todas las incidencias y eliminarlas una vez resueltas. 
+                  Los empleados solo pueden reportar nuevos casos.
+                </p>
+              </div>
+            </div>
           )}
         </section>
       </div>

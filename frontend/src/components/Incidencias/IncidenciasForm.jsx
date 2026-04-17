@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Loader2, PlusCircle } from 'lucide-react'
 
@@ -69,26 +68,26 @@ export default function IncidenciasForm({ onSubmit }) {
 
           <div className="space-y-2">
             <Label htmlFor="solucion">Solución Aplicada</Label>
-            <Textarea
+            <textarea
               id="solucion"
               placeholder="Describe cómo se solucionó..."
               value={formData.solucion}
               onChange={(e) => setFormData(prev => ({ ...prev, solucion: e.target.value }))}
               required
-              className="resize-none focus-visible:ring-indigo-500"
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none focus-visible:ring-indigo-500"
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="accion_preventiva">Acción Preventiva</Label>
-            <Textarea
+            <textarea
               id="accion_preventiva"
               placeholder="¿Qué haremos para que no vuelva a pasar?"
               value={formData.accion_preventiva}
               onChange={(e) => setFormData(prev => ({ ...prev, accion_preventiva: e.target.value }))}
               required
-              className="resize-none focus-visible:ring-indigo-500"
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none focus-visible:ring-indigo-500"
               rows={3}
             />
           </div>
