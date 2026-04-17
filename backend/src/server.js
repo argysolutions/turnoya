@@ -48,17 +48,20 @@ await app.register(cors, {
 })
 await app.register(cookie)
 
-app.register(authRoutes, { prefix: '/api' })
-app.register(servicesRoutes, { prefix: '/api' })
-app.register(availabilityRoutes, { prefix: '/api' })
-app.register(publicRoutes, { prefix: '/api' })
-app.register(appointmentsRoutes, { prefix: '/api' })
-app.register(googleRoutes, { prefix: '/api' })
-app.register(businessRoutes, { prefix: '/api' })
-app.register(salesRoutes, { prefix: '/api' })
-await app.register(financesRoutes, { prefix: '/api' })
-await app.register(clientesRoutes, { prefix: '/api' })
-await app.register(incidenciasRoutes, { prefix: '/api' })
+// Registro unificado de rutas de la API bajo el prefijo /api
+await app.register(async (api) => {
+  api.register(authRoutes)
+  api.register(servicesRoutes)
+  api.register(availabilityRoutes)
+  api.register(publicRoutes)
+  api.register(appointmentsRoutes)
+  api.register(googleRoutes)
+  api.register(businessRoutes)
+  api.register(salesRoutes)
+  api.register(financesRoutes)
+  api.register(clientesRoutes)
+  api.register(incidenciasRoutes)
+}, { prefix: '/api' })
 
 app.get('/health', async () => ({ status: 'ok', app: 'TurnoYa' }))
 
