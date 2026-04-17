@@ -91,22 +91,25 @@ async function bootstrap() {
     console.log('   ✅ Tabla: availability')
 
     await client.query(`
-      CREATE TABLE IF NOT EXISTS clients (
-        id         SERIAL PRIMARY KEY,
-        name       VARCHAR(100) NOT NULL,
-        phone      VARCHAR(20) NOT NULL,
-        email      VARCHAR(150),
-        created_at TIMESTAMP DEFAULT NOW()
+      CREATE TABLE IF NOT EXISTS clientes (
+        id                SERIAL PRIMARY KEY,
+        business_id       INTEGER NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+        nombre            VARCHAR(100) NOT NULL,
+        telefono          VARCHAR(20) NOT NULL,
+        email             VARCHAR(150),
+        notas_internas    TEXT,
+        created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      CREATE INDEX IF NOT EXISTS idx_clientes_business ON clientes(business_id);
     `)
-    console.log('   ✅ Tabla: clients')
+    console.log('   ✅ Tabla: clientes')
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS appointments (
         id          SERIAL PRIMARY KEY,
         business_id INTEGER NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
         service_id  INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
-        client_id   INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+        client_id   INTEGER NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
         date        DATE NOT NULL,
         start_time  TIME NOT NULL,
         end_time    TIME NOT NULL,
@@ -117,8 +120,6 @@ async function bootstrap() {
       );
     `)
     console.log('   ✅ Tabla: appointments')
-
-    // ── 2. Extensiones (Módulos Avanzados) ────────────────────────────────────
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS staff (
@@ -191,16 +192,6 @@ async function bootstrap() {
       );
     `)
     console.log('   ✅ Tabla: cash_sessions')
-
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS client_business_notes (
-        client_id   INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-        business_id INTEGER NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
-        internal_notes TEXT,
-        PRIMARY KEY (client_id, business_id)
-      );
-    `)
-    console.log('   ✅ Tabla: client_business_notes')
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS incidencias (

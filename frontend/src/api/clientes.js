@@ -1,7 +1,13 @@
 import client from './client'
 
-export const searchClientes = (query = '') => 
-  client.get(`/clientes?q=${encodeURIComponent(query)}`)
+export const getClientes = () => 
+  client.get('/clientes')
 
-export const updateClientNotes = (id, notes) => 
-  client.put(`/clientes/${id}/notas`, { internal_notes: notes })
+export const createCliente = (data) => 
+  client.post('/clientes', data)
+
+export const updateCliente = (id, data) => 
+  client.put(`/clientes/${id}`, data)
+
+export const deleteCliente = (id) => 
+  client.delete(`/clientes/${id}`)

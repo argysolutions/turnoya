@@ -1,42 +1,50 @@
 import { pool } from '../config/db.js'
 
 /**
- * Busca clientes que tengan turnos en el negocio actual.
- * Filtra por nombre, teléfono o email.
- * Incluye las notas internas privadas especificas de ese negocio.
+ * Obtiene todos los clientes de un negocio específico.
  */
-export const searchClientsByBusiness = async (businessId, query) => {
-  const searchTerm = `%${query}%`
+export const getAllClientesByBusiness = async (businessId) => {
   const result = await pool.query(
-    `SELECT DISTINCT 
-        c.id, 
-        c.name, 
-        c.phone, 
-        c.email, 
-        c.created_at,
-        n.internal_notes
-     FROM clients c
-     JOIN appointments a ON c.id = a.client_id
-     LEFT JOIN client_business_notes n ON c.id = n.client_id AND n.business_id = a.business_id
-     WHERE a.business_id = $1 
-       AND (c.name ILIKE $2 OR c.phone ILIKE $2 OR c.email ILIKE $2)
-     ORDER BY c.name ASC`,
-    [businessId, searchTerm]
+    'SELECT * FROM clientes WHERE business_id = $1 ORDER BY nombre ASC',
+    [businessId]
   )
   return result.rows
 }
 
 /**
- * Actualiza o inserta notas internas privadas para un cliente en un negocio específico.
+ * Crea un nuevo cliente vinculado a un negocio.
  */
-export const updateClientNotes = async (clientId, businessId, notes) => {
+export const createCliente = async (businessId, { nombre, telefono, email, notas_internas }) => {
   const result = await pool.query(
-    `INSERT INTO client_business_notes (client_id, business_id, internal_notes)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (client_id, business_id) 
-     DO UPDATE SET internal_notes = EXCLUDED.internal_notes
+    `INSERT INTO clientes (business_id, nombre, telefono, email, notas_internas)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [clientId, businessId, notes]
+    [businessId, nombre, telefono, email, notas_internas]
+  )
+  return result.rows[0]
+}
+
+/**
+ * Actualiza los datos de un cliente existente.
+ */
+export const updateCliente = async (id, businessId, { nombre, telefono, email, notas_internas }) => {
+  const result = await pool.query(
+    `UPDATE clientes 
+     SET nombre = $1, telefono = $2, email = $3, notas_internas = $4
+     WHERE id = $5 AND business_id = $6
+     RETURNING *`,
+    [nombre, telefono, email, notas_internas, id, businessId]
+  )
+  return result.rows[0]
+}
+
+/**
+ * Elimina un cliente de forma definitiva.
+ */
+export const deleteCliente = async (id, businessId) => {
+  const result = await pool.query(
+    'DELETE FROM clientes WHERE id = $1 AND business_id = $2 RETURNING *',
+    [id, businessId]
   )
   return result.rows[0]
 }
