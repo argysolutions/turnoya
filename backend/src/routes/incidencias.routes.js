@@ -16,7 +16,7 @@ export const incidenciasRoutes = async (app) => {
 
   // Crear incidencia: Dueño y Empleado
   app.post('/incidencias', {
-    preHandler: [verifyToken, requireRole(['owner', 'employee'])]
+    preHandler: [verifyToken, requireRole('owner', 'employee')]
   }, addIncidencia)
 
   // Eliminar reporte: Solo Dueño
