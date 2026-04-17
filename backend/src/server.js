@@ -1,4 +1,6 @@
 import Fastify from 'fastify'
+import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import cookie from '@fastify/cookie'
@@ -68,7 +70,8 @@ app.get('/health', async () => ({ status: 'ok', app: 'TurnoYa' }))
 export const start = async () => {
   await connectDB()
   try {
-    await app.listen({ port: ENV.PORT, host: '0.0.0.0' })
+    const port = ENV.PORT || 3000
+    await app.listen({ port: port, host: '0.0.0.0' })
   } catch (err) {
     app.log.error(err)
     process.exit(1)
@@ -76,7 +79,8 @@ export const start = async () => {
 }
 
 // Solo arrancar automáticamente si no estamos en modo script/test (ej: si es el archivo principal)
-const isMain = import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])
+
 if (isMain) {
   start()
 }
