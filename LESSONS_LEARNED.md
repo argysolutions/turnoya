@@ -23,5 +23,10 @@ Bitácora de fallos críticos, soluciones arquitectónicas y reglas inquebrantab
 - **Vite Config**: Mantener siempre un `vite.config.js` válido con los alias `@/` sincronizados. Los errores de resolución de módulos son la causa #1 de desincronización entre el código local y el deploy.
 - **Gestión de Puertos**: Si el backend falla con `EADDRINUSE`, verificar procesos residuales en el puerto 3000. Si el frontend salta de puerto (5173 -> 5174), es señal de procesos Vite colgados.
 
+## [ESCALABILIDAD Y CONCURRENCIA]
+
+- **Protección de Consistencia**: Se ha implementado un `EXCLUDE USING gist` en la tabla `appointments`. Esta es la ÚNICA forma garantizada de evitar solapamientos en un entorno de alta concurrencia.
+- **Validación de Capas**: El backend utiliza **Zod** para fallar rápido ante datos malformados, mientras que el **AppointmentService** coordina la lógica de negocio, dejando los controladores limpios y enfocados en el transporte.
+
 ---
-*Última actualización: 18 de Abril de 2026 - Fix de Esquema de Turnos y Layout Accordion.*
+*Última actualización: 18 de Abril de 2026 - Rollback de IA y Estabilización de Concurrencia (Fase 1).*

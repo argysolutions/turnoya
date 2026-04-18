@@ -24,7 +24,8 @@
     "googleapis": "^171.4.0",
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",

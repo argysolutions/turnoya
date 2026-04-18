@@ -3,22 +3,27 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+/**
+ * AccordionSection
+ * Componentized section for grouping appointments by status.
+ * Re-designed to follow the 'rounded-2xl' Design System.
+ */
 const AccordionSection = ({ title, count, color, children, defaultOpen = false }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md mb-4 last:mb-0">
+    <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md mb-4 last:mb-0">
       {/* Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-5 bg-white hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className={cn("w-3 h-3 rounded-full shadow-sm", color)} />
-          <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">
+          <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm", color)} />
+          <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">
             {title}
           </h3>
-          <span className="bg-slate-100/80 text-slate-500 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-slate-200/50">
+          <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-0.5 rounded-lg border border-slate-200/40">
             {count}
           </span>
         </div>
@@ -44,8 +49,8 @@ const AccordionSection = ({ title, count, color, children, defaultOpen = false }
               {count > 0 ? (
                 children
               ) : (
-                <div className="p-10 text-center bg-slate-50/30">
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Sin turnos en esta categoría</p>
+                <div className="py-12 text-center bg-slate-50/20">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sin turnos registrados</p>
                 </div>
               )}
             </div>

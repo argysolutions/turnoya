@@ -1,4 +1,4 @@
-import { verifyToken } from '../middlewares/auth.middleware.js'
+import { verifyToken, requireRole } from '../middlewares/auth.middleware.js'
 import {
   listAvailability,
   setAvailability,
@@ -6,7 +6,7 @@ import {
 } from '../controllers/availability.controller.js'
 
 export const availabilityRoutes = async (app) => {
-  app.get('/availability', { preHandler: verifyToken }, listAvailability)
-  app.post('/availability', { preHandler: verifyToken }, setAvailability)
-  app.delete('/availability/:day', { preHandler: verifyToken }, removeAvailability)
+  app.get('/availability', { preHandler: [verifyToken, requireRole('owner', 'employee')] }, listAvailability)
+  app.post('/availability', { preHandler: [verifyToken, requireRole('owner')] }, setAvailability)
+  app.delete('/availability/:day', { preHandler: [verifyToken, requireRole('owner')] }, removeAvailability)
 }
