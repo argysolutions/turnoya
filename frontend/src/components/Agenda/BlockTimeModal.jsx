@@ -9,22 +9,13 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { format } from 'date-fns'
 import TimePickerModal from '@/components/ui/time-picker-modal'
 
 export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
   
-  React.useEffect(() => {
-    const check = () => setIsMobile(window.matchMedia("(max-width: 768px)").matches)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
   const [formData, setFormData] = useState({
     date: initialDate ? format(initialDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
     isAllDay: true,
@@ -103,46 +94,22 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
             />
           </div>
 
-          {/* Time Selection - Replicating AvailabilityPage logic */}
+          {/* Unified Time Selection */}
           {!formData.isAllDay && (
             <div className="flex flex-row items-center gap-4 w-full mt-4 animate-in fade-in slide-in-from-top-2">
               <div className="flex-1">
-                {isMobile ? (
-                  <TimePickerModal
-                    label="Inicio"
-                    value={formData.start_time}
-                    onChange={(val) => setFormData({ ...formData, start_time: val })}
-                  />
-                ) : (
-                  <>
-                    <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Inicio</Label>
-                    <input
-                      type="time"
-                      value={formData.start_time}
-                      onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                      className="w-full text-sm border border-slate-200 rounded-xl px-3 h-11 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    />
-                  </>
-                )}
+                <TimePickerModal
+                  label="Inicio"
+                  value={formData.start_time}
+                  onChange={(val) => setFormData({ ...formData, start_time: val })}
+                />
               </div>
               <div className="flex-1">
-                {isMobile ? (
-                  <TimePickerModal
-                    label="Fin"
-                    value={formData.end_time}
-                    onChange={(val) => setFormData({ ...formData, end_time: val })}
-                  />
-                ) : (
-                  <>
-                    <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Fin</Label>
-                    <input
-                      type="time"
-                      value={formData.end_time}
-                      onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                      className="w-full text-sm border border-slate-200 rounded-xl px-3 h-11 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    />
-                  </>
-                )}
+                <TimePickerModal
+                  label="Fin"
+                  value={formData.end_time}
+                  onChange={(val) => setFormData({ ...formData, end_time: val })}
+                />
               </div>
             </div>
           )}

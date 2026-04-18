@@ -14,6 +14,7 @@ import { getClientes } from '@/api/clientes'
 import { getServices } from '@/api/services'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
+import TimePickerModal from '@/components/ui/time-picker-modal'
 
 export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
@@ -121,12 +122,10 @@ export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) =
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="start_time">Hora Inicio</Label>
-              <Input 
-                id="start_time" 
-                type="time" 
+              <TimePickerModal
+                label="Hora Inicio"
                 value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                onChange={(val) => setFormData({ ...formData, start_time: val })}
               />
             </div>
           </div>
