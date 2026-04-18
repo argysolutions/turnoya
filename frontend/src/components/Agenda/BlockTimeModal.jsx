@@ -86,15 +86,17 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
               <p className="text-xs text-slate-500">Bloquear las 24 horas del día seleccionado.</p>
             </div>
             <Switch 
-              checked={formData.isAllDay} 
-              onCheckedChange={(checked) => setFormData({ ...formData, isAllDay: checked })}
+              checked={formData.isAllDay === true} 
+              onCheckedChange={(val) => setFormData({ ...formData, isAllDay: val === true })}
+              onChange={(e) => setFormData({ ...formData, isAllDay: e.target.checked === true })}
+              onClick={() => setFormData(prev => ({ ...prev, isAllDay: !prev.isAllDay }))}
             />
           </div>
 
           {/* Conditional Time Inputs */}
-          {!formData.isAllDay && (
-            <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 fade-in duration-200">
-              <div className="space-y-2">
+          {formData.isAllDay === false && (
+            <div className="flex gap-4 animate-in slide-in-from-top-2 fade-in duration-200 w-full">
+              <div className="space-y-2 flex-1">
                 <Label htmlFor="block_start_time" className="font-semibold text-slate-700">Hora Inicio</Label>
                 <Input 
                   id="block_start_time" 
@@ -105,7 +107,7 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
                   required
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1">
                 <Label htmlFor="block_end_time" className="font-semibold text-slate-700">Hora Fin</Label>
                 <Input 
                   id="block_end_time" 
