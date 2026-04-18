@@ -15,7 +15,7 @@ import NotificationTray from './NotificationTray'
 import { Button } from '@/components/ui/button'
 
 const navItems = [
-  { label: 'Agenda', path: '/dashboard' },
+  { label: 'Agenda', path: '/dashboard/agenda' },
   { label: 'Servicios', path: '/servicios' },
   { label: 'Disponibilidad', path: '/disponibilidad' },
   { label: 'Caja', path: '/dashboard/caja' },

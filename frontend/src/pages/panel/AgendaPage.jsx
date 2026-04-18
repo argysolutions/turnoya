@@ -1,23 +1,27 @@
-import React, { useState } from 'react'
-import { format, addDays, subDays, isSameDay } from 'date-fns'
+import React, { useState, useMemo } from 'react'
+import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { 
   Calendar as CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight, 
   Plus, 
   Search,
-  LayoutGrid,
-  List as ListIcon
+  Lock,
+  Clock,
+  ChevronRight,
+  TrendingUp,
+  Filter
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Calendar } from '@/components/ui/calendar'
 import { useAppointments } from '@/hooks/useAppointments'
-import AppointmentCard from '@/components/Agenda/AppointmentCard'
+import AppointmentRow from '@/components/Agenda/AppointmentRow'
+import AccordionSection from '@/components/Agenda/AccordionSection'
 import AgendaSkeleton from '@/components/Agenda/AgendaSkeleton'
 import AppointmentDialog from '@/components/Agenda/AppointmentDialog'
 import AppointmentDetailDialog from '@/components/Agenda/AppointmentDetailDialog'
 import Layout from '@/components/shared/Layout'
+import { motion } from 'framer-motion'
 
 export default function AgendaPage() {
   const { 
@@ -27,19 +31,16 @@ export default function AgendaPage() {
     loading, 
     addAppointment,
     updateStatus,
-    removeAppointment 
+    removeAppointment
   } = useAppointments()
 
   const [search, setSearch] = useState('')
   const [showDialog, setShowDialog] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
 
-  const handlePrevDay = () => setDate(prev => subDays(prev, 1))
-  const handleNextDay = () => setDate(prev => addDays(prev, 1))
-  const handleToday = () => setDate(new Date())
-
   const handleConfirmAdd = async (data) => {
     await addAppointment(data)
+    setShowDialog(false)
   }
 
   const handleUpdateStatus = async (id, status) => {
@@ -52,47 +53,161 @@ export default function AgendaPage() {
     }
   }
 
-  const filteredAppointments = (appointments || []).filter(app => 
-    app.client_name?.toLowerCase().includes(search.toLowerCase()) ||
-    app.service_name?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredSections = useMemo(() => {
+    const list = (appointments || []).filter(app => 
+      app.client_name?.toLowerCase().includes(search.toLowerCase()) ||
+      app.service_name?.toLowerCase().includes(search.toLowerCase())
+    )
+
+    return {
+      pendiente: list.filter(a => a.status === 'pending' || a.status === 'pending_block'),
+      confirmado: list.filter(a => a.status === 'confirmed'),
+      finalizado: list.filter(a => a.status === 'completed'),
+      cancelado: list.filter(a => ['cancelled', 'cancelled_timeout', 'cancelled_occupied'].includes(a.status)),
+      ausente: list.filter(a => a.status === 'no_show'),
+    }
+  }, [appointments, search])
+
+  const sections = [
+    { id: 'pendiente', title: 'Pendientes', color: 'bg-amber-400', defaultOpen: true },
+    { id: 'confirmado', title: 'Confirmados', color: 'bg-emerald-500', defaultOpen: true },
+    { id: 'finalizado', title: 'Finalizados', color: 'bg-slate-400', defaultOpen: false },
+    { id: 'cancelado', title: 'Cancelados', color: 'bg-rose-400', defaultOpen: false },
+    { id: 'ausente', title: 'Ausentes', color: 'bg-red-600', defaultOpen: false },
+  ]
 
   return (
-    <Layout title="Agenda de Turnos">
-      <div className="max-w-5xl mx-auto px-4 py-6">
+    <Layout>
+      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
         
-        {/* Header - Navegación de Fecha */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-white p-4 rounded-2xl border shadow-sm sticky top-0 z-10">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-slate-900 rounded-xl text-white">
-              <CalendarIcon className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black capitalize">
-                {format(date, "EEEE, d 'de' MMMM", { locale: es })}
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">Gestioná tus citas del día</p>
-            </div>
+        <div className="flex flex-col lg:flex-row gap-10 items-start">
+          
+          {/* Main Agenda Column (70%) */}
+          <div className="flex-1 w-full order-2 lg:order-1">
+            <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-1"
+              >
+                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-2">Panel Operativo</h2>
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter capitalize leading-none">
+                  {format(date, "EEEE, d 'de' MMMM", { locale: es })}
+                </h1>
+                <p className="text-slate-400 font-bold text-sm tracking-tight pt-2">Tienes {appointments?.length || 0} turnos agendados para este día.</p>
+              </motion.div>
+              
+              <div className="flex items-center gap-3">
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                  <Input 
+                    placeholder="Buscar..." 
+                    className="pl-11 h-12 border-slate-100 bg-white shadow-sm rounded-2xl focus:ring-slate-900 focus:border-slate-900 transition-all font-medium"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <Button variant="outline" className="h-12 w-12 rounded-2xl border-slate-100 bg-white shrink-0 shadow-sm">
+                  <Filter className="w-4 h-4 text-slate-400" />
+                </Button>
+              </div>
+            </header>
+
+            {loading ? (
+              <AgendaSkeleton />
+            ) : (
+              <div className="space-y-6">
+                {sections.map(section => (
+                  <AccordionSection
+                    key={section.id}
+                    title={section.title}
+                    count={(filteredSections[section.id] || []).length}
+                    color={section.color}
+                    defaultOpen={section.defaultOpen}
+                  >
+                    <div className="divide-y divide-slate-50">
+                      {(filteredSections[section.id] || []).map(appointment => (
+                        <AppointmentRow 
+                          key={appointment.id}
+                          appointment={appointment}
+                          onClick={(app) => setSelectedAppointment(app)}
+                        />
+                      ))}
+                    </div>
+                  </AccordionSection>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handlePrevDay}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button variant="secondary" className="px-6 font-bold" onClick={handleToday}>
-              Hoy
-            </Button>
-            <Button variant="outline" size="icon" onClick={handleNextDay}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <div className="ml-2 w-px h-8 bg-slate-200" />
-            <Button 
-              onClick={() => setShowDialog(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200/50"
+          {/* Sidebar Control Column (30%) */}
+          <aside className="w-full lg:w-[340px] lg:sticky lg:top-24 space-y-8 order-1 lg:order-2">
+            
+            {/* Calendar Premium Card */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col items-center"
             >
-              <Plus className="w-4 h-4 mr-2" /> <span className="hidden sm:inline">Nuevo Turno</span>
-            </Button>
-          </div>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(d) => d && setDate(d)}
+                className="w-full scale-105 origin-center"
+              />
+              <div className="w-full h-px bg-slate-50 my-4" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all"
+                onClick={() => setDate(new Date())}
+              >
+                Hoy: {format(new Date(), "d 'de' MMM", { locale: es })}
+              </Button>
+            </motion.div>
+
+            {/* Premium Actions Wrapper */}
+            <div className="space-y-4">
+              <Button 
+                onClick={() => setShowDialog(true)}
+                className="w-full h-20 bg-slate-900 hover:bg-black text-white rounded-[2rem] shadow-2xl shadow-slate-300 text-lg font-black transition-all hover:scale-[1.02] active:scale-[0.98] group"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
+                    <Plus className="w-5 h-5 text-white stroke-[3px]" />
+                  </div>
+                  <span>AGENDAR TURNO</span>
+                </div>
+              </Button>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <Button 
+                  variant="outline"
+                  className="h-16 rounded-2xl text-slate-600 font-black text-[10px] uppercase tracking-widest border-slate-100 bg-white hover:bg-slate-50 shadow-sm"
+                >
+                  <Lock className="w-4 h-4 mr-2 text-slate-400" /> Bloquear
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="h-16 rounded-2xl text-slate-600 font-black text-[10px] uppercase tracking-widest border-slate-100 bg-white hover:bg-slate-50 shadow-sm"
+                >
+                  <Clock className="w-4 h-4 mr-2 text-slate-400" /> Horarios
+                </Button>
+              </div>
+            </div>
+
+            {/* Demand Insight - Soft Visual */}
+            <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100/50 flex items-center gap-4">
+               <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+                 <TrendingUp className="w-6 h-6 text-emerald-500" />
+               </div>
+               <div>
+                 <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest leading-none mb-1">Día Solicitado</h4>
+                 <p className="text-sm font-bold text-slate-700">85% de capacidad</p>
+               </div>
+            </div>
+
+          </aside>
         </div>
 
         <AppointmentDialog 
@@ -109,44 +224,6 @@ export default function AgendaPage() {
           onUpdateStatus={handleUpdateStatus}
           onDelete={handleDelete}
         />
-
-        {/* Barra de Filtros */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input 
-              placeholder="Buscar por cliente o servicio..." 
-              className="pl-10 h-11 bg-white"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Grid de Turnos / Lista */}
-        <div className="space-y-3">
-          {loading ? (
-            <AgendaSkeleton />
-          ) : filteredAppointments.length > 0 ? (
-            filteredAppointments.map(appointment => (
-              <AppointmentCard 
-                key={appointment.id} 
-                appointment={appointment} 
-                onClick={(app) => setSelectedAppointment(app)}
-              />
-            ))
-          ) : (
-            <div className="text-center py-20 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl">
-              <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <CalendarIcon className="w-8 h-8 text-slate-300" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-800">No hay turnos para este día</h3>
-              <p className="text-sm text-slate-500 max-w-[250px] mx-auto mt-1">
-                Apretá en "Nuevo Turno" para empezar a llenar tu agenda.
-              </p>
-            </div>
-          )}
-        </div>
 
       </div>
     </Layout>

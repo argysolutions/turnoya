@@ -2,15 +2,31 @@ import React from 'react'
 
 export const AgendaSkeleton = () => {
   return (
-    <div className="space-y-4 animate-pulse">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="flex items-center space-x-4 border rounded-xl p-4 bg-muted/20">
-          <div className="w-16 h-12 bg-muted rounded-lg" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-muted rounded w-1/4" />
-            <div className="h-3 bg-muted rounded w-1/2" />
+    <div className="space-y-6 animate-pulse">
+      {[1, 2].map((group) => (
+        <div key={group} className="space-y-3">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-3 h-3 rounded-full bg-slate-200" />
+            <div className="h-4 bg-slate-200 rounded w-24" />
+            <div className="h-4 bg-slate-100 rounded w-8" />
           </div>
-          <div className="w-24 h-8 bg-muted rounded-full" />
+          <div className="bg-white border rounded-2xl overflow-hidden divide-y divide-slate-50">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-6">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-slate-200 rounded w-10" />
+                    <div className="h-2 bg-slate-100 rounded w-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-slate-200 rounded w-32" />
+                    <div className="h-3 bg-slate-100 rounded w-24" />
+                  </div>
+                </div>
+                <div className="w-16 h-6 bg-slate-100 rounded-full" />
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>

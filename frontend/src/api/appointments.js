@@ -12,8 +12,15 @@ export const createAppointment = (data) =>
 export const updateAppointmentStatus = (id, data) => 
   client.patch(`/appointments/${id}/status`, data)
 
+export const updateStatus = updateAppointmentStatus // Alias for compatibility
+
 export const deleteAppointment = (id) => 
   client.delete(`/appointments/${id}`)
 
 export const blockTime = (data) => 
   client.post('/appointments/block', data)
+
+export const createBlock = blockTime // Alias for compatibility
+
+export const bookAppointment = (slug, data) =>
+  client.post(`/public/${slug}/book`, data)

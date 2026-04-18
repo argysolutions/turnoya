@@ -95,7 +95,7 @@ export const updateStatus = async (req, reply) => {
   const { id } = req.params
   const { status, paymentInfo } = req.body
 
-  if (!['confirmed', 'cancelled', 'cancelled_occupied', 'liberate', 'completed', 'pending_block', 'cancelled_timeout'].includes(status)) {
+  if (!['confirmed', 'cancelled', 'cancelled_occupied', 'liberate', 'completed', 'pending_block', 'cancelled_timeout', 'no_show'].includes(status)) {
     return reply.status(400).send({ error: 'Estado inválido' })
   }
 
