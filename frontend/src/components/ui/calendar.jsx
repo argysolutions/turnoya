@@ -18,43 +18,42 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       locale={es}
-      className={cn("p-4 bg-white", className)}
+      className={cn("p-1", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-6 sm:space-x-4 sm:space-y-0",
+        months: "relative",
         month: "space-y-4",
-        caption: "flex justify-center pt-2 relative items-center mb-4",
-        caption_label: "text-sm font-black text-slate-800 uppercase tracking-[0.2em]",
-        nav: "space-x-1 flex items-center",
-        nav_button: cn(
+        month_caption: "flex justify-center pt-1 relative items-center mb-2",
+        caption_label: "text-[11px] font-black text-slate-800 uppercase tracking-[0.2em]",
+        nav: "flex items-center",
+        button_previous: cn(
           buttonVariants({ variant: "outline" }),
-          "h-8 w-8 bg-transparent p-0 opacity-60 hover:opacity-100 border-slate-100 rounded-xl transition-all"
+          "h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100 border-slate-100 rounded-md absolute left-0 z-10"
         ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
-        table: "w-full border-collapse space-y-1",
-        head_row: "grid grid-cols-7 mb-2",
-        head_cell: "text-slate-400 font-black text-[10px] uppercase tracking-tighter text-center",
-        row: "grid grid-cols-7 w-full mt-1",
-        cell: cn(
-          "relative h-10 w-10 p-0 text-center text-sm focus-within:relative focus-within:z-20 flex items-center justify-center"
+        button_next: cn(
+          buttonVariants({ variant: "outline" }),
+          "h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100 border-slate-100 rounded-md absolute right-0 z-10"
         ),
+        month_grid: "w-full border-collapse",
+        weekdays: "flex justify-between mb-2",
+        weekday: "text-slate-400 font-black text-[9px] uppercase tracking-tighter w-8 text-center",
+        week: "flex w-full justify-between mt-0.5",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-10 w-10 p-0 font-bold aria-selected:opacity-100 rounded-2xl transition-all hover:bg-slate-100 hover:text-slate-900"
+          "h-8 w-8 p-0 font-bold aria-selected:opacity-100 rounded-xl transition-all hover:bg-slate-100 hover:text-slate-900 text-[11px]"
         ),
-        day_selected:
-          "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white shadow-xl shadow-slate-200 ring-4 ring-white !opacity-100",
-        day_today: "bg-slate-100 text-slate-900 font-extrabold",
-        day_outside: "text-slate-200 opacity-20",
-        day_disabled: "text-slate-200 opacity-20",
-        day_range_middle:
-          "aria-selected:bg-slate-50 aria-selected:text-slate-900",
-        day_hidden: "invisible",
+        selected:
+          "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white shadow-md shadow-slate-200 !opacity-100",
+        today: "bg-slate-100 text-slate-900 font-extrabold",
+        outside: "text-slate-200 opacity-10",
+        disabled: "text-slate-200 opacity-10",
+        hidden: "invisible",
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeftIcon className="h-4 w-4 stroke-[3]" />,
-        IconRight: ({ ...props }) => <ChevronRightIcon className="h-4 w-4 stroke-[3]" />,
+        Chevron: ({ ...props }) => {
+          if (props.orientation === 'left') return <ChevronLeftIcon className="h-3 w-3 stroke-[3]" />
+          return <ChevronRightIcon className="h-3 w-3 stroke-[3]" />
+        }
       }}
       {...props}
     />
