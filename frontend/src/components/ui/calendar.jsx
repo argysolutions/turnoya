@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { DayPicker, getDefaultClassNames } from "react-day-picker"
+import { DayPicker } from "react-day-picker"
 import { es } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
@@ -20,8 +20,8 @@ function Calendar({
       locale={es}
       className={cn("p-4 bg-white", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-6 sm:space-x-6 sm:space-y-0",
-        month: "space-y-6",
+        months: "flex flex-col sm:flex-row space-y-6 sm:space-x-4 sm:space-y-0",
+        month: "space-y-4",
         caption: "flex justify-center pt-2 relative items-center mb-4",
         caption_label: "text-sm font-black text-slate-800 uppercase tracking-[0.2em]",
         nav: "space-x-1 flex items-center",
@@ -31,22 +31,22 @@ function Calendar({
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
-        table: "w-full border-collapse",
-        head_row: "flex w-full mb-2",
-        head_cell: "text-slate-400 rounded-md w-10 font-black text-[10px] uppercase tracking-tighter flex-1 text-center",
-        row: "flex w-full mt-1",
+        table: "w-full border-collapse space-y-1",
+        head_row: "grid grid-cols-7 mb-2",
+        head_cell: "text-slate-400 font-black text-[10px] uppercase tracking-tighter text-center",
+        row: "grid grid-cols-7 w-full mt-1",
         cell: cn(
-          "relative h-10 w-10 p-0 text-center text-sm focus-within:relative focus-within:z-20 flex-1"
+          "relative h-10 w-10 p-0 text-center text-sm focus-within:relative focus-within:z-20 flex items-center justify-center"
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-10 w-10 p-0 font-bold aria-selected:opacity-100 rounded-2xl transition-all hover:bg-slate-100 hover:text-slate-900 mx-auto"
+          "h-10 w-10 p-0 font-bold aria-selected:opacity-100 rounded-2xl transition-all hover:bg-slate-100 hover:text-slate-900"
         ),
         day_selected:
-          "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white shadow-xl shadow-slate-200 ring-4 ring-white",
-        day_today: "bg-slate-100 text-slate-900 font-black",
-        day_outside: "text-slate-200 opacity-30",
-        day_disabled: "text-slate-200 opacity-30",
+          "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white shadow-xl shadow-slate-200 ring-4 ring-white !opacity-100",
+        day_today: "bg-slate-100 text-slate-900 font-extrabold",
+        day_outside: "text-slate-200 opacity-20",
+        day_disabled: "text-slate-200 opacity-20",
         day_range_middle:
           "aria-selected:bg-slate-50 aria-selected:text-slate-900",
         day_hidden: "invisible",

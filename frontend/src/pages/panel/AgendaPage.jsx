@@ -7,7 +7,6 @@ import {
   Search,
   Lock,
   Clock,
-  ChevronRight,
   TrendingUp,
   Filter
 } from 'lucide-react'
@@ -78,36 +77,36 @@ export default function AgendaPage() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 py-0 sm:py-4">
         
-        <div className="flex flex-col lg:flex-row gap-10 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
           
           {/* Main Agenda Column (70%) */}
           <div className="flex-1 w-full order-2 lg:order-1">
-            <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <header className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <motion.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="space-y-1"
+                className="space-y-0"
               >
-                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-2">Panel Operativo</h2>
-                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter capitalize leading-none">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-1">Panel Operativo</h2>
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter capitalize leading-tight">
                   {format(date, "EEEE, d 'de' MMMM", { locale: es })}
                 </h1>
-                <p className="text-slate-400 font-bold text-sm tracking-tight pt-2">Tienes {appointments?.length || 0} turnos agendados para este día.</p>
+                <p className="text-slate-400 font-bold text-xs tracking-tight pt-1">Tienes {appointments?.length || 0} turnos agendados.</p>
               </motion.div>
               
-              <div className="flex items-center gap-3">
-                <div className="relative w-full md:w-64">
+              <div className="flex items-center gap-2">
+                <div className="relative w-full md:w-56">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                   <Input 
                     placeholder="Buscar..." 
-                    className="pl-11 h-12 border-slate-100 bg-white shadow-sm rounded-2xl focus:ring-slate-900 focus:border-slate-900 transition-all font-medium"
+                    className="pl-11 h-11 border-slate-100 bg-white shadow-sm rounded-2xl focus:ring-slate-900 focus:border-slate-900 transition-all font-medium text-sm"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
-                <Button variant="outline" className="h-12 w-12 rounded-2xl border-slate-100 bg-white shrink-0 shadow-sm">
+                <Button variant="outline" className="h-11 w-11 rounded-2xl border-slate-100 bg-white shrink-0 shadow-sm">
                   <Filter className="w-4 h-4 text-slate-400" />
                 </Button>
               </div>
@@ -116,7 +115,7 @@ export default function AgendaPage() {
             {loading ? (
               <AgendaSkeleton />
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {sections.map(section => (
                   <AccordionSection
                     key={section.id}
@@ -141,25 +140,25 @@ export default function AgendaPage() {
           </div>
 
           {/* Sidebar Control Column (30%) */}
-          <aside className="w-full lg:w-[340px] lg:sticky lg:top-24 space-y-8 order-1 lg:order-2">
+          <aside className="w-full lg:w-[320px] lg:sticky lg:top-20 space-y-6 order-1 lg:order-2">
             
             {/* Calendar Premium Card */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col items-center"
+              className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col items-center"
             >
               <Calendar
                 mode="single"
                 selected={date}
                 onSelect={(d) => d && setDate(d)}
-                className="w-full scale-105 origin-center"
+                className="w-full scale-100 origin-center"
               />
-              <div className="w-full h-px bg-slate-50 my-4" />
+              <div className="w-full h-px bg-slate-50 my-3" />
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-full text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all"
+                className="w-full text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900"
                 onClick={() => setDate(new Date())}
               >
                 Hoy: {format(new Date(), "d 'de' MMM", { locale: es })}
@@ -167,44 +166,37 @@ export default function AgendaPage() {
             </motion.div>
 
             {/* Premium Actions Wrapper */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <Button 
                 onClick={() => setShowDialog(true)}
-                className="w-full h-20 bg-slate-900 hover:bg-black text-white rounded-[2rem] shadow-2xl shadow-slate-300 text-lg font-black transition-all hover:scale-[1.02] active:scale-[0.98] group"
+                className="w-full h-16 bg-slate-900 hover:bg-black text-white rounded-3xl shadow-lg shadow-slate-300 text-base font-black transition-all group"
               >
-                <div className="flex items-center justify-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
-                    <Plus className="w-5 h-5 text-white stroke-[3px]" />
-                  </div>
-                  <span>AGENDAR TURNO</span>
-                </div>
+                <Plus className="w-5 h-5 mr-2 stroke-[3px]" /> AGENDAR TURNO
               </Button>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <Button 
                   variant="outline"
-                  className="h-16 rounded-2xl text-slate-600 font-black text-[10px] uppercase tracking-widest border-slate-100 bg-white hover:bg-slate-50 shadow-sm"
+                  className="h-14 rounded-2xl text-slate-500 font-black text-[9px] uppercase tracking-widest border-slate-100 bg-white"
                 >
-                  <Lock className="w-4 h-4 mr-2 text-slate-400" /> Bloquear
+                  <Lock className="w-3.5 h-3.5 mr-2" /> Bloquear
                 </Button>
                 <Button 
                   variant="outline"
-                  className="h-16 rounded-2xl text-slate-600 font-black text-[10px] uppercase tracking-widest border-slate-100 bg-white hover:bg-slate-50 shadow-sm"
+                  className="h-14 rounded-2xl text-slate-500 font-black text-[9px] uppercase tracking-widest border-slate-100 bg-white"
                 >
-                  <Clock className="w-4 h-4 mr-2 text-slate-400" /> Horarios
+                  <Clock className="w-3.5 h-3.5 mr-2" /> Horarios
                 </Button>
               </div>
             </div>
 
-            {/* Demand Insight - Soft Visual */}
-            <div className="bg-emerald-50/50 p-6 rounded-[2rem] border border-emerald-100/50 flex items-center gap-4">
-               <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
-                 <TrendingUp className="w-6 h-6 text-emerald-500" />
-               </div>
-               <div>
-                 <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest leading-none mb-1">Día Solicitado</h4>
-                 <p className="text-sm font-bold text-slate-700">85% de capacidad</p>
-               </div>
+            {/* Demand Insight */}
+            <div className="bg-emerald-50/40 p-5 rounded-3xl border border-emerald-100/30 flex items-center gap-3">
+                 <TrendingUp className="w-5 h-5 text-emerald-500" />
+                 <div>
+                   <h4 className="text-[9px] font-black text-emerald-700 uppercase tracking-widest leading-none mb-1">Capacidad</h4>
+                   <p className="text-xs font-bold text-slate-600">85% ocupado</p>
+                 </div>
             </div>
 
           </aside>
