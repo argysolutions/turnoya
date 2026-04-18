@@ -166,7 +166,7 @@ export default function AgendaPage() {
           </div>
 
           {/* Sidebar - Desktop Only sticky */}
-          <aside className="hidden lg:block w-[280px] space-y-4 sticky top-6">
+          <aside className="hidden lg:block w-[360px] space-y-4 sticky top-6">
             <Card className="border-slate-100 rounded-2xl overflow-hidden shadow-sm">
               <div className="p-3">
                 <Calendar
