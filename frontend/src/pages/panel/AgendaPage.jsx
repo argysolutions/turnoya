@@ -139,7 +139,7 @@ export default function AgendaPage() {
               <AgendaSkeleton />
             ) : (
               <div className="space-y-3">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1 mb-2">
+                <h2 className="text-base font-medium text-slate-500 capitalize pl-1 mb-2">
                   {format(date, "EEEE, d 'de' MMMM", { locale: es })}
                 </h2>
                 {sections.map(section => (
@@ -179,7 +179,7 @@ export default function AgendaPage() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 rounded-xl"
+                    className="w-full text-sm font-medium text-slate-500 hover:text-slate-900 rounded-xl"
                     onClick={() => setDate(new Date())}
                   >
                     Hoy: {format(new Date(), "d 'de' MMM")}

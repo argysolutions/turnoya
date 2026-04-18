@@ -20,7 +20,7 @@ const AccordionSection = ({ title, count, color, children, defaultOpen = false }
       >
         <div className="flex items-center gap-3">
           <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm", color)} />
-          <h3 className="text-xs font-semibold text-slate-700 tracking-tight">
+          <h3 className="text-lg font-semibold text-slate-800 tracking-tight">
             {title}
           </h3>
           <span className="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-0.5 rounded-lg border border-slate-200/40">

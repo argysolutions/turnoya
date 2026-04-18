@@ -38,14 +38,14 @@ function Calendar({
         weekday: "text-slate-500 font-medium text-xs uppercase tracking-tight text-center flex items-center justify-center h-10",
         weeks: "w-full",
         week: "grid grid-cols-7 w-full mt-1.5",
-        day: "h-12 flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
+        day: "h-12 w-full flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-12 w-12 p-0 text-base font-normal transition-all cursor-pointer rounded-xl flex items-center justify-center aria-selected:bg-slate-900 aria-selected:text-white aria-selected:opacity-100 aria-selected:font-semibold aria-selected:hover:bg-slate-800 aria-selected:hover:text-white hover:bg-slate-100 hover:text-slate-900"
+          "h-12 w-12 p-0 text-base font-normal transition-all cursor-pointer rounded-xl flex items-center justify-center hover:bg-slate-100 hover:text-slate-900"
         ),
-        selected: "", 
+        selected: "[&_button]:bg-slate-900 [&_button]:text-white [&_button]:font-semibold [&_button]:opacity-100 [&_button]:hover:bg-slate-800", 
         today: "[&_button]:border-2 [&_button]:border-slate-100 [&_button]:text-slate-900 [&_button]:font-semibold",
-        outside: "day-outside text-slate-300 opacity-30 aria-selected:bg-slate-900/50",
+        outside: "day-outside text-slate-300 opacity-30",
         disabled: "text-slate-300 opacity-20",
         hidden: "invisible",
         ...classNames,
