@@ -21,7 +21,7 @@ const bookAppointmentSchema = z.object({
 })
 
 const updateStatusSchema = z.object({
-  status: z.enum(['confirmed', 'cancelled', 'cancelled_occupied', 'liberate', 'completed', 'pending_block', 'cancelled_timeout', 'no_show']),
+  status: z.enum(['confirmed', 'cancelled', 'cancelled_occupied', 'liberate', 'completed', 'pending_block', 'cancelled_timeout', 'no_show', 'blocked']),
   paymentInfo: z.object({
     amount: z.number().optional().or(z.string()),
     method: z.string().optional(),

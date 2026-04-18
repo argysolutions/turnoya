@@ -124,9 +124,13 @@ export class AppointmentService {
     if (isOccupied) throw new Error('Horario ocupado')
 
     const isEmployee = user.role === 'employee'
-    const clientName = isEvent ? '🌟 Evento Destacado' : (isEmployee ? '⏳ Bloqueo Pendiente' : '🛠️ Receso / Bloqueo')
-    let status = isEvent ? 'cancelled' : 'cancelled_occupied'
-    if (!isEvent && isEmployee) status = 'pending_block'
+    const reasonText = notes?.trim() || 'Bloqueo Manual'
+    const clientName = isEvent ? '🌟 Evento Destacado' : (isEmployee ? '⏳ Bloqueo Pendiente' : `🛑 ${reasonText}`)
+    
+    // Status normalization
+    let status = 'blocked'
+    if (isEvent) status = 'cancelled'
+    else if (isEmployee) status = 'pending_block'
 
     const cl = await pool.query(
       `INSERT INTO clientes (business_id, nombre, telefono) VALUES ($1, $2, '0000000000') RETURNING id`, 
@@ -134,7 +138,7 @@ export class AppointmentService {
     )
     
     const metaNotes = JSON.stringify({ 
-      text: notes || '', 
+      text: reasonText, 
       requested_by_name: user.name || 'Staff',
       requested_by_id: user.id 
     })
@@ -145,7 +149,7 @@ export class AppointmentService {
       [businessId, serviceId, cl.rows[0].id, startAt, endAt, status, metaNotes]
     )
 
-    if (status === 'pending_block' || status === 'cancelled_occupied') {
+    if (status === 'pending_block') {
       await bookingQueue.add('expire-lock', { appointmentId: res.rows[0].id }, { delay: 600000 })
     }
 

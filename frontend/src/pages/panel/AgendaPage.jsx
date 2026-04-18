@@ -20,6 +20,7 @@ import AccordionSection from '@/components/Agenda/AccordionSection'
 import AgendaSkeleton from '@/components/Agenda/AgendaSkeleton'
 import AppointmentDialog from '@/components/Agenda/AppointmentDialog'
 import AppointmentDetailDialog from '@/components/Agenda/AppointmentDetailDialog'
+import { BlockTimeModal } from '@/components/Agenda/BlockTimeModal'
 import Layout from '@/components/shared/Layout'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -36,6 +37,7 @@ export default function AgendaPage() {
 
   const [search, setSearch] = useState('')
   const [showDialog, setShowDialog] = useState(false)
+  const [showBlockModal, setShowBlockModal] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
 
   const handleConfirmAdd = async (data) => {
@@ -51,6 +53,12 @@ export default function AgendaPage() {
     if (confirm('¿Estás seguro de que deseas eliminar este turno?')) {
       await removeAppointment(id)
     }
+  }
+
+  const handleConfirmBlock = async (data) => {
+    // addBlock is provided by useAppointments
+    if (addBlock) await addBlock(data)
+    setShowBlockModal(false)
   }
 
   const filteredSections = useMemo(() => {
@@ -192,6 +200,7 @@ export default function AgendaPage() {
               <Button 
                 variant="outline"
                 className="h-12 rounded-xl text-slate-600 font-bold text-xs border-slate-200 bg-white gap-2"
+                onClick={() => setShowBlockModal(true)}
               >
                 <Lock className="w-4 h-4" /> Bloquear
               </Button>
@@ -218,6 +227,13 @@ export default function AgendaPage() {
           onClose={() => setSelectedAppointment(null)}
           onUpdateStatus={handleUpdateStatus}
           onDelete={handleDelete}
+        />
+
+        <BlockTimeModal
+          isOpen={showBlockModal}
+          onClose={() => setShowBlockModal(false)}
+          onConfirm={handleConfirmBlock}
+          initialDate={date}
         />
 
       </div>
