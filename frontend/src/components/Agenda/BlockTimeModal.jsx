@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { format } from 'date-fns'
+import { VisualTimePicker } from '@/components/shared/VisualTimePicker'
 
 export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
@@ -93,31 +94,21 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
             />
           </div>
 
-          {/* Forced Debug: Permanent Time Inputs */}
-          <div className="flex w-full gap-4 mt-4">
-            <div className="flex-1">
-              <label htmlFor="block_start_time" className="block text-sm font-medium text-slate-700 mb-1">Hora Inicio</label>
-              <input 
-                id="block_start_time"
-                type="time" 
-                className="w-full border-slate-200 shadow-sm rounded-xl h-11 px-3 border focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900" 
+          {/* Visual Time Selection */}
+          {!formData.isAllDay && (
+            <div className="flex w-full gap-4 mt-4 animate-in fade-in slide-in-from-top-2">
+              <VisualTimePicker 
+                label="Hora Inicio"
                 value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                required
+                onChange={(val) => setFormData({ ...formData, start_time: val })}
               />
-            </div>
-            <div className="flex-1">
-              <label htmlFor="block_end_time" className="block text-sm font-medium text-slate-700 mb-1">Hora Fin</label>
-              <input 
-                id="block_end_time"
-                type="time" 
-                className="w-full border-slate-200 shadow-sm rounded-xl h-11 px-3 border focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900" 
+              <VisualTimePicker 
+                label="Hora Fin"
                 value={formData.end_time}
-                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                required
+                onChange={(val) => setFormData({ ...formData, end_time: val })}
               />
             </div>
-          </div>
+          )}
 
           {/* Reason Input */}
           <div className="space-y-2">
