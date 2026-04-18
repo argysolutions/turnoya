@@ -33,20 +33,19 @@ function Calendar({
           buttonVariants({ variant: "outline" }),
           "h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100 border-slate-100 rounded-md absolute right-0 z-10"
         ),
-        month_grid: "w-full border-collapse table-fixed",
-        weekdays: "flex",
-        weekday: "text-slate-400 font-black text-[9px] uppercase tracking-tighter text-center flex items-center justify-center h-8 w-full",
-        weeks: "w-full",
-        week: "flex w-full mt-0.5",
-        day: "h-8 w-full text-center text-sm p-0 relative flex items-center justify-center",
+        month_grid: "block w-full border-collapse",
+        weekdays: "grid grid-cols-7 w-full mb-1",
+        weekday: "text-slate-400 font-black text-[9px] uppercase tracking-tighter text-center flex items-center justify-center h-8",
+        weeks: "block w-full",
+        week: "grid grid-cols-7 w-full mt-1",
+        day: "h-9 w-full flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 p-0 font-medium transition-all hover:bg-slate-100 hover:text-slate-900 aria-selected:opacity-100 rounded-lg flex items-center justify-center"
+          "h-9 w-9 p-0 font-medium transition-all hover:bg-slate-100 hover:text-slate-900 rounded-lg flex items-center justify-center aria-selected:bg-slate-900 aria-selected:text-white aria-selected:opacity-100 aria-selected:hover:bg-slate-900 aria-selected:hover:text-white"
         ),
-        selected:
-          "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white shadow-md !opacity-100",
-        today: "text-slate-900 font-black ring-1 ring-slate-200 ring-inset",
-        outside: "day-outside text-slate-300 opacity-60 aria-selected:bg-slate-100/50 aria-selected:text-slate-300",
+        selected: "", 
+        today: "[&_button]:bg-slate-100 [&_button]:text-slate-900 [&_button]:font-black",
+        outside: "day-outside text-slate-300 opacity-40",
         disabled: "text-slate-300 opacity-20",
         hidden: "invisible",
         ...classNames,
