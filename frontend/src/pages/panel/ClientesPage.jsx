@@ -89,7 +89,7 @@ export default function ClientesPage() {
           </div>
           <Button 
             onClick={() => setShowForm(!showForm)}
-            className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold gap-2"
+            className="rounded-xl font-bold gap-2"
           >
             {showForm ? <Plus className="w-4 h-4 rotate-45 transition-transform" /> : <Plus className="w-4 h-4" />}
             {showForm ? 'Cerrar' : 'Nuevo Cliente'}

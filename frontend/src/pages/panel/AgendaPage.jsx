@@ -93,7 +93,7 @@ export default function AgendaPage() {
           </div>
           <Button 
             onClick={() => setShowDialog(true)}
-            className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold gap-2"
+            className="rounded-xl font-bold gap-2"
           >
             <Plus className="w-4 h-4" />
             Nuevo Turno

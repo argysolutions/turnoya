@@ -115,7 +115,7 @@ export default function ClientesForm({ onSubmit, initialData = null }) {
           <Button 
             type="submit" 
             disabled={loading} 
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 rounded-xl transition-all active:scale-[0.98]"
+            className="w-full font-bold h-12 rounded-xl transition-all active:scale-[0.98]"
           >
             {loading ? (
               <>
