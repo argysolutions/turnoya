@@ -33,19 +33,19 @@ function Calendar({
           buttonVariants({ variant: "outline" }),
           "h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100 border-slate-100 rounded-md absolute right-0 z-10"
         ),
-        month_grid: "w-full border-collapse",
-        weekdays: "flex justify-between mb-2",
-        weekday: "text-slate-400 font-black text-[9px] uppercase tracking-tighter w-8 text-center",
-        week: "flex w-full justify-between mt-0.5",
+        month_grid: "w-full",
+        weekdays: "grid grid-cols-7 mb-2",
+        weekday: "text-slate-400 font-black text-[9px] uppercase tracking-tighter text-center",
+        week: "grid grid-cols-7 w-full mt-0.5",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 p-0 font-bold aria-selected:opacity-100 rounded-xl transition-all hover:bg-slate-100 hover:text-slate-900 text-[11px]"
+          "h-8 w-full p-0 font-medium transition-all hover:bg-slate-100 hover:text-slate-900 text-[11px] text-slate-900 rounded-lg"
         ),
         selected:
-          "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white shadow-md shadow-slate-200 !opacity-100",
-        today: "bg-slate-100 text-slate-900 font-extrabold",
-        outside: "text-slate-200 opacity-10",
-        disabled: "text-slate-200 opacity-10",
+          "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white shadow-md !opacity-100",
+        today: "bg-slate-100 text-slate-900 font-black",
+        outside: "text-slate-300 opacity-40",
+        disabled: "text-slate-300 opacity-10",
         hidden: "invisible",
         ...classNames,
       }}
