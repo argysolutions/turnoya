@@ -40,7 +40,7 @@ export const financesSummary = async (req, reply) => {
 
     reply.send({ ...summary, trend })
   } catch (error) {
-    console.error('Error obteniendo resumen financiero:', error)
+    reply.log.error(error, 'Error obteniendo resumen financiero')
     reply.status(500).send({ error: 'Error al obtener el resumen financiero' })
   }
 }
@@ -58,7 +58,7 @@ export const listExpenses = async (req, reply) => {
     const expenses = await getExpensesByBusiness(businessId, start, end)
     reply.send({ expenses })
   } catch (error) {
-    console.error('Error obteniendo gastos:', error)
+    reply.log.error(error, 'Error obteniendo gastos')
     reply.status(500).send({ error: 'Error al obtener los gastos' })
   }
 }
@@ -89,7 +89,7 @@ export const getSession = async (req, reply) => {
 
     reply.send({ session: null })
   } catch (error) {
-    console.error('Error obteniendo sesión de caja:', error)
+    reply.log.error(error, 'Error obteniendo sesión de caja')
     reply.status(500).send({ error: 'Error al obtener la sesión de caja' })
   }
 }
@@ -114,7 +114,7 @@ export const openSession = async (req, reply) => {
     if (error.message.includes('Ya existe una sesión')) {
       return reply.status(409).send({ error: error.message })
     }
-    console.error('Error abriendo sesión de caja:', error)
+    reply.log.error(error, 'Error abriendo sesión de caja')
     reply.status(500).send({ error: 'Error al abrir la sesión de caja' })
   }
 }
@@ -143,7 +143,7 @@ export const closeSession = async (req, reply) => {
     if (error.message.includes('No hay ninguna sesión')) {
       return reply.status(404).send({ error: error.message })
     }
-    console.error('Error cerrando sesión de caja:', error)
+    reply.log.error(error, 'Error cerrando sesión de caja')
     reply.status(500).send({ error: 'Error al cerrar la sesión de caja' })
   }
 }

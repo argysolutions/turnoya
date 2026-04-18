@@ -9,7 +9,7 @@ export const listSales = async (req, reply) => {
 
     reply.send({ sales, total, count })
   } catch (error) {
-    console.error('Error listando ventas:', error)
+    reply.log.error(error, 'Error listando ventas')
     reply.status(500).send({ error: 'Error al obtener las ventas' })
   }
 }

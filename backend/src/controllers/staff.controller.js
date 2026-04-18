@@ -26,7 +26,7 @@ export const listStaff = async (req, reply) => {
       }))
     })
   } catch (err) {
-    console.error('Error listStaff:', err)
+    reply.log.error(err, 'Error listStaff')
     reply.status(500).send({ error: 'Error al listar el staff' })
   }
 }
@@ -66,7 +66,7 @@ export const addStaff = async (req, reply) => {
       }
     })
   } catch (err) {
-    console.error('Error addStaff:', err)
+    reply.log.error(err, 'Error addStaff')
     reply.status(500).send({ error: 'Error al crear miembro del staff' })
   }
 }
@@ -103,7 +103,7 @@ export const editStaff = async (req, reply) => {
       }
     })
   } catch (err) {
-    console.error('Error editStaff:', err)
+    reply.log.error(err, 'Error editStaff')
     reply.status(500).send({ error: 'Error al actualizar miembro' })
   }
 }
@@ -133,7 +133,7 @@ export const updateMemberPin = async (req, reply) => {
 
     reply.send({ message: 'PIN actualizado correctamente' })
   } catch (err) {
-    console.error('Error updateMemberPin:', err)
+    reply.log.error(err, 'Error updateMemberPin')
     reply.status(500).send({ error: 'Error al actualizar PIN' })
   }
 }
@@ -154,7 +154,7 @@ export const removeStaff = async (req, reply) => {
     await deactivateStaff(id)
     reply.send({ message: 'Miembro desactivado correctamente' })
   } catch (err) {
-    console.error('Error removeStaff:', err)
+    reply.log.error(err, 'Error removeStaff')
     reply.status(500).send({ error: 'Error al desactivar miembro' })
   }
 }

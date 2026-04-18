@@ -110,14 +110,14 @@ async function bootstrap() {
         business_id INTEGER NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
         service_id  INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
         client_id   INTEGER NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
-        date        DATE NOT NULL,
-        start_time  TIME NOT NULL,
-        end_time    TIME NOT NULL,
+        start_at    TIMESTAMPTZ NOT NULL,
+        end_at      TIMESTAMPTZ NOT NULL,
         status      VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled', 'cancelled_occupied', 'completed')),
         liberates_at TIMESTAMP NULL,
         notes       TEXT,
         created_at  TIMESTAMP DEFAULT NOW()
       );
+      CREATE INDEX IF NOT EXISTS idx_appointments_business_start ON appointments(business_id, start_at);
     `)
     console.log('   ✅ Tabla: appointments')
 

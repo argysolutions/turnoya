@@ -18,7 +18,24 @@ import { financesRoutes } from './routes/finances.routes.js'
 import { clientesRoutes } from './routes/clientes.routes.js'
 import { incidenciasRoutes } from './routes/incidencias.routes.js'
 
-export const app = Fastify({ logger: true })
+const loggerConfig = {
+  development: {
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        translateTime: 'HH:MM:ss Z',
+        ignore: 'pid,hostname',
+        colorize: true
+      },
+    },
+  },
+  production: true,
+  test: false,
+}
+
+export const app = Fastify({ 
+  logger: loggerConfig[process.env.NODE_ENV] || true 
+})
 
 // CORS Hardening: producción, staging y desarrollo local
 const allowedOrigins = process.env.FRONTEND_URL
@@ -41,7 +58,7 @@ await app.register(cors, {
     if (!origin || allowedOrigins.includes(origin)) {
       cb(null, true)
     } else {
-      console.warn(`CORS bloqueado para origin: ${origin}`)
+      app.log.warn(`CORS bloqueado para origin: ${origin}`)
       cb(null, false)
     }
   },
@@ -67,8 +84,15 @@ await app.register(async (api) => {
 
 app.get('/health', async () => ({ status: 'ok', app: 'TurnoYa' }))
 
+import { startBookingWorker } from './workers/booking.worker.js'
+
 export const start = async () => {
-  await connectDB()
+  // Inyectamos el logger de Fastify en la conexión a la DB y en el Worker
+  await connectDB(app.log)
+  
+  // Iniciar Worker de BullMQ
+  startBookingWorker(app.log)
+
   try {
     const port = ENV.PORT || 3000
     await app.listen({ port: port, host: '0.0.0.0' })

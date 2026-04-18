@@ -27,9 +27,9 @@ export const addExpense = async (req, reply) => {
     )
 
     reply.status(201).send(expense)
-  } catch (error) {
-    console.error('Error creando gasto:', error)
-    reply.status(500).send({ error: 'Error al registrar el gasto' })
+  } catch (err) {
+    reply.log.error(err, 'Error createExpense')
+    reply.status(500).send({ error: 'Error al crear gasto' })
   }
 }
 
@@ -44,9 +44,9 @@ export const removeExpense = async (req, reply) => {
       return reply.status(404).send({ error: 'Gasto no encontrado' })
     }
 
-    reply.send({ message: 'Gasto eliminado', expense: deleted })
-  } catch (error) {
-    console.error('Error eliminando gasto:', error)
-    reply.status(500).send({ error: 'Error al eliminar el gasto' })
+    reply.send({ message: 'Gasto eliminado' })
+  } catch (err) {
+    reply.log.error(err, 'Error deleteExpense')
+    reply.status(500).send({ error: 'Error al eliminar gasto' })
   }
 }

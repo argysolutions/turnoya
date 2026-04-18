@@ -18,6 +18,7 @@ import SettingsPage from '@/pages/panel/SettingsPage'
 import CajaPage from '@/pages/panel/CajaPage'
 import ClientesPage from '@/pages/panel/ClientesPage'
 import IncidenciasPage from '@/pages/panel/IncidenciasPage'
+import AgendaPage from '@/pages/panel/AgendaPage'
 
 export default function App() {
   return (
@@ -42,10 +43,11 @@ export default function App() {
 
             {/* ── Panel: cualquier usuario autenticado ──────────────────────── */}
             {/* ── Panel: Rutas anidadas bajo /dashboard ────────────────────── */}
-            {/* ── Panel: Rutas anidadas bajo /dashboard ────────────────────── */}
             <Route path="/dashboard">
-              <Route index element={
-                <ProtectedRoute><DashboardPage /></ProtectedRoute>
+              <Route index element={<Navigate to="/dashboard/agenda" replace />} />
+              
+              <Route path="agenda" element={
+                <ProtectedRoute><AgendaPage /></ProtectedRoute>
               } />
               
               <Route path="caja" element={

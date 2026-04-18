@@ -13,6 +13,20 @@ const generateSlug = (name) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
 
+const TOKEN_OPTIONS = {
+  httpOnly: true,
+  secure: true, // Forzado por directiva del usuario
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+}
+
+const signTokens = (payload) => {
+  const accessToken = jwt.sign(payload, ENV.JWT_SECRET, { expiresIn: '15m' })
+  const refreshToken = jwt.sign(payload, ENV.JWT_REFRESH_SECRET, { expiresIn: '7d' })
+  return { accessToken, refreshToken }
+}
+
 // ─── Dueño: Register ─────────────────────────────────────────────────────────
 
 export const register = async (req, reply) => {
@@ -34,16 +48,12 @@ export const register = async (req, reply) => {
   const hashed = await bcrypt.hash(password, 10)
   const business = await createBusiness({ name, slug, email, password: hashed, phone, address, description })
 
-  // JWT: id (sujeto) + business_id (tenant) + role
-  const token = jwt.sign(
-    { id: business.id, business_id: business.id, role: 'owner' },
-    ENV.JWT_SECRET,
-    { expiresIn: '7d' }
-  )
-
+  const { accessToken, refreshToken } = signTokens({ id: business.id, business_id: business.id, role: 'owner' })
+  
+  reply.setCookie('refreshToken', refreshToken, TOKEN_OPTIONS)
+  
   const { password: _, ...businessData } = business
-
-  reply.send({ token, business: businessData })
+  reply.send({ token: accessToken, business: businessData })
 }
 
 // ─── Dueño: Login ────────────────────────────────────────────────────────────
@@ -65,15 +75,12 @@ export const login = async (req, reply) => {
     return reply.status(401).send({ error: 'Credenciales inválidas' })
   }
 
-  // JWT: id (sujeto) + business_id (tenant) + role
-  const token = jwt.sign(
-    { id: business.id, business_id: business.id, role: 'owner' },
-    ENV.JWT_SECRET,
-    { expiresIn: '7d' }
-  )
+  const { accessToken, refreshToken } = signTokens({ id: business.id, business_id: business.id, role: 'owner' })
+  
+  reply.setCookie('refreshToken', refreshToken, TOKEN_OPTIONS)
 
   const { password: _, ...businessData } = business
-  reply.send({ token, business: businessData })
+  reply.send({ token: accessToken, business: businessData })
 }
 
 // ─── Staff: Login por PIN ─────────────────────────────────────────────────────
@@ -81,11 +88,6 @@ export const login = async (req, reply) => {
 /**
  * POST /api/auth/staff-login
  * Body: { business_id: number, pin: string }
- *
- * El PIN se pepa con el business_id antes de comparar con el hash almacenado.
- * Pepper: `${business_id}:${pin}` — previene rainbow tables sobre 0000-9999.
- *
- * JWT emitido: { business_id, role: 'empleado', staff_id } — minimalista.
  */
 export const staffLogin = async (req, reply) => {
   const { business_id, pin } = req.body
@@ -97,15 +99,13 @@ export const staffLogin = async (req, reply) => {
     return reply.status(400).send({ error: 'El PIN debe ser de 4 dígitos numéricos' })
   }
 
-  // Verificar que el negocio existe
   const business = await findBusinessById(business_id)
   if (!business) {
     return reply.status(401).send({ error: 'Negocio no encontrado' })
   }
 
-  // Obtener todos los staff activos del negocio y comparar PIN pepado
   const staffList = await findStaffByBusinessAndPin(business_id, pin)
-  const pepperedPin = `${business_id}:${pin}` // pepper dinámico con business_id
+  const pepperedPin = `${business_id}:${pin}`
 
   let matchedStaff = null
   for (const member of staffList) {
@@ -120,31 +120,24 @@ export const staffLogin = async (req, reply) => {
     return reply.status(401).send({ error: 'PIN incorrecto' })
   }
 
-  // Normalizar rol a ASCII-safe antes de emitir el JWT (insensible a mayúsculas)
   const r = String(matchedStaff.role || '').toLowerCase()
   const normalizedRole = (r === 'dueño' || r === 'owner' || r === 'administrador') ? 'owner' : 'employee'
 
-  const token = jwt.sign(
-    {
-      id: matchedStaff.id,
-      business_id: matchedStaff.business_id,
-      role: normalizedRole,
-      name: matchedStaff.name,
-      professional_name: matchedStaff.professional_name || matchedStaff.name,
-    },
-    ENV.JWT_SECRET,
-    { expiresIn: '12h' } // sesión más corta para staff
-  )
+  const { accessToken, refreshToken } = signTokens({
+    id: matchedStaff.id,
+    business_id: matchedStaff.business_id,
+    role: normalizedRole,
+    name: matchedStaff.name,
+    professional_name: matchedStaff.professional_name || matchedStaff.name,
+  })
 
-  reply.send({ token, staff: { name: matchedStaff.name } })
+  reply.setCookie('refreshToken', refreshToken, TOKEN_OPTIONS)
+
+  reply.send({ token: accessToken, staff: { name: matchedStaff.name } })
 }
 
 // ─── Kiosco: Perfiles disponibles ─────────────────────────────────────────
 
-/**
- * GET /api/auth/profiles (requiere verifyToken)
- * Devuelve la lista de perfiles (dueño + staff) para el Lock Screen.
- */
 export const getProfiles = async (req, reply) => {
   const businessId = req.user.business_id
 
@@ -175,20 +168,13 @@ export const getProfiles = async (req, reply) => {
 
     reply.send({ profiles })
   } catch (err) {
-    console.error('Error getProfiles:', err)
+    reply.log.error(err, 'Error getProfiles')
     reply.status(500).send({ error: 'Error al obtener perfiles' })
   }
 }
 
 // ─── Kiosco: Verificar PIN ────────────────────────────────────────────────
 
-/**
- * POST /api/auth/verify-pin (requiere verifyToken)
- * Body: { profile_id: 'owner' | 'staff-{id}', pin: '1234' }
- *
- * Valida el PIN sin emitir un nuevo JWT.
- * Devuelve: { valid: true, role, staff_id, name }
- */
 export const verifyPin = async (req, reply) => {
   const businessId = req.user.business_id
   const { profile_id, pin } = req.body
@@ -203,12 +189,11 @@ export const verifyPin = async (req, reply) => {
 
   try {
     if (profile_id === 'owner') {
-      // Verificar PIN del dueño
       const business = await findBusinessById(businessId)
       if (!business) return reply.status(404).send({ error: 'Negocio no encontrado' })
 
       if (!business.owner_pin_hash) {
-        return reply.status(400).send({ error: 'El dueño no tiene PIN configurado. Configuralo en Ajustes.' })
+        return reply.status(400).send({ error: 'El dueño no tiene PIN configurado.' })
       }
 
       const pepperedPin = `owner:${businessId}:${pin}`
@@ -225,7 +210,6 @@ export const verifyPin = async (req, reply) => {
       })
     }
 
-    // Staff PIN
     const staffIdMatch = profile_id.match(/^staff-(\d+)$/)
     if (!staffIdMatch) {
       return reply.status(400).send({ error: 'profile_id inválido' })
@@ -253,17 +237,13 @@ export const verifyPin = async (req, reply) => {
       profile_id,
     })
   } catch (err) {
-    console.error('Error verifyPin:', err)
+    reply.log.error(err, 'Error verifyPin')
     reply.status(500).send({ error: 'Error al verificar PIN' })
   }
 }
 
 // ─── Dueño: Configurar Owner PIN ──────────────────────────────────────────
 
-/**
- * PUT /api/settings/owner-pin (requiere verifyToken + requireRole('dueño'))
- * Body: { pin: '1234' }
- */
 export const updateOwnerPin = async (req, reply) => {
   const businessId = req.user.business_id
   const { pin } = req.body
@@ -283,7 +263,47 @@ export const updateOwnerPin = async (req, reply) => {
 
     reply.send({ message: 'PIN de dueño actualizado correctamente' })
   } catch (err) {
-    console.error('Error updateOwnerPin:', err)
+    reply.log.error(err, 'Error updateOwnerPin')
     reply.status(500).send({ error: 'Error al actualizar el PIN' })
   }
+}
+
+// ── Rutas de Refresh y Logout ─────────────────────────────────────────────
+
+/**
+ * POST /api/auth/refresh
+ * Lee el refreshToken de la cookie, lo valida y emite un nuevo par de tokens.
+ * Implementa rotación de refresh token.
+ */
+export const refresh = async (req, reply) => {
+  const oldRefreshToken = req.cookies.refreshToken
+  if (!oldRefreshToken) return reply.status(401).send({ error: 'Sesión expirada' })
+
+  try {
+    const decoded = jwt.verify(oldRefreshToken, ENV.JWT_REFRESH_SECRET)
+    
+    // Rotación del Refresh Token
+    const { accessToken, refreshToken } = signTokens({
+      id: decoded.id,
+      business_id: decoded.business_id,
+      role: decoded.role,
+      name: decoded.name,
+      professional_name: decoded.professional_name,
+    })
+
+    reply.setCookie('refreshToken', refreshToken, TOKEN_OPTIONS)
+    return { token: accessToken }
+  } catch (err) {
+    reply.log.warn({ err: err.message }, 'Refresh token inválido')
+    return reply.status(401).send({ error: 'Sesión inválida o expirada' })
+  }
+}
+
+/**
+ * POST /api/auth/logout
+ * Limpia la cookie del refresh token.
+ */
+export const logout = async (req, reply) => {
+  reply.clearCookie('refreshToken', { path: '/' })
+  return { success: true }
 }

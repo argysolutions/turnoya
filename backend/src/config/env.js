@@ -13,6 +13,7 @@ export const ENV = {
         password: process.env.DB_PASSWORD,
       },
   JWT_SECRET: process.env.JWT_SECRET,
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret_for_dev',
   ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
   GREEN_API: {
     INSTANCE_ID: process.env.GREEN_API_INSTANCE_ID,

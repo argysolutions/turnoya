@@ -45,7 +45,7 @@ export const googleCallbackHandler = async (req, reply) => {
     `
     reply.type('text/html').send(html)
   } catch (error) {
-    console.error('Error Google Callback:', error)
+    reply.log.error(error, 'Error Google Callback')
     const errorHtml = `
       <html>
         <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #fff1f2;">
@@ -78,6 +78,7 @@ export const getGoogleStatusHandler = async (req, reply) => {
       updated_at: connection?.updated_at || null
     })
   } catch (err) {
+    reply.log.error(err, 'Error getGoogleStatus')
     reply.status(500).send({ error: 'Error al obtener estado de Google' })
   }
 }
@@ -91,6 +92,7 @@ export const removeGoogleAuthHandler = async (req, reply) => {
     await removeConnection(req.user.business_id, 'google')
     reply.send({ success: true, message: 'Google desvinculado exitosamente' })
   } catch (err) {
+    reply.log.error(err, 'Error removeGoogleAuth')
     reply.status(500).send({ error: 'Error al desvincular la cuenta' })
   }
 }

@@ -43,7 +43,7 @@ export const businessRoutes = async (app) => {
 
       reply.send({ message: 'PIN actualizado correctamente' })
     } catch (err) {
-      console.error('Error self-update PIN:', err)
+      reply.log.error(err, 'Error self-update PIN')
       reply.status(500).send({ error: 'Error al actualizar PIN' })
     }
   })

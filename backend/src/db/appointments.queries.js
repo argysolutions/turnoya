@@ -1,27 +1,58 @@
 import { pool } from '../config/db.js'
 
-export const createAppointment = async ({ businessId, serviceId, clientId, date, startTime, endTime, notes }) => {
+/**
+ * Crea un nuevo turno en la base de datos.
+ */
+export const createAppointment = async ({ businessId, serviceId, clientId, startAt, endAt, notes }) => {
   const result = await pool.query(
-    `INSERT INTO appointments (business_id, service_id, client_id, date, start_time, end_time, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO appointments (business_id, service_id, client_id, start_at, end_at, notes, status)
+     VALUES ($1, $2, $3, $4, $5, $6, 'confirmed')
      RETURNING *`,
-    [businessId, serviceId, clientId, date, startTime, endTime, notes]
+    [businessId, serviceId, clientId, startAt, endAt, notes]
   )
   return result.rows[0]
 }
 
-export const findOrCreateClient = async ({ name, phone, email }) => {
+/**
+ * Busca o crea un cliente en la tabla 'clientes' (plural).
+ */
+export const findOrCreateClient = async ({ businessId, name, phone, email }) => {
   const existing = await pool.query(
-    `SELECT * FROM clients WHERE phone = $1`,
-    [phone]
+    `SELECT * FROM clientes WHERE telefono = $1 AND business_id = $2`,
+    [phone, businessId]
   )
   if (existing.rows[0]) return existing.rows[0]
 
   const result = await pool.query(
-    `INSERT INTO clients (name, phone, email) VALUES ($1, $2, $3) RETURNING *`,
-    [name, phone, email]
+    `INSERT INTO clientes (business_id, nombre, telefono, email) 
+     VALUES ($1, $2, $3, $4) RETURNING *`,
+    [businessId, name, phone, email]
   )
   return result.rows[0]
+}
+
+/**
+ * Verifica si existe un solapamiento de horarios para un negocio específico.
+ * Retorna true si hay un solapamiento, false si está libre.
+ */
+export const checkOverlap = async (businessId, startAt, endAt, excludeId = null) => {
+  let query = `
+    SELECT id FROM appointments 
+    WHERE business_id = $1 
+      AND status NOT IN ('cancelled', 'liberate')
+      AND (
+        (start_at < $3 AND end_at > $2)
+      )
+  `
+  const params = [businessId, startAt, endAt]
+
+  if (excludeId) {
+    query += ` AND id != $4`
+    params.push(excludeId)
+  }
+
+  const result = await pool.query(query, params)
+  return result.rows.length > 0
 }
 
 export const getAppointmentById = async (id) => {
@@ -29,11 +60,11 @@ export const getAppointmentById = async (id) => {
     `SELECT a.*, 
             b.name as business_name, b.address as business_address, b.phone as business_phone,
             s.name as service_name, s.duration, s.price,
-            c.name as client_name, c.phone as client_phone
+            c.nombre as client_name, c.telefono as client_phone
      FROM appointments a
      JOIN businesses b ON a.business_id = b.id
      JOIN services s ON a.service_id = s.id
-     JOIN clients c ON a.client_id = c.id
+     JOIN clientes c ON a.client_id = c.id
      WHERE a.id = $1`,
     [id]
   )
@@ -43,20 +74,21 @@ export const getAppointmentById = async (id) => {
 export const getAppointmentsByBusiness = async (businessId, date) => {
   let query = `SELECT a.*,
                       s.name as service_name, s.duration, s.price,
-                      c.name as client_name, c.phone as client_phone,
+                      c.nombre as client_name, c.telefono as client_phone,
                       (SELECT CAST(COUNT(*) AS INTEGER) FROM appointments a2 WHERE a2.client_id = a.client_id AND a2.business_id = a.business_id) as client_history_count
                FROM appointments a
                JOIN services s ON a.service_id = s.id
-               JOIN clients c ON a.client_id = c.id
+               JOIN clientes c ON a.client_id = c.id
                WHERE a.business_id = $1`
   const params = [businessId]
 
   if (date) {
-    query += ` AND a.date = $2`
+    // Filtrar por el rango del día date (YYYY-MM-DD)
+    query += ` AND a.start_at::date = $2`
     params.push(date)
   }
 
-  query += ` ORDER BY a.date ASC, a.start_time ASC`
+  query += ` ORDER BY a.start_at ASC`
 
   const result = await pool.query(query, params)
   return result.rows
@@ -82,9 +114,9 @@ export const updateAppointmentStatus = async (id, businessId, status, paymentInf
 
       // Traemos client_name y phone
       const clientRes = await client.query(
-        `SELECT c.name, c.phone
+        `SELECT c.nombre, c.telefono
          FROM appointments a
-         JOIN clients c ON a.client_id = c.id
+         JOIN clientes c ON a.client_id = c.id
          WHERE a.id = $1`,
         [id]
       )
@@ -93,7 +125,7 @@ export const updateAppointmentStatus = async (id, businessId, status, paymentInf
       await client.query(
         `INSERT INTO sales (business_id, appointment_id, client_name, phone, amount, payment_method, professional_name, staff_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [businessId, id, clientData.name || null, clientData.phone || null, amount, method, professionalName, staffId]
+        [businessId, id, clientData.nombre || null, clientData.telefono || null, amount, method, professionalName, staffId]
       )
     }
 

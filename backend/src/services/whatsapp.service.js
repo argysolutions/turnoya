@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ENV } from '../config/env.js'
+import { logger } from '../config/logger.js'
 
 /**
  * Limpia el número de teléfono para que sea compatible con Green API.
@@ -27,7 +28,7 @@ export const sendConfirmation = async (clientPhone, appointmentData) => {
 
   // Si no están configuradas las credenciales, no intentamos enviar (e.g. en entorno de desarrollo rápido)
   if (!ENV.GREEN_API.INSTANCE_ID || !ENV.GREEN_API.TOKEN) {
-    console.warn('⚠️ Green API no configurado. Mensaje de WhatsApp simulado:', clientPhone)
+    logger.warn({ clientPhone }, '⚠️ Green API no configurado. Mensaje de WhatsApp simulado')
     return false
   }
 
@@ -51,10 +52,10 @@ Queríamos confirmarte tu turno para *${serviceName}*.
       message,
     })
     
-    console.log(`✅ WhatsApp de confirmación enviado a ${chatId}`)
+    logger.info({ chatId }, '✅ WhatsApp de confirmación enviado')
     return response.data
   } catch (error) {
-    console.error('❌ Error enviando WhatsApp por Green API:', error.response?.data || error.message)
+    logger.error({ err: error.response?.data || error.message }, '❌ Error enviando WhatsApp por Green API')
     // No lanzamos excepcion acá para no frenar el flujo completo de la DB
     return false
   }

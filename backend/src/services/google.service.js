@@ -2,6 +2,7 @@ import { google } from 'googleapis'
 import { ENV } from '../config/env.js'
 import { createOrUpdateConnection, findConnection } from '../db/connections.queries.js'
 import { encrypt, decrypt } from '../utils/encryption.js'
+import { logger } from '../config/logger.js'
 
 /**
  * Google Pack Service
@@ -85,7 +86,7 @@ export const getGoogleClientForBusiness = async (businessId) => {
   // Escuchamos el evento de refresh para actualizar la DB automáticamente
   oauth2Client.on('tokens', async (tokens) => {
     if (tokens.access_token) {
-      console.log('🔄 Google Access Token refrescado para business:', businessId)
+      logger.info({ businessId }, '🔄 Google Access Token refrescado')
       await createOrUpdateConnection(businessId, 'google', {
         access_token:  encrypt(tokens.access_token),
         refresh_token: tokens.refresh_token ? encrypt(tokens.refresh_token) : null,
@@ -135,9 +136,8 @@ export const ensureContactExists = async (businessId, clientData) => {
     })
 
     return createResponse.data
-
-  } catch (error) {
-    console.error("Error asegurando la existencia del contacto de Google:", error.message)
+  } catch (err) {
+    logger.error(err, 'Error asegurando la existencia del contacto de Google')
     // No lanzamos el error para no trabar el flujo principal de reserva
     return null
   }

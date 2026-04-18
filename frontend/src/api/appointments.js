@@ -1,8 +1,19 @@
 import client from './client'
 
-export const bookAppointment = (slug, data) => client.post(`/p/${slug}/book`, data)
-export const getAppointment = (id) => client.get(`/appointments/${id}`)
-export const getAppointments = (date) => client.get(`/appointments${date ? `?date=${date}` : ''}`)
-export const updateStatus = (id, status, paymentInfo = null) =>
-  client.patch(`/appointments/${id}/status`, paymentInfo ? { status, paymentInfo } : { status })
-export const createBlock = (data) => client.post(`/appointments/block`, data)
+export const getAppointments = (date) => 
+  client.get('/appointments', { params: { date } })
+
+export const getAppointment = (id) => 
+  client.get(`/appointments/${id}`)
+
+export const createAppointment = (data) => 
+  client.post('/appointments', data)
+
+export const updateAppointmentStatus = (id, data) => 
+  client.patch(`/appointments/${id}/status`, data)
+
+export const deleteAppointment = (id) => 
+  client.delete(`/appointments/${id}`)
+
+export const blockTime = (data) => 
+  client.post('/appointments/block', data)

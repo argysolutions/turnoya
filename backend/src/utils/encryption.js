@@ -1,41 +1,37 @@
 import crypto from 'crypto'
 import { ENV } from '../config/env.js'
-
-/**
- * Utility for AES-256-CBC encryption of sensitive tokens
- */
+import { logger } from '../config/logger.js'
 
 const ALGORITHM = 'aes-256-cbc'
+const KEY = crypto.scryptSync(ENV.ENCRYPTION_KEY || 'default-secret-key', 'salt', 32)
 const IV_LENGTH = 16
-
-const getSecretKey = () => {
-  const key = ENV.ENCRYPTION_KEY || 'default-secret-key-32-chars-long-xxx'
-  // Ensure it's exactly 32 bytes for aes-256
-  return crypto.createHash('sha256').update(String(key)).digest()
-}
 
 export const encrypt = (text) => {
   if (!text) return null
-  const iv = crypto.randomBytes(IV_LENGTH)
-  const cipher = crypto.createCipheriv(ALGORITHM, getSecretKey(), iv)
-  let encrypted = cipher.update(text, 'utf8', 'hex')
-  encrypted += cipher.final('hex')
-  return `${iv.toString('hex')}:${encrypted}`
+  try {
+    const iv = crypto.randomBytes(IV_LENGTH)
+    const cipher = crypto.createCipheriv(ALGORITHM, KEY, iv)
+    let encrypted = cipher.update(text)
+    encrypted = Buffer.concat([encrypted, cipher.final()])
+    return iv.toString('hex') + ':' + encrypted.toString('hex')
+  } catch (err) {
+    logger.error(err, 'Error crypto encrypt')
+    throw new Error('Encryption failed')
+  }
 }
 
 export const decrypt = (text) => {
   if (!text) return null
   try {
-    const [ivHex, encryptedText] = text.split(':')
-    if (!ivHex || !encryptedText) return null
-    
-    const iv = Buffer.from(ivHex, 'hex')
-    const decipher = crypto.createDecipheriv(ALGORITHM, getSecretKey(), iv)
-    let decrypted = decipher.update(encryptedText, 'hex', 'utf8')
-    decrypted += decipher.final('utf8')
-    return decrypted
+    const textParts = text.split(':')
+    const iv = Buffer.from(textParts.shift(), 'hex')
+    const encryptedText = Buffer.from(textParts.join(':'), 'hex')
+    const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv)
+    let decrypted = decipher.update(encryptedText)
+    decrypted = Buffer.concat([decrypted, decipher.final()])
+    return decrypted.toString()
   } catch (err) {
-    console.error('Decryption failed:', err.message)
-    return null
+    logger.error(err, 'Error crypto decrypt')
+    throw new Error('Decryption failed')
   }
 }
