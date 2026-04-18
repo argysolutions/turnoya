@@ -94,25 +94,25 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
           </div>
 
           {/* Conditional Time Inputs */}
-          {formData.isAllDay === false && (
-            <div className="flex gap-4 animate-in slide-in-from-top-2 fade-in duration-200 w-full">
-              <div className="space-y-2 flex-1">
-                <Label htmlFor="block_start_time" className="font-semibold text-slate-700">Hora Inicio</Label>
-                <Input 
-                  id="block_start_time" 
+          {!formData.isAllDay && (
+            <div className="flex w-full gap-4 mt-4">
+              <div className="flex-1">
+                <label htmlFor="block_start_time" className="block text-sm font-medium text-slate-700 mb-1">Hora Inicio</label>
+                <input 
+                  id="block_start_time"
                   type="time" 
-                  className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950"
+                  className="w-full border-slate-200 shadow-sm rounded-xl h-11 px-3 border focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900" 
                   value={formData.start_time}
                   onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                   required
                 />
               </div>
-              <div className="space-y-2 flex-1">
-                <Label htmlFor="block_end_time" className="font-semibold text-slate-700">Hora Fin</Label>
-                <Input 
-                  id="block_end_time" 
+              <div className="flex-1">
+                <label htmlFor="block_end_time" className="block text-sm font-medium text-slate-700 mb-1">Hora Fin</label>
+                <input 
+                  id="block_end_time"
                   type="time" 
-                  className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950"
+                  className="w-full border-slate-200 shadow-sm rounded-xl h-11 px-3 border focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900" 
                   value={formData.end_time}
                   onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                   required
