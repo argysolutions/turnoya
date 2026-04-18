@@ -20,10 +20,10 @@ const AccordionSection = ({ title, count, color, children, defaultOpen = false }
       >
         <div className="flex items-center gap-3">
           <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm", color)} />
-          <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">
+          <h3 className="text-xs font-semibold text-slate-700 tracking-tight">
             {title}
           </h3>
-          <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-0.5 rounded-lg border border-slate-200/40">
+          <span className="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-0.5 rounded-lg border border-slate-200/40">
             {count}
           </span>
         </div>
@@ -50,7 +50,7 @@ const AccordionSection = ({ title, count, color, children, defaultOpen = false }
                 children
               ) : (
                 <div className="py-12 text-center bg-slate-50/20">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sin turnos registrados</p>
+                  <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">Sin turnos registrados</p>
                 </div>
               )}
             </div>
