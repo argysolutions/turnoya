@@ -180,60 +180,10 @@ export default function AgendaPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row-reverse gap-8 w-full items-start">
           
-          {/* Main Agenda Column */}
-          <div className="flex-1 w-full space-y-4">
-            
-            {/* Control Bar */}
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input 
-                  placeholder="Buscar cliente o servicio..." 
-                  className="pl-10 h-11 border-slate-200 shadow-sm rounded-xl focus:ring-slate-900 transition-all font-medium"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <Button variant="outline" className="h-11 px-4 rounded-xl border-slate-200 bg-white text-slate-500 font-bold gap-2">
-                <Filter className="w-4 h-4" />
-                Filtros
-              </Button>
-            </div>
-
-            {loading ? (
-              <AgendaSkeleton />
-            ) : (
-              <div className="space-y-3">
-                <h2 className="text-base font-medium text-slate-500 capitalize pl-1 mb-2">
-                  {format(date, "EEEE, d 'de' MMMM", { locale: es })}
-                </h2>
-                {sections.map(section => (
-                  <AccordionSection
-                    key={section.id}
-                    title={section.title}
-                    count={(filteredSections[section.id] || []).length}
-                    color={section.color}
-                    defaultOpen={section.defaultOpen}
-                  >
-                    <div className="divide-y divide-slate-50">
-                      {(filteredSections[section.id] || []).map(appointment => (
-                        <AppointmentRow 
-                          key={appointment.id}
-                          appointment={appointment}
-                          onClick={(app) => setSelectedAppointment(app)}
-                        />
-                      ))}
-                    </div>
-                  </AccordionSection>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Sidebar - Desktop Only sticky */}
-          <aside className="hidden lg:block w-[360px] space-y-4 sticky top-6">
+          {/* Sidebar - Desktop Only sticky (Ahora a la derecha) */}
+          <aside className="hidden lg:block w-full lg:w-[350px] lg:shrink-0 lg:pr-4 space-y-4 sticky top-6">
             <Card className="border-slate-100 rounded-2xl overflow-hidden shadow-sm">
               <div className="p-3">
                 <Calendar
@@ -314,6 +264,56 @@ export default function AgendaPage() {
               </button>
             </div>
           </aside>
+
+          {/* Main Agenda Column (Ahora a la izquierda) */}
+          <div className="flex-1 w-full lg:pl-4 space-y-4">
+            
+            {/* Control Bar */}
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input 
+                  placeholder="Buscar cliente o servicio..." 
+                  className="pl-10 h-11 border-slate-200 shadow-sm rounded-xl focus:ring-slate-900 transition-all font-medium"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <Button variant="outline" className="h-11 px-4 rounded-xl border-slate-200 bg-white text-slate-500 font-bold gap-2">
+                <Filter className="w-4 h-4" />
+                Filtros
+              </Button>
+            </div>
+
+            {loading ? (
+              <AgendaSkeleton />
+            ) : (
+              <div className="space-y-3">
+                <h2 className="text-base font-medium text-slate-500 capitalize pl-1 mb-2">
+                  {format(date, "EEEE, d 'de' MMMM", { locale: es })}
+                </h2>
+                {sections.map(section => (
+                  <AccordionSection
+                    key={section.id}
+                    title={section.title}
+                    count={(filteredSections[section.id] || []).length}
+                    color={section.color}
+                    defaultOpen={section.defaultOpen}
+                  >
+                    <div className="divide-y divide-slate-50">
+                      {(filteredSections[section.id] || []).map(appointment => (
+                        <AppointmentRow 
+                          key={appointment.id}
+                          appointment={appointment}
+                          onClick={(app) => setSelectedAppointment(app)}
+                        />
+                      ))}
+                    </div>
+                  </AccordionSection>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <AppointmentDialog 
