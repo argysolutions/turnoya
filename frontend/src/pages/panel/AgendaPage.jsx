@@ -144,11 +144,11 @@ export default function AgendaPage() {
   ]
 
   return (
-    <Layout maxWidth="max-w-7xl">
+    <Layout maxWidth="max-w-screen-2xl">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* Header - Consolidated following ClientesPage pattern */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-0">
           <div>
             <div className="flex items-center gap-2">
               <CalendarIcon className="w-6 h-6 text-slate-900" />
@@ -168,7 +168,7 @@ export default function AgendaPage() {
         </header>
 
         {/* Date Selector Banner (Mobile friendly) */}
-        <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-100 shadow-sm sm:hidden mb-2">
+        <div className="mx-4 lg:mx-0 flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-100 shadow-sm sm:hidden mb-2">
           <Button variant="ghost" size="icon" onClick={() => setDate(new Date(date.setDate(date.getDate() - 1)))}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -180,10 +180,10 @@ export default function AgendaPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8 w-full items-start">
+        <div className="flex flex-col lg:flex-row-reverse gap-8 w-full items-start pb-8">
           
-          {/* Sidebar - Desktop Only sticky (Ahora a la IZQUIERDA) */}
-          <aside className="hidden lg:block w-full lg:w-[320px] lg:shrink-0 space-y-4 sticky top-6">
+          {/* Sidebar - Desktop Only sticky (Ahora a la DERECHA vía flex-row-reverse) */}
+          <aside className="hidden lg:block w-full lg:w-[350px] lg:shrink-0 lg:pr-4 space-y-4 sticky top-6">
             <Card className="border-slate-100 rounded-2xl overflow-hidden shadow-sm">
               <div className="p-3">
                 <Calendar
@@ -265,8 +265,8 @@ export default function AgendaPage() {
             </div>
           </aside>
 
-          {/* Main Agenda Column (Ahora a la DERECHA) */}
-          <div className="flex-1 w-full space-y-4">
+          {/* Main Agenda Column (Ahora a la IZQUIERDA vía flex-row-reverse) */}
+          <div className="flex-1 w-full lg:pl-4 space-y-4">
             
             {/* Control Bar */}
             <div className="flex flex-col md:flex-row gap-3">
