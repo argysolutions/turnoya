@@ -138,7 +138,7 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
             <Button 
               type="submit" 
               disabled={loading}
-              className="rounded-xl font-bold"
+              className="rounded-xl font-bold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
             >
               {loading ? 'Bloqueando...' : 'Confirmar Bloqueo'}
             </Button>

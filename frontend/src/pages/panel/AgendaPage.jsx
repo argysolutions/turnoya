@@ -32,7 +32,8 @@ export default function AgendaPage() {
     loading, 
     addAppointment,
     updateStatus,
-    removeAppointment
+    removeAppointment,
+    addBlock
   } = useAppointments()
 
   const [search, setSearch] = useState('')
@@ -56,9 +57,12 @@ export default function AgendaPage() {
   }
 
   const handleConfirmBlock = async (data) => {
-    // addBlock is provided by useAppointments
-    if (addBlock) await addBlock(data)
-    setShowBlockModal(false)
+    try {
+      await addBlock(data)
+      setShowBlockModal(false)
+    } catch (err) {
+      // toast errors handled inside addBlock
+    }
   }
 
   const filteredSections = useMemo(() => {
