@@ -14,9 +14,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calendar } from '@/components/ui/calendar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAppointments } from '@/hooks/useAppointments'
 import AppointmentRow from '@/components/Agenda/AppointmentRow'
-import AccordionSection from '@/components/Agenda/AccordionSection'
 import AgendaSkeleton from '@/components/Agenda/AgendaSkeleton'
 import AppointmentDialog from '@/components/Agenda/AppointmentDialog'
 import AppointmentDetailDialog from '@/components/Agenda/AppointmentDetailDialog'
@@ -135,13 +135,7 @@ export default function AgendaPage() {
     }
   }, [appointments, search])
 
-  const sections = [
-    { id: 'pendiente', title: 'Pendientes', color: 'bg-amber-400', defaultOpen: true },
-    { id: 'confirmado', title: 'Confirmados', color: 'bg-emerald-500', defaultOpen: true },
-    { id: 'finalizado', title: 'Finalizados', color: 'bg-slate-400', defaultOpen: false },
-    { id: 'cancelado', title: 'Cancelados', color: 'bg-rose-400', defaultOpen: false },
-    { id: 'ausente', title: 'Ausentes', color: 'bg-red-600', defaultOpen: false },
-  ]
+
 
   return (
     <Layout maxWidth="max-w-screen-2xl">
@@ -288,29 +282,105 @@ export default function AgendaPage() {
             {loading ? (
               <AgendaSkeleton />
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h2 className="text-base font-medium text-slate-500 capitalize pl-1 mb-2">
                   {format(date, "EEEE, d 'de' MMMM", { locale: es })}
                 </h2>
-                {sections.map(section => (
-                  <AccordionSection
-                    key={section.id}
-                    title={section.title}
-                    count={(filteredSections[section.id] || []).length}
-                    color={section.color}
-                    defaultOpen={section.defaultOpen}
-                  >
-                    <div className="divide-y divide-slate-50">
-                      {(filteredSections[section.id] || []).map(appointment => (
-                        <AppointmentRow 
-                          key={appointment.id}
-                          appointment={appointment}
-                          onClick={(app) => setSelectedAppointment(app)}
-                        />
-                      ))}
-                    </div>
-                  </AccordionSection>
-                ))}
+
+                <Tabs defaultValue="pendientes" className="w-full">
+                  <TabsList className="w-full justify-start h-auto p-1 bg-slate-100/80 rounded-2xl overflow-x-auto no-scrollbar flex-nowrap mb-6 border border-slate-200/50">
+                    <TabsTrigger value="pendientes" className="flex gap-2.5 px-4 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all">
+                      <span className="font-bold">Pendientes</span>
+                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
+                        {filteredSections.pendiente.length}
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="confirmados" className="flex gap-2.5 px-4 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-emerald-600 transition-all">
+                      <span className="font-bold">Confirmados</span>
+                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
+                        {filteredSections.confirmado.length}
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="finalizados" className="flex gap-2.5 px-4 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 transition-all">
+                      <span className="font-bold">Finalizados</span>
+                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
+                        {filteredSections.finalizado.length}
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="cancelados" className="flex gap-2.5 px-4 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-rose-600 transition-all">
+                      <span className="font-bold">Cancelados</span>
+                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
+                        {filteredSections.cancelado.length + filteredSections.ausente.length}
+                      </span>
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="pendientes" className="space-y-3 outline-none animate-in fade-in slide-in-from-left-4 duration-300">
+                    {filteredSections.pendiente.length > 0 ? (
+                      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                        {filteredSections.pendiente.map(appointment => (
+                          <AppointmentRow 
+                            key={appointment.id}
+                            appointment={appointment}
+                            onClick={(app) => setSelectedAppointment(app)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState message="NO HAY TURNOS PENDIENTES" />
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="confirmados" className="space-y-3 outline-none animate-in fade-in slide-in-from-left-4 duration-300">
+                    {filteredSections.confirmado.length > 0 ? (
+                      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                        {filteredSections.confirmado.map(appointment => (
+                          <AppointmentRow 
+                            key={appointment.id}
+                            appointment={appointment}
+                            onClick={(app) => setSelectedAppointment(app)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState message="NO HAY TURNOS CONFIRMADOS" />
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="finalizados" className="space-y-3 outline-none animate-in fade-in slide-in-from-left-4 duration-300">
+                    {filteredSections.finalizado.length > 0 ? (
+                      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                        {filteredSections.finalizado.map(appointment => (
+                          <AppointmentRow 
+                            key={appointment.id}
+                            appointment={appointment}
+                            onClick={(app) => setSelectedAppointment(app)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState message="SIN TURNOS FINALIZADOS" />
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="cancelados" className="space-y-3 outline-none animate-in fade-in slide-in-from-left-4 duration-300">
+                    {([...filteredSections.cancelado, ...filteredSections.ausente]).length > 0 ? (
+                      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                        {([...filteredSections.cancelado, ...filteredSections.ausente])
+                          .sort((a, b) => a.time.localeCompare(b.time))
+                          .map(appointment => (
+                          <AppointmentRow 
+                            key={appointment.id}
+                            appointment={appointment}
+                            onClick={(app) => setSelectedAppointment(app)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState message="SIN TURNOS CANCELADOS" />
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             )}
           </div>
@@ -340,6 +410,17 @@ export default function AgendaPage() {
 
       </div>
     </Layout>
+  )
+}
+
+function EmptyState({ message }) {
+  return (
+    <div className="text-center py-12 px-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 mb-4">
+        <Filter className="w-5 h-5 text-slate-400" />
+      </div>
+      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{message}</p>
+    </div>
   )
 }
 
