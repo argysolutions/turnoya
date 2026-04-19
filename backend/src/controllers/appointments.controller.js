@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { AppointmentService } from '../services/appointment.service.js'
-import { getAppointmentsByBusiness, getAppointmentById, getBlockedDates } from '../db/appointments.queries.js'
+import { getAppointmentsByBusiness, getAppointmentById, getBlockedDates, deleteAppointment as deleteAppointmentQuery } from '../db/appointments.queries.js'
 
 /**
  * Appointments Controller (Refactored Phase 1)
@@ -194,5 +194,26 @@ export const listBlockedDates = async (req, reply) => {
   } catch (err) {
     req.log.error(err)
     reply.status(500).send({ error: 'Error fetching blocked dates' })
+  }
+}
+
+/**
+ * Elimina un turno o bloqueo (Admin)
+ */
+export const deleteAppointment = async (req, reply) => {
+  try {
+    const { id } = req.params
+    const { business_id } = req.user
+
+    const result = await deleteAppointmentQuery(id, business_id)
+    
+    if (!result) {
+      return reply.status(404).send({ error: 'Registro no encontrado' })
+    }
+
+    reply.send({ success: true, message: 'Registro eliminado correctamente' })
+  } catch (err) {
+    req.log.error(err)
+    reply.status(500).send({ error: 'Error al eliminar el registro' })
   }
 }

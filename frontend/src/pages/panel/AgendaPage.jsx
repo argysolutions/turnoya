@@ -83,14 +83,24 @@ export default function AgendaPage() {
     return (appointments || []).find(app => app.status === 'blocked')
   }, [appointments])
 
-  const handleUndoBlock = async () => {
-    if (!activeBlock) return
-    if (!confirm('¿Estás seguro de que deseas eliminar este bloqueo?')) return
+  const handleUndoBlock = async (e) => {
+    if (e) e.preventDefault() // Evita recargas si está en un form
+    
+    if (!activeBlock || !activeBlock.id) {
+      toast.error('No se encontró el ID del bloqueo')
+      return
+    }
 
-    const success = await removeAppointment(activeBlock.id)
-    if (success) {
-      // Refresh monthly highlights after unblocking
-      fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+    try {
+      const success = await removeAppointment(activeBlock.id)
+      if (success) {
+        toast.success('Bloqueo eliminado correctamente')
+        // Refresh monthly highlights after unblocking
+        fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+      }
+    } catch (err) {
+      console.error('Error al deshacer bloqueo:', err)
+      // toast errors handled inside removeAppointment or here
     }
   }
 
@@ -270,6 +280,7 @@ export default function AgendaPage() {
                   </div>
                 </div>
                 <Button 
+                  type="button"
                   variant="destructive" 
                   size="sm" 
                   className="w-full h-9 rounded-xl font-bold text-xs"
