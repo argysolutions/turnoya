@@ -4,7 +4,6 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -20,8 +19,7 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [endTime, setEndTime] = useState('18:00')
   const [notes, setNotes] = useState('')
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     if (loading) return
     setLoading(true)
 
@@ -42,6 +40,8 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
         notes: notes
       })
       onClose()
+    } catch (err) {
+      // errors handled by parent via toast
     } finally {
       setLoading(false)
     }
@@ -61,7 +61,7 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           {/* Toggle de Día Completo */}
           <div 
             className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50 cursor-pointer select-none"
@@ -86,7 +86,6 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
                 className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950 font-medium"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                required
               />
             </div>
 
@@ -125,7 +124,7 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
             />
           </div>
 
-          <DialogFooter className="mt-6 gap-2 sm:gap-0">
+          <div className="flex justify-end gap-2 mt-6">
             <Button 
               type="button" 
               variant="outline" 
@@ -136,14 +135,15 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
               Cancelar
             </Button>
             <Button 
-              type="submit" 
+              type="button" 
               disabled={loading}
               className="rounded-xl font-bold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+              onClick={handleSubmit}
             >
               {loading ? 'Bloqueando...' : 'Confirmar Bloqueo'}
             </Button>
-          </DialogFooter>
-        </form>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   )
