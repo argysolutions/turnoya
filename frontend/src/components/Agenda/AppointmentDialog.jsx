@@ -78,6 +78,7 @@ export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) =
           <DialogDescription>
             Completá los datos para reservar un espacio en la agenda.
           </DialogDescription>
+          <h1 className="text-red-500 text-4xl font-black">TEST VISUAL AQUI</h1>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">

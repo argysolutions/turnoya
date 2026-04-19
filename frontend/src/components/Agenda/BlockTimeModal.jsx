@@ -64,6 +64,7 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
           <DialogDescription className="text-sm text-slate-500">
             Reserva un espacio en la agenda para evitar que los clientes agenden.
           </DialogDescription>
+          <h1 className="text-red-500 text-4xl font-black">TEST VISUAL AQUI</h1>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
