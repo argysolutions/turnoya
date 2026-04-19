@@ -15,16 +15,12 @@ import { VisualTimePicker } from '@/components/shared/VisualTimePicker'
 
 export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
-  
-  const [formData, setFormData] = useState({
-    date: initialDate ? format(initialDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-    isAllDay: true,
-    start_time: '09:00',
-    end_time: '18:00',
-    notes: ''
-  })
+  const [isAllDay, setIsAllDay] = useState(true)
+  const [date, setDate] = useState(initialDate ? format(initialDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'))
+  const [startTime, setStartTime] = useState('09:00')
+  const [endTime, setEndTime] = useState('18:00')
+  const [notes, setNotes] = useState('')
 
-  // Prevent multiple calls
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (loading) return
@@ -33,18 +29,18 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
     try {
       let startAt, endAt
 
-      if (formData.isAllDay) {
-        startAt = new Date(`${formData.date}T00:00:00`).toISOString()
-        endAt = new Date(`${formData.date}T23:59:59`).toISOString()
+      if (isAllDay) {
+        startAt = new Date(`${date}T00:00:00`).toISOString()
+        endAt = new Date(`${date}T23:59:59`).toISOString()
       } else {
-        startAt = new Date(`${formData.date}T${formData.start_time}:00`).toISOString()
-        endAt = new Date(`${formData.date}T${formData.end_time}:00`).toISOString()
+        startAt = new Date(`${date}T${startTime}:00`).toISOString()
+        endAt = new Date(`${date}T${endTime}:00`).toISOString()
       }
 
       await onConfirm({
         start_at: startAt,
         end_at: endAt,
-        notes: formData.notes
+        notes: notes
       })
       onClose()
     } finally {
@@ -64,70 +60,67 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
           <DialogDescription className="text-sm text-slate-500">
             Reserva un espacio en la agenda para evitar que los clientes agenden.
           </DialogDescription>
-          <h1 className="text-red-500 text-4xl font-black">TEST VISUAL AQUI</h1>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            {/* Fila superior: Switch de Día Completo */}
-            <div className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50">
-              <div>
-                <p className="font-medium text-slate-900">Día Completo</p>
-                <p className="text-sm text-slate-500">Bloquear las 24 horas del día seleccionado.</p>
-              </div>
-              <Switch 
-                checked={formData.isAllDay === true} 
-                onCheckedChange={(val) => setFormData({ ...formData, isAllDay: val === true })}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Switch de Día Completo */}
+          <div className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50">
+            <div>
+              <p className="font-medium text-slate-900">Día Completo</p>
+              <p className="text-sm text-slate-500">Bloquear las 24 horas del día seleccionado.</p>
+            </div>
+            <Switch 
+              checked={isAllDay} 
+              onCheckedChange={setIsAllDay}
+            />
+          </div>
+
+          {/* Fila principal: Fecha y (condicionalmente) Horas */}
+          <div className="flex w-full gap-4 items-end">
+            <div className={isAllDay ? "w-full" : "w-1/2"}>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha</label>
+              <Input 
+                id="block_date" 
+                type="date" 
+                className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950 font-medium"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
               />
             </div>
 
-            {/* Fila principal: Fecha y (condicionalmente) Horas */}
-            <div className="flex w-full gap-4 items-end">
-              <div className={formData.isAllDay ? "w-full" : "w-1/2"}>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha</label>
-                <Input 
-                  id="block_date" 
-                  type="date" 
-                  className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950 font-medium"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  required
-                />
-              </div>
-
-              {!formData.isAllDay && (
-                <div className="flex w-1/2 gap-4">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Inicio</label>
-                    <VisualTimePicker
-                      label="Inicio"
-                      value={formData.start_time}
-                      onChange={(val) => setFormData({ ...formData, start_time: val })}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Fin</label>
-                    <VisualTimePicker
-                      label="Fin"
-                      value={formData.end_time}
-                      onChange={(val) => setFormData({ ...formData, end_time: val })}
-                    />
-                  </div>
+            {!isAllDay && (
+              <div className="flex w-1/2 gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Inicio</label>
+                  <VisualTimePicker
+                    label="Inicio"
+                    value={startTime}
+                    onChange={setStartTime}
+                  />
                 </div>
-              )}
-            </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Fin</label>
+                  <VisualTimePicker
+                    label="Fin"
+                    value={endTime}
+                    onChange={setEndTime}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Reason Input */}
-          <div className="space-y-2">
-            <Label htmlFor="block_reason" className="font-semibold text-slate-700 ml-1 block mb-1.5">Motivo (Opcional)</Label>
+          {/* Motivo */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-slate-700">Motivo (Opcional)</label>
             <Input 
               id="block_reason" 
               type="text" 
               placeholder="Ej: Feriado, Almuerzo, Receso..."
               className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
             />
           </div>
 

@@ -14,7 +14,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Clock } from 'lucide-react'
 import WheelTimePicker from '@/components/ui/wheel-time-picker'
-import { Label } from '@/components/ui/label'
 
 export const VisualTimePicker = ({ value, onChange, label }) => {
   const [isOpen, setIsOpen] = useState(false)

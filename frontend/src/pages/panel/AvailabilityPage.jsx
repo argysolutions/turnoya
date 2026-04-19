@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import client from '@/api/client'
 import WheelTimePicker from '@/components/ui/wheel-time-picker'
-import TimePickerModal from '@/components/ui/time-picker-modal'
 import { Label } from '@/components/ui/label'
 
 const DAYS = [
