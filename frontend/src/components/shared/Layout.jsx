@@ -73,26 +73,25 @@ function NavScrollable({ location }) {
         ref={scrollRef}
         className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto no-scrollbar whitespace-nowrap"
       >
-        {visibleNavItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`relative text-[13px] sm:text-sm px-2.5 sm:px-4 h-11 flex items-center justify-center transition-all shrink-0 ${
-              location.pathname === item.path
-                ? 'text-slate-900 font-bold'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            {item.label}
-            {location.pathname === item.path && (
-              <motion.div
-                layoutId="nav-underline"
-                className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-slate-900 rounded-full"
-                transition={{ type: "spring", stiffness: 380, damping: 30 }}
-              />
-            )}
-          </Link>
-        ))}
+        {visibleNavItems.map((item) => {
+          const isActive = location.pathname === item.path
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`relative text-[13px] sm:text-sm px-2.5 sm:px-4 h-11 flex items-center justify-center transition-all shrink-0 ${
+                isActive
+                  ? 'text-slate-900 font-bold'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              {item.label}
+              {isActive && (
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-slate-900 rounded-full" />
+              )}
+            </Link>
+          )
+        })}
       </nav>
 
 
