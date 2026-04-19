@@ -35,7 +35,8 @@ export default function AgendaPage() {
     removeAppointment,
     addBlock,
     blockedDates,
-    fetchBlockedDates
+    fetchBlockedDates,
+    refresh
   } = useAppointments()
 
   console.log('DEBUG: FECHAS BLOQUEADAS ACTUALES:', blockedDates)
@@ -94,9 +95,13 @@ export default function AgendaPage() {
     try {
       const success = await removeAppointment(activeBlock.id)
       if (success) {
-        toast.success('Bloqueo eliminado correctamente')
-        // Refresh monthly highlights after unblocking
+        // 1. Recargar los turnos del día seleccionado
+        refresh() 
+        
+        // 2. Recargar los días rojos del calendario del mes actual
         fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+        
+        toast.success('Bloqueo eliminado correctamente')
       }
     } catch (err) {
       console.error('Error al deshacer bloqueo:', err)
