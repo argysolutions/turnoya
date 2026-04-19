@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
 import { format } from 'date-fns'
 import { VisualTimePicker } from '@/components/shared/VisualTimePicker'
 
@@ -63,20 +62,18 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Switch de Día Completo */}
-          <div className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50">
+          {/* Toggle de Día Completo */}
+          <div 
+            className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50 cursor-pointer select-none"
+            onClick={() => setIsAllDay(!isAllDay)}
+          >
             <div>
               <p className="font-medium text-slate-900">Día Completo</p>
               <p className="text-sm text-slate-500">Bloquear las 24 horas del día seleccionado.</p>
             </div>
-            <Switch 
-              checked={isAllDay} 
-              onCheckedChange={(val) => {
-                const newVal = typeof val === 'boolean' ? val : !isAllDay
-                setIsAllDay(newVal)
-              }}
-              onClick={() => setIsAllDay(prev => !prev)}
-            />
+            <div className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ${isAllDay ? 'bg-slate-900' : 'bg-slate-300'}`}>
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${isAllDay ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </div>
           </div>
 
           {/* Fila principal: Fecha y (condicionalmente) Horas */}
