@@ -14,7 +14,7 @@ import { getClientes } from '@/api/clientes'
 import { getServices } from '@/api/services'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import TimePickerModal from '@/components/ui/time-picker-modal'
+import { VisualTimePicker } from '@/components/shared/VisualTimePicker'
 
 export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
@@ -111,18 +111,19 @@ export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) =
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Fecha</Label>
+          <div className="grid grid-cols-2 gap-4 items-end">
+            <div className="space-y-1.5">
+              <Label htmlFor="date" className="text-[10px] uppercase text-slate-400 font-bold ml-1 block">Fecha</Label>
               <Input 
                 id="date" 
                 type="date" 
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950 font-medium"
               />
             </div>
-            <div className="space-y-2">
-              <TimePickerModal
+            <div className="w-full">
+              <VisualTimePicker
                 label="Hora Inicio"
                 value={formData.start_time}
                 onChange={(val) => setFormData({ ...formData, start_time: val })}

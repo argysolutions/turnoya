@@ -9,10 +9,9 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { format } from 'date-fns'
-import TimePickerModal from '@/components/ui/time-picker-modal'
+import { VisualTimePicker } from '@/components/shared/VisualTimePicker'
 
 export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
@@ -59,7 +58,7 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px] rounded-2xl p-6 bg-white border-slate-100 shadow-xl">
+      <DialogContent className="sm:max-w-xl rounded-2xl p-6 bg-white border-slate-100 shadow-xl">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-bold tracking-tight text-slate-900">Bloquear Horario</DialogTitle>
           <DialogDescription className="text-sm text-slate-500">
@@ -68,24 +67,41 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Fecha */}
-          <div className="space-y-2">
-            <Label htmlFor="block_date" className="font-semibold text-slate-700">Fecha</Label>
-            <Input 
-              id="block_date" 
-              type="date" 
-              className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-            />
+          {/* Consolidated Date & Time Row (50/25/25) */}
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className={formData.isAllDay ? "w-full" : "flex-[2] w-full"}>
+              <Label htmlFor="block_date" className="font-semibold text-slate-700 ml-1 block mb-1.5">Fecha</Label>
+              <Input 
+                id="block_date" 
+                type="date" 
+                className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950 font-medium"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+              />
+            </div>
+
+            {!formData.isAllDay && (
+              <div className="flex flex-row gap-4 flex-[2] w-full">
+                <VisualTimePicker
+                  label="Inicio"
+                  value={formData.start_time}
+                  onChange={(val) => setFormData({ ...formData, start_time: val })}
+                />
+                <VisualTimePicker
+                  label="Fin"
+                  value={formData.end_time}
+                  onChange={(val) => setFormData({ ...formData, end_time: val })}
+                />
+              </div>
+            )}
           </div>
 
-          {/* All Day Toggle */}
-          <div className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50/50">
+          {/* All Day Toggle (Moved below time selection) */}
+          <div className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50/50 transition-all">
             <div className="space-y-0.5">
-              <Label className="font-bold text-slate-800">Día Completo</Label>
-              <p className="text-xs text-slate-500">Bloquear las 24 horas del día seleccionado.</p>
+              <p className="text-sm font-bold text-slate-800">Día Completo</p>
+              <p className="text-xs text-slate-500">Habilitar para ignorar el rango horario y bloquear las 24hs.</p>
             </div>
             <Switch 
               checked={formData.isAllDay === true} 
@@ -95,29 +111,9 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
             />
           </div>
 
-          {/* Unified Time Selection */}
-          {!formData.isAllDay && (
-            <div className="flex flex-row items-center gap-4 w-full mt-4 animate-in fade-in slide-in-from-top-2">
-              <div className="flex-1">
-                <TimePickerModal
-                  label="Inicio"
-                  value={formData.start_time}
-                  onChange={(val) => setFormData({ ...formData, start_time: val })}
-                />
-              </div>
-              <div className="flex-1">
-                <TimePickerModal
-                  label="Fin"
-                  value={formData.end_time}
-                  onChange={(val) => setFormData({ ...formData, end_time: val })}
-                />
-              </div>
-            </div>
-          )}
-
           {/* Reason Input */}
           <div className="space-y-2">
-            <Label htmlFor="block_reason" className="font-semibold text-slate-700">Motivo (Opcional)</Label>
+            <Label htmlFor="block_reason" className="font-semibold text-slate-700 ml-1 block mb-1.5">Motivo (Opcional)</Label>
             <Input 
               id="block_reason" 
               type="text" 
