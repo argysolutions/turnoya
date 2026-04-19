@@ -71,7 +71,11 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
             </div>
             <Switch 
               checked={isAllDay} 
-              onCheckedChange={setIsAllDay}
+              onCheckedChange={(val) => {
+                const newVal = typeof val === 'boolean' ? val : !isAllDay
+                setIsAllDay(newVal)
+              }}
+              onClick={() => setIsAllDay(prev => !prev)}
             />
           </div>
 
