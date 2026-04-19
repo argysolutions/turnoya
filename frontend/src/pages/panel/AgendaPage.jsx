@@ -94,6 +94,17 @@ export default function AgendaPage() {
     }
   }
 
+  // Parse block reason safely
+  const blockReason = useMemo(() => {
+    if (!activeBlock?.notes) return "Bloqueo de agenda"
+    try {
+      const parsed = JSON.parse(activeBlock.notes)
+      return parsed.text || "Bloqueo de agenda"
+    } catch (e) {
+      return activeBlock.notes
+    }
+  }, [activeBlock])
+
   const filteredSections = useMemo(() => {
     const list = (appointments || []).filter(app => 
       app.client_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -216,17 +227,9 @@ export default function AgendaPage() {
                   onSelect={(d) => d && setDate(d)}
                   onMonthChange={setCurrentMonth}
                   className="w-full"
-                  modifiers={{ 
-                    // Matcher function is more reliable than array comparison
-                    blocked: (d) => {
-                      // TRACER: Forzamos el día 20 de Abril 2026 para testear si el estilo renderiza
-                      const isTracer = d.getFullYear() === 2026 && d.getMonth() === 3 && d.getDate() === 20;
-                      const isBlocked = (blockedDates || []).some(bd => isSameDay(bd, d));
-                      return isTracer || isBlocked;
-                    }
-                  }}
-                  classNames={{ 
-                    blocked: "[&_button]:bg-red-50 [&_button]:text-red-600 [&_button]:font-semibold [&_button]:border [&_button]:border-red-200 [&_button]:opacity-100" 
+                  modifiers={{ blocked: blockedDates }}
+                  modifiersClassNames={{ 
+                    blocked: "bg-red-100 text-red-600 font-bold" 
                   }}
                 />
                 <div className="mt-3 pt-3 border-t border-slate-50">
@@ -258,9 +261,7 @@ export default function AgendaPage() {
                     <p className="text-xs text-red-700 leading-tight mt-0.5">
                       Este día tiene un bloqueo de horario. Los clientes no pueden agendar.
                     </p>
-                    {activeBlock.notes && (
-                      <p className="text-xs italic text-red-600 mt-1">"{activeBlock.notes}"</p>
-                    )}
+                    <p className="text-xs italic text-red-600 mt-1">"{blockReason}"</p>
                   </div>
                 </div>
                 <Button 
