@@ -31,10 +31,10 @@ export const VisualTimePicker = ({ value, onChange, label }) => {
     <button
       type="button"
       onClick={() => setIsOpen(true)}
-      className="flex w-full h-11 items-center justify-between rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm transition-all hover:border-slate-300 active:scale-[0.98] outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+      className="flex items-center justify-between w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-medium bg-slate-50 hover:bg-slate-100 transition-colors shadow-sm active:scale-[0.98] outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
     >
-      <span>{value}</span>
-      <Clock className="h-4 w-4 text-slate-400" />
+      <span>{value} hs</span>
+      <Clock className="w-4 h-4 text-slate-400" />
     </button>
   )
 
