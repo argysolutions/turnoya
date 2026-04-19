@@ -69,8 +69,26 @@ export default function AgendaPage() {
     try {
       await addBlock(data)
       setShowBlockModal(false)
+      // Refresh monthly highlights after blocking
+      fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
     } catch (err) {
       // toast errors handled inside addBlock
+    }
+  }
+
+  // Detect active block for the currently selected day
+  const activeBlock = useMemo(() => {
+    return (appointments || []).find(app => app.status === 'blocked')
+  }, [appointments])
+
+  const handleUndoBlock = async () => {
+    if (!activeBlock) return
+    if (!confirm('¿Estás seguro de que deseas eliminar este bloqueo?')) return
+
+    const success = await removeAppointment(activeBlock.id)
+    if (success) {
+      // Refresh monthly highlights after unblocking
+      fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
     }
   }
 
@@ -213,6 +231,38 @@ export default function AgendaPage() {
                 </div>
               </div>
             </Card>
+
+            {/* Undo Block Card */}
+            {activeBlock && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col gap-3 shadow-sm"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-red-100 rounded-lg text-red-600">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-red-900">Bloqueo Activo</p>
+                    <p className="text-xs text-red-700 leading-tight mt-0.5">
+                      Este día tiene un bloqueo de horario. Los clientes no pueden agendar.
+                    </p>
+                    {activeBlock.notes && (
+                      <p className="text-xs italic text-red-600 mt-1">"{activeBlock.notes}"</p>
+                    )}
+                  </div>
+                </div>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  className="w-full h-9 rounded-xl font-bold text-xs"
+                  onClick={handleUndoBlock}
+                >
+                  Deshacer Bloqueo
+                </Button>
+              </motion.div>
+            )}
 
             <div className="grid grid-cols-2 gap-2">
               <Button 

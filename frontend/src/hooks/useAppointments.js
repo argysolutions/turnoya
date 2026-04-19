@@ -60,10 +60,11 @@ export const useAppointments = (initialDate = new Date()) => {
   const removeAppointment = async (id) => {
     try {
       await deleteAppointment(id)
-      toast.success('Turno eliminado')
+      toast.success('Registro eliminado')
       fetchAppointments()
+      return true
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Error al eliminar turno')
+      toast.error(err.response?.data?.error || 'Error al eliminar registro')
       throw err
     }
   }
@@ -83,8 +84,11 @@ export const useAppointments = (initialDate = new Date()) => {
   const fetchBlockedDates = useCallback(async (year, month) => {
     try {
       const { data } = await getBlockedDates({ year, month })
-      // Map strings to Date objects for the calendar modifiers
-      const dates = data.map(dateStr => new Date(dateStr + 'T12:00:00')) // Use noon to avoid TZ shift issues
+      // Map strings "YYYY-MM-DD" to safe local Date objects
+      const dates = data.map(dateStr => {
+        const [y, m, d] = dateStr.split('-').map(Number)
+        return new Date(y, m - 1, d) // Local day without time shifting
+      })
       setBlockedDates(dates)
     } catch (err) {
       console.error('Error fetching blocked dates:', err)
