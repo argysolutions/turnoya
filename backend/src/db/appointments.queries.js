@@ -75,15 +75,14 @@ export const getAppointmentsByBusiness = async (businessId, date) => {
   let query = `SELECT a.*,
                       s.name as service_name, s.duration, s.price,
                       c.nombre as client_name, c.telefono as client_phone,
-                      (SELECT CAST(COUNT(*) AS INTEGER) FROM appointments a2 WHERE a2.client_id = a.client_id AND a2.business_id = a.business_id) as client_history_count
+                      (SELECT CAST(COUNT(*) AS INTEGER) FROM appointments a2 WHERE a2.client_id = a.client_id AND a2.business_id = a.business_id AND a2.client_id IS NOT NULL) as client_history_count
                FROM appointments a
-               JOIN services s ON a.service_id = s.id
-               JOIN clientes c ON a.client_id = c.id
+               LEFT JOIN services s ON a.service_id = s.id
+               LEFT JOIN clientes c ON a.client_id = c.id
                WHERE a.business_id = $1`
   const params = [businessId]
 
   if (date) {
-    // Filtrar por el rango del día date (YYYY-MM-DD)
     query += ` AND a.start_at::date = $2`
     params.push(date)
   }
@@ -92,6 +91,23 @@ export const getAppointmentsByBusiness = async (businessId, date) => {
 
   const result = await pool.query(query, params)
   return result.rows
+}
+
+/**
+ * Returns distinct dates that have at least one blocked appointment in a given month.
+ */
+export const getBlockedDates = async (businessId, year, month) => {
+  const result = await pool.query(
+    `SELECT DISTINCT start_at::date as blocked_date
+     FROM appointments
+     WHERE business_id = $1
+       AND status = 'blocked'
+       AND EXTRACT(YEAR FROM start_at) = $2
+       AND EXTRACT(MONTH FROM start_at) = $3
+     ORDER BY blocked_date ASC`,
+    [businessId, year, month]
+  )
+  return result.rows.map(r => r.blocked_date)
 }
 
 export const updateAppointmentStatus = async (id, businessId, status, paymentInfo = null, staffContext = null) => {

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { AppointmentService } from '../services/appointment.service.js'
-import { getAppointmentsByBusiness, getAppointmentById } from '../db/appointments.queries.js'
+import { getAppointmentsByBusiness, getAppointmentById, getBlockedDates } from '../db/appointments.queries.js'
 
 /**
  * Appointments Controller (Refactored Phase 1)
@@ -179,5 +179,20 @@ export const createInternalAppointment = async (req, reply) => {
     }
     req.log.error(err)
     reply.status(500).send({ error: err.message })
+  }
+}
+
+/**
+ * Returns blocked dates for a given month (used by calendar widget)
+ */
+export const listBlockedDates = async (req, reply) => {
+  try {
+    const { year, month } = req.query
+    if (!year || !month) return reply.status(400).send({ error: 'year and month are required' })
+    const dates = await getBlockedDates(req.user.business_id, parseInt(year), parseInt(month))
+    reply.send(dates)
+  } catch (err) {
+    req.log.error(err)
+    reply.status(500).send({ error: 'Error fetching blocked dates' })
   }
 }

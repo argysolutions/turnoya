@@ -30,11 +30,20 @@ export default function AgendaPage() {
     setDate, 
     appointments, 
     loading, 
-    addAppointment,
+    addAppointment, 
     updateStatus,
     removeAppointment,
-    addBlock
+    addBlock,
+    blockedDates,
+    fetchBlockedDates
   } = useAppointments()
+
+  // Fetch blocked dates for the calendar whenever the visible month changes
+  const [currentMonth, setCurrentMonth] = React.useState(new Date())
+
+  React.useEffect(() => {
+    fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+  }, [currentMonth, fetchBlockedDates])
 
   const [search, setSearch] = useState('')
   const [showDialog, setShowDialog] = useState(false)
@@ -185,7 +194,12 @@ export default function AgendaPage() {
                   mode="single"
                   selected={date}
                   onSelect={(d) => d && setDate(d)}
+                  onMonthChange={setCurrentMonth}
                   className="w-full"
+                  modifiers={{ blocked: blockedDates }}
+                  modifiersClassNames={{ 
+                    blocked: "bg-red-50 text-red-600 font-semibold border-red-200" 
+                  }}
                 />
                 <div className="mt-3 pt-3 border-t border-slate-50">
                   <Button 

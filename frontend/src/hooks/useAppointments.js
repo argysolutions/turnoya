@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
-import { getAppointments, createAppointment, updateAppointmentStatus, deleteAppointment, blockTime } from '@/api/appointments'
+import { getAppointments, createAppointment, updateAppointmentStatus, deleteAppointment, blockTime, getBlockedDates } from '@/api/appointments'
 import { format } from 'date-fns'
 
 export const useAppointments = (initialDate = new Date()) => {
   const [date, setDate] = useState(initialDate)
   const [appointments, setAppointments] = useState([])
+  const [blockedDates, setBlockedDates] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -72,11 +73,23 @@ export const useAppointments = (initialDate = new Date()) => {
       await blockTime(blockData)
       toast.success('Horario bloqueado')
       fetchAppointments()
+      // We could also refresh blocked dates here if the block was on a different day
     } catch (err) {
       toast.error(err.response?.data?.error || 'Error al bloquear horario')
       throw err
     }
   }
+
+  const fetchBlockedDates = useCallback(async (year, month) => {
+    try {
+      const { data } = await getBlockedDates({ year, month })
+      // Map strings to Date objects for the calendar modifiers
+      const dates = data.map(dateStr => new Date(dateStr + 'T12:00:00')) // Use noon to avoid TZ shift issues
+      setBlockedDates(dates)
+    } catch (err) {
+      console.error('Error fetching blocked dates:', err)
+    }
+  }, [])
 
   return {
     date,
@@ -88,7 +101,9 @@ export const useAppointments = (initialDate = new Date()) => {
     addAppointment,
     updateStatus,
     removeAppointment,
-    addBlock
+    addBlock,
+    blockedDates,
+    fetchBlockedDates
   }
 }
 

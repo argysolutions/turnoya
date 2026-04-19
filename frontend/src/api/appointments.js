@@ -3,6 +3,9 @@ import client from './client'
 export const getAppointments = (date) => 
   client.get('/appointments', { params: { date } })
 
+export const getBlockedDates = ({ year, month }) => 
+  client.get('/appointments/blocked-dates', { params: { year, month } })
+
 export const getAppointment = (id) => 
   client.get(`/appointments/${id}`)
 
