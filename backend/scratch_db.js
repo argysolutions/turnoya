@@ -5,7 +5,7 @@ async function run() {
     console.log('Alterando chequeo de la DB...')
     await pool.query(`
       ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_status_check;
-      ALTER TABLE appointments ADD CONSTRAINT appointments_status_check CHECK (status IN ('pending', 'confirmed', 'cancelled', 'cancelled_occupied', 'completed'));
+      ALTER TABLE appointments ADD CONSTRAINT appointments_status_check CHECK (status IN ('pending', 'confirmed', 'cancelled', 'cancelled_occupied', 'completed', 'blocked', 'pending_block', 'cancelled_timeout', 'no_show', 'liberate'));
     `)
     console.log('Exito')
   } catch (e) {
