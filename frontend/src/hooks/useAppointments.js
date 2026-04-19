@@ -84,9 +84,10 @@ export const useAppointments = (initialDate = new Date()) => {
   const fetchBlockedDates = useCallback(async (year, month) => {
     try {
       const { data } = await getBlockedDates({ year, month })
-      // Map strings "YYYY-MM-DD" to safe local Date objects
+      // Map strings "YYYY-MM-DD" or full ISO to safe local Date objects
       const dates = data.map(dateStr => {
-        const [y, m, d] = dateStr.split('-').map(Number)
+        const justDate = dateStr.split('T')[0]
+        const [y, m, d] = justDate.split('-').map(Number)
         return new Date(y, m - 1, d) // Local day without time shifting
       })
       setBlockedDates(dates)

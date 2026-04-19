@@ -228,8 +228,13 @@ export default function AgendaPage() {
                   onMonthChange={setCurrentMonth}
                   className="w-full"
                   modifiers={{ blocked: blockedDates }}
-                  modifiersClassNames={{ 
-                    blocked: "bg-red-100 text-red-600 font-bold" 
+                  modifiersStyles={{ 
+                    blocked: { 
+                      backgroundColor: '#fee2e2', // bg-red-100
+                      color: '#dc2626',           // text-red-600
+                      fontWeight: 'bold',
+                      borderRadius: '0.5rem'
+                    } 
                   }}
                 />
                 <div className="mt-3 pt-3 border-t border-slate-50">
