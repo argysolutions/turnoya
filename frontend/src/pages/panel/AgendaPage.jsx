@@ -297,19 +297,21 @@ export default function AgendaPage() {
             )}
 
             <div className="grid grid-cols-2 gap-2">
-              <Button 
-                variant="outline"
-                className="h-12 rounded-xl text-slate-600 font-bold text-xs border-slate-200 bg-white gap-2"
+              <button 
+                type="button"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 h-11 text-sm font-medium text-white hover:bg-blue-600 hover:text-white transition-colors"
                 onClick={() => setShowBlockModal(true)}
               >
-                <Lock className="w-4 h-4" /> Bloquear
-              </Button>
-              <Button 
-                variant="outline"
-                className="h-12 rounded-xl text-slate-600 font-bold text-xs border-slate-200 bg-white gap-2"
+                <Lock className="w-4 h-4" />
+                Bloquear
+              </button>
+              <button 
+                type="button"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 h-11 text-sm font-medium text-white hover:bg-blue-600 hover:text-white transition-colors"
               >
-                <Clock className="w-4 h-4" /> Horarios
-              </Button>
+                <Clock className="w-4 h-4" />
+                Horarios
+              </button>
             </div>
           </aside>
         </div>
