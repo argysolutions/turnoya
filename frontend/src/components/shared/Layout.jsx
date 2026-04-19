@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { Link, useNavigate, useLocation, NavLink } from 'react-router-dom'
 import { Separator } from '@/components/ui/separator'
 import {
   DropdownMenu,
@@ -16,15 +15,15 @@ import { Button } from '@/components/ui/button'
 
 const navItems = [
   { label: 'Agenda', path: '/dashboard/agenda' },
-  { label: 'Servicios', path: '/servicios' },
-  { label: 'Disponibilidad', path: '/disponibilidad' },
+  { label: 'Servicios', path: '/dashboard/servicios' },
+  { label: 'Disponibilidad', path: '/dashboard/disponibilidad' },
   { label: 'Caja', path: '/dashboard/caja' },
   { label: 'Clientes', path: '/dashboard/clientes' },
   { label: 'Incidencias', path: '/dashboard/incidencias' },
   { label: 'Configuración', path: '/dashboard/configuracion' }
 ]
 
-function NavScrollable({ location }) {
+function NavScrollable() {
   const { isOwner, isEmployee, role } = useAuth()
   const scrollRef = useRef(null)
   
@@ -73,27 +72,29 @@ function NavScrollable({ location }) {
         ref={scrollRef}
         className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto no-scrollbar whitespace-nowrap"
       >
-        {visibleNavItems.map((item) => {
-          const isActive = location.pathname === item.path
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`relative text-[13px] sm:text-sm px-2.5 sm:px-4 h-11 flex items-center justify-center transition-all shrink-0 ${
+        {visibleNavItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) => 
+              `relative text-[13px] sm:text-sm px-2.5 sm:px-4 h-11 flex items-center justify-center shrink-0 transition-colors ${
                 isActive
                   ? 'text-slate-900 font-bold'
                   : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              {item.label}
-              {isActive && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-slate-900 rounded-full" />
-              )}
-            </Link>
-          )
-        })}
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                {item.label}
+                {isActive && (
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-slate-900 rounded-full" />
+                )}
+              </>
+            )}
+          </NavLink>
+        ))}
       </nav>
-
 
       {/* Right scroll indicator */}
       {canScrollRight && (
@@ -144,7 +145,7 @@ export default function Layout({ children }) {
               )}
             </div>
             <Separator orientation="vertical" className="h-4 shrink-0" />
-            <NavScrollable location={location} />
+            <NavScrollable />
           </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-4">
             <Button
