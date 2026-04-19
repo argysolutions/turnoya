@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { format } from 'date-fns'
+import { format, isSameDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { 
   Plus, 
@@ -37,6 +37,8 @@ export default function AgendaPage() {
     blockedDates,
     fetchBlockedDates
   } = useAppointments()
+
+  console.log('DEBUG: FECHAS BLOQUEADAS ACTUALES:', blockedDates)
 
   // Fetch blocked dates for the calendar whenever the visible month changes
   const [currentMonth, setCurrentMonth] = React.useState(new Date())
@@ -214,9 +216,17 @@ export default function AgendaPage() {
                   onSelect={(d) => d && setDate(d)}
                   onMonthChange={setCurrentMonth}
                   className="w-full"
-                  modifiers={{ blocked: blockedDates }}
-                  modifiersClassNames={{ 
-                    blocked: "bg-red-50 text-red-600 font-semibold border-red-200" 
+                  modifiers={{ 
+                    // Matcher function is more reliable than array comparison
+                    blocked: (d) => {
+                      // TRACER: Forzamos el día 20 de Abril 2026 para testear si el estilo renderiza
+                      const isTracer = d.getFullYear() === 2026 && d.getMonth() === 3 && d.getDate() === 20;
+                      const isBlocked = (blockedDates || []).some(bd => isSameDay(bd, d));
+                      return isTracer || isBlocked;
+                    }
+                  }}
+                  classNames={{ 
+                    blocked: "[&_button]:bg-red-50 [&_button]:text-red-600 [&_button]:font-semibold [&_button]:border [&_button]:border-red-200 [&_button]:opacity-100" 
                   }}
                 />
                 <div className="mt-3 pt-3 border-t border-slate-50">
