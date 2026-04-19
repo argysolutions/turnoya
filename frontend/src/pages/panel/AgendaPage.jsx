@@ -152,13 +152,18 @@ export default function AgendaPage() {
               Gestioná tu día, confirma citas y optimizá tu tiempo de trabajo.
             </p>
           </div>
-          <Button 
-            onClick={() => setShowDialog(true)}
-            className="rounded-xl font-bold gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Nuevo Turno
-          </Button>
+          <div className="flex items-center gap-4">
+            <span className="hidden md:block text-slate-500 font-bold bg-slate-100/50 px-3 py-1.5 rounded-xl border border-slate-200/50 text-sm capitalize">
+              {format(date, "EEEE, d 'de' MMMM", { locale: es })}
+            </span>
+            <Button 
+              onClick={() => setShowDialog(true)}
+              className="rounded-xl font-bold gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Nuevo Turno
+            </Button>
+          </div>
         </header>
 
         {/* Date Selector Banner (Mobile friendly) */}
@@ -262,58 +267,50 @@ export default function AgendaPage() {
           {/* Main Agenda Column (Ahora a la IZQUIERDA vía flex-row-reverse) */}
           <div className="flex-1 w-full lg:pl-4 space-y-4">
             
-            {/* Control Bar */}
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input 
-                  placeholder="Buscar cliente o servicio..." 
-                  className="pl-10 h-11 border-slate-200 shadow-sm rounded-xl focus:ring-slate-900 transition-all font-medium"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <Button variant="outline" className="h-11 px-4 rounded-xl border-slate-200 bg-white text-slate-500 font-bold gap-2">
-                <Filter className="w-4 h-4" />
-                Filtros
-              </Button>
-            </div>
-
             {loading ? (
               <AgendaSkeleton />
             ) : (
               <div className="space-y-4">
-                <h2 className="text-base font-medium text-slate-500 capitalize pl-1 mb-2">
-                  {format(date, "EEEE, d 'de' MMMM", { locale: es })}
-                </h2>
 
                 <Tabs defaultValue="pendientes" className="w-full">
-                  <TabsList className="w-full justify-start h-auto p-1 bg-slate-100/80 rounded-2xl overflow-x-auto no-scrollbar flex-nowrap mb-6 border border-slate-200/50">
-                    <TabsTrigger value="pendientes" className="flex gap-2.5 px-4 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all">
-                      <span className="font-bold">Pendientes</span>
-                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
-                        {filteredSections.pendiente.length}
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger value="confirmados" className="flex gap-2.5 px-4 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-emerald-600 transition-all">
-                      <span className="font-bold">Confirmados</span>
-                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
-                        {filteredSections.confirmado.length}
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger value="finalizados" className="flex gap-2.5 px-4 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 transition-all">
-                      <span className="font-bold">Finalizados</span>
-                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
-                        {filteredSections.finalizado.length}
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger value="cancelados" className="flex gap-2.5 px-4 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-rose-600 transition-all">
-                      <span className="font-bold">Cancelados</span>
-                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
-                        {filteredSections.cancelado.length + filteredSections.ausente.length}
-                      </span>
-                    </TabsTrigger>
-                  </TabsList>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <TabsList className="h-auto p-1 bg-slate-100/80 rounded-2xl overflow-x-auto no-scrollbar flex border border-slate-200/50 shrink-0">
+                      <TabsTrigger value="pendientes" className="flex gap-2 px-3 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all whitespace-nowrap">
+                        <span className="font-bold text-xs sm:text-sm">Pendientes</span>
+                        <span className="bg-slate-200 text-slate-700 py-0.5 px-1.5 rounded-full text-[9px] font-black">
+                          {filteredSections.pendiente.length}
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger value="confirmados" className="flex gap-2 px-3 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-emerald-600 transition-all whitespace-nowrap">
+                        <span className="font-bold text-xs sm:text-sm">Confirmados</span>
+                        <span className="bg-slate-200 text-slate-700 py-0.5 px-1.5 rounded-full text-[9px] font-black">
+                          {filteredSections.confirmado.length}
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger value="finalizados" className="flex gap-2 px-3 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 transition-all whitespace-nowrap">
+                        <span className="font-bold text-xs sm:text-sm">Finalizados</span>
+                        <span className="bg-slate-200 text-slate-700 py-0.5 px-1.5 rounded-full text-[9px] font-black">
+                          {filteredSections.finalizado.length}
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger value="cancelados" className="flex gap-2 px-3 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-rose-600 transition-all whitespace-nowrap">
+                        <span className="font-bold text-xs sm:text-sm">Cancelados</span>
+                        <span className="bg-slate-200 text-slate-700 py-0.5 px-1.5 rounded-full text-[9px] font-black">
+                          {filteredSections.cancelado.length + filteredSections.ausente.length}
+                        </span>
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <div className="relative w-full md:max-w-xs transition-all duration-300">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                      <Input 
+                        placeholder="Buscar cliente..." 
+                        className="pl-9 h-10 border-slate-200/60 shadow-sm rounded-xl focus:ring-slate-900 transition-all font-medium text-sm bg-white"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
 
                   <TabsContent value="pendientes" className="space-y-3 outline-none animate-in fade-in slide-in-from-left-4 duration-300">
                     {filteredSections.pendiente.length > 0 ? (
