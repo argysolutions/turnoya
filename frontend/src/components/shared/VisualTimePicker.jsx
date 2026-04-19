@@ -28,19 +28,14 @@ export const VisualTimePicker = ({ value, onChange, label }) => {
   }, [])
 
   const Trigger = (
-    <div className="space-y-1.5 w-full">
-      <Label className="text-[10px] uppercase text-slate-400 font-bold ml-1 block">
-        {label}
-      </Label>
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="flex w-full h-11 items-center justify-between rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm transition-all hover:border-slate-300 active:scale-[0.98] outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
-      >
-        <span>{value}</span>
-        <Clock className="h-4 w-4 text-slate-400" />
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={() => setIsOpen(true)}
+      className="flex w-full h-11 items-center justify-between rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm transition-all hover:border-slate-300 active:scale-[0.98] outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+    >
+      <span>{value}</span>
+      <Clock className="h-4 w-4 text-slate-400" />
+    </button>
   )
 
   const Content = (
@@ -76,9 +71,9 @@ export const VisualTimePicker = ({ value, onChange, label }) => {
       <PopoverTrigger asChild>
         {Trigger}
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-64 p-4 shadow-2xl rounded-2xl border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+      <PopoverContent align="start" className="w-auto min-w-[240px] p-4 bg-white rounded-2xl shadow-xl border-slate-100 animate-in fade-in zoom-in-95 duration-200 z-[100]">
         <div className="mb-3">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Seleccionar {label}</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-tight">Seleccionar {label}</p>
         </div>
         {Content}
       </PopoverContent>

@@ -111,9 +111,9 @@ export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) =
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 items-end">
-            <div className="space-y-1.5">
-              <Label htmlFor="date" className="text-[10px] uppercase text-slate-400 font-bold ml-1 block">Fecha</Label>
+          <div className="flex items-end gap-4">
+            <div className="flex-1">
+              <Label htmlFor="date" className="font-semibold text-slate-700 ml-1 block mb-1.5">Fecha</Label>
               <Input 
                 id="date" 
                 type="date" 
@@ -122,7 +122,8 @@ export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) =
                 className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950 font-medium"
               />
             </div>
-            <div className="w-full">
+            <div className="flex-1">
+              <Label className="font-semibold text-slate-700 ml-1 block mb-1.5">Hora Inicio</Label>
               <VisualTimePicker
                 label="Hora Inicio"
                 value={formData.start_time}

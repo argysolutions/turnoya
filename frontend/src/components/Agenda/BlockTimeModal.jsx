@@ -68,8 +68,8 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Consolidated Date & Time Row (50/25/25) */}
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className={formData.isAllDay ? "w-full" : "flex-[2] w-full"}>
+          <div className="flex w-full gap-4 items-end mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex-1">
               <Label htmlFor="block_date" className="font-semibold text-slate-700 ml-1 block mb-1.5">Fecha</Label>
               <Input 
                 id="block_date" 
@@ -82,18 +82,24 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
             </div>
 
             {!formData.isAllDay && (
-              <div className="flex flex-row gap-4 flex-[2] w-full">
-                <VisualTimePicker
-                  label="Inicio"
-                  value={formData.start_time}
-                  onChange={(val) => setFormData({ ...formData, start_time: val })}
-                />
-                <VisualTimePicker
-                  label="Fin"
-                  value={formData.end_time}
-                  onChange={(val) => setFormData({ ...formData, end_time: val })}
-                />
-              </div>
+              <>
+                <div className="w-1/4">
+                  <Label className="font-semibold text-slate-700 ml-1 block mb-1.5">Inicio</Label>
+                  <VisualTimePicker
+                    label="Inicio"
+                    value={formData.start_time}
+                    onChange={(val) => setFormData({ ...formData, start_time: val })}
+                  />
+                </div>
+                <div className="w-1/4">
+                  <Label className="font-semibold text-slate-700 ml-1 block mb-1.5">Fin</Label>
+                  <VisualTimePicker
+                    label="Fin"
+                    value={formData.end_time}
+                    onChange={(val) => setFormData({ ...formData, end_time: val })}
+                  />
+                </div>
+              </>
             )}
           </div>
 
