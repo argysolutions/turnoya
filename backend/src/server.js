@@ -89,6 +89,18 @@ import { startBookingWorker } from './workers/booking.worker.js'
 export const start = async () => {
   // Inyectamos el logger de Fastify en la conexión a la DB y en el Worker
   await connectDB(app.log)
+
+  // Auto-migrate: ensure all status values exist in the CHECK constraint
+  try {
+    const { pool } = await import('./config/db.js')
+    await pool.query("ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_status_check")
+    await pool.query(
+      "ALTER TABLE appointments ADD CONSTRAINT appointments_status_check CHECK (status IN ('pending', 'confirmed', 'cancelled', 'cancelled_occupied', 'completed', 'blocked', 'pending_block', 'cancelled_timeout', 'no_show', 'liberate'))"
+    )
+    app.log.info('✅ appointments_status_check constraint synced')
+  } catch (err) {
+    app.log.warn('⚠️ Could not sync status constraint: ' + err.message)
+  }
   
   // Iniciar Worker de BullMQ
   startBookingWorker(app.log)
