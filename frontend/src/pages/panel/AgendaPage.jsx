@@ -144,7 +144,7 @@ export default function AgendaPage() {
   ]
 
   return (
-    <Layout>
+    <Layout maxWidth="max-w-7xl">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* Header - Consolidated following ClientesPage pattern */}
@@ -180,10 +180,10 @@ export default function AgendaPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col lg:flex-row-reverse gap-8 w-full items-start">
+        <div className="flex flex-col lg:flex-row gap-8 w-full items-start">
           
-          {/* Sidebar - Desktop Only sticky (Ahora a la derecha) */}
-          <aside className="hidden lg:block w-full lg:w-[350px] lg:shrink-0 lg:pr-4 space-y-4 sticky top-6">
+          {/* Sidebar - Desktop Only sticky (Ahora a la IZQUIERDA) */}
+          <aside className="hidden lg:block w-full lg:w-[320px] lg:shrink-0 space-y-4 sticky top-6">
             <Card className="border-slate-100 rounded-2xl overflow-hidden shadow-sm">
               <div className="p-3">
                 <Calendar
@@ -265,8 +265,8 @@ export default function AgendaPage() {
             </div>
           </aside>
 
-          {/* Main Agenda Column (Ahora a la izquierda) */}
-          <div className="flex-1 w-full lg:pl-4 space-y-4">
+          {/* Main Agenda Column (Ahora a la DERECHA) */}
+          <div className="flex-1 w-full space-y-4">
             
             {/* Control Bar */}
             <div className="flex flex-col md:flex-row gap-3">

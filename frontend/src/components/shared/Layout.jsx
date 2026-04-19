@@ -106,7 +106,7 @@ function NavScrollable() {
   )
 }
 
-export default function Layout({ children }) {
+export default function Layout({ children, maxWidth = "max-w-5xl" }) {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -206,9 +206,9 @@ export default function Layout({ children }) {
           </div>
         </div>
       </header>
-      <main className="max-w-5xl mx-auto px-4 pt-6 pb-12">
+      <main className={`${maxWidth} mx-auto px-4 pt-6 pb-12`}>
         {children}
       </main>
     </div>
   )
-}
+}
