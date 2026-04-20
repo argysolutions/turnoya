@@ -66,6 +66,7 @@ export default function AgendaPage() {
   const [quickViewStatusFilter, setQuickViewStatusFilter] = useState('all')
   const [showScrollIndicator, setShowScrollIndicator] = useState(false)
   const [hasInitializedTab, setHasInitializedTab] = useState(false)
+  const [isPriorityExpanded, setIsPriorityExpanded] = useState(true)
   const scrollRef = useRef(null)
 
   const handleConfirmAdd = async (data) => {
@@ -257,6 +258,15 @@ export default function AgendaPage() {
       }));
   }, [pendientes])
 
+  // Smart auto-collapse for Priority Inbox
+  useEffect(() => {
+    if (activeTab !== 'pendientes') {
+      setIsPriorityExpanded(false);
+    } else {
+      setIsPriorityExpanded(true);
+    }
+  }, [activeTab]);
+
   return (
     <Layout maxWidth="max-w-screen-2xl">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -421,39 +431,61 @@ export default function AgendaPage() {
                       </button>
                     </div>
                   </div>
-                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Agrupada por fechas */}
+                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Agrupada por fechas y colapsable */}
                   {groupedPendientes.length > 0 && (
-                    <div className="w-full mb-12 mt-6">
-                      <div className="flex items-center gap-2 mb-6">
-                        <span className="relative flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
-                        </span>
-                        <h3 className="text-xl font-bold text-slate-800 tracking-tight">
-                          Requieren Acción Inmediata ({pendientes.length})
-                        </h3>
+                    <div className="w-full mb-8 mt-6">
+                      <div 
+                        onClick={() => setIsPriorityExpanded(!isPriorityExpanded)}
+                        className="flex items-center justify-between group cursor-pointer select-none mb-4"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                          </span>
+                          <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                            Requieren Acción Inmediata ({pendientes.length})
+                          </h3>
+                        </div>
+                        <motion.div
+                          animate={{ rotate: isPriorityExpanded ? 180 : 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-600 transition-colors"
+                        >
+                          <ChevronDown className="w-5 h-5" />
+                        </motion.div>
                       </div>
                       
-                      <div className="space-y-10">
-                        {groupedPendientes.map(group => (
-                          <div key={`group-${group.key}`} className="space-y-4">
-                            <div className="flex items-center gap-3">
-                              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                                Pendientes de {group.label}
-                              </span>
-                              <div className="h-[1px] w-full bg-slate-100" />
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full">
-                              {group.items.map(turno => (
-                                <div key={`priority-pending-${turno.id}`} className="w-full">
-                                  <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
+                      <AnimatePresence initial={false}>
+                        {isPriorityExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                            className="overflow-hidden space-y-10"
+                          >
+                            {groupedPendientes.map(group => (
+                              <div key={`group-${group.key}`} className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                                    Pendientes de {group.label}
+                                  </span>
+                                  <div className="h-[1px] w-full bg-slate-100" />
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full">
+                                  {group.items.map(turno => (
+                                    <div key={`priority-pending-${turno.id}`} className="w-full">
+                                      <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   )}
 
