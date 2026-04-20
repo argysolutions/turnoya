@@ -31,7 +31,7 @@ function Calendar({
         weekdays: "grid grid-cols-7 mb-4",
         weekday: "text-slate-500 font-medium text-xs uppercase tracking-tight text-center flex items-center justify-center h-10",
         weeks: "w-full",
-        week: "grid grid-cols-7 w-full mt-1.5",
+        week: "grid grid-cols-7 w-full mt-1.5 gap-1",
         day: "h-12 w-full flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
