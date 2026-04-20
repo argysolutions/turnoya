@@ -385,7 +385,7 @@ export default function AgendaPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex-1 flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                          <div className="w-full h-[204px] flex flex-col items-center justify-center bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
                             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
                           </div>
                         )}
@@ -405,7 +405,7 @@ export default function AgendaPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex-1 flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                          <div className="w-full h-[204px] flex flex-col items-center justify-center bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
                             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
                           </div>
                         )}
@@ -425,7 +425,7 @@ export default function AgendaPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex-1 flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                          <div className="w-full h-[204px] flex flex-col items-center justify-center bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
                             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
                           </div>
                         )}
@@ -447,7 +447,7 @@ export default function AgendaPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex-1 flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                          <div className="w-full h-[204px] flex flex-col items-center justify-center bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
                             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
                           </div>
                         )}
