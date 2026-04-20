@@ -429,7 +429,7 @@ export default function AgendaPage() {
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                         </span>
-                        <h3 className="text-[13px] font-bold text-slate-800 uppercase tracking-[0.15em]">
+                        <h3 className="text-xl font-bold text-slate-800 tracking-tight">
                           Requieren Acción Inmediata ({pendientes.length})
                         </h3>
                       </div>
@@ -437,8 +437,8 @@ export default function AgendaPage() {
                       <div className="space-y-10">
                         {groupedPendientes.map(group => (
                           <div key={`group-${group.key}`} className="space-y-4">
-                            <div className="flex items-center gap-4">
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
                                 Pendientes de {group.label}
                               </span>
                               <div className="h-[1px] w-full bg-slate-100" />
