@@ -12,9 +12,11 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   LayoutGrid as Grid3X3,
   Rows3
 } from 'lucide-react'
+import { useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calendar } from '@/components/ui/calendar'
@@ -60,9 +62,10 @@ export default function AgendaPage() {
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isGridView, setIsGridView] = useState(false)
   const [activeTab, setActiveTab] = useState('pendientes')
-  const [quickView, setQuickView] = useState({ isOpen: false, filterType: null })
   const [quickViewStatusFilter, setQuickViewStatusFilter] = useState('all')
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false)
   const [hasInitializedTab, setHasInitializedTab] = useState(false)
+  const scrollRef = useRef(null)
 
   const handleConfirmAdd = async (data) => {
     await addAppointment(data)
@@ -114,6 +117,25 @@ export default function AgendaPage() {
       console.error('Error al deshacer bloqueo:', err)
     }
   }
+
+  // Lógica de Indicador de Scroll para el Modal
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      // Mostramos el icono si hay contenido abajo (con un margen de 10px)
+      const hasMoreDown = scrollHeight > clientHeight + scrollTop + 10;
+      setShowScrollIndicator(hasMoreDown);
+    }
+  };
+
+  useEffect(() => {
+    if (quickView.isOpen) {
+      // Check immediately and also after a small delay for rendering
+      checkScroll();
+      const timer = setTimeout(checkScroll, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [quickView.isOpen, quickViewFilteredAppointments]);
 
   // Auto-selección de pestaña por prioridad al cargar
   React.useEffect(() => {
@@ -585,68 +607,86 @@ export default function AgendaPage() {
                 </Tabs>
               </div>
 
-              <div className="flex-1 overflow-auto custom-scrollbar p-6">
-                {quickViewFilteredAppointments.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
-                    
-                    {(() => {
-                      let lastDateLabel = null;
-                      return quickViewFilteredAppointments.map((appointment, idx) => {
-                        const currentDateLabel = format(new Date(appointment.start_at), "EEEE d 'de' MMMM", { locale: es });
-                        const isNewDay = currentDateLabel !== lastDateLabel;
-                        if (isNewDay) lastDateLabel = currentDateLabel;
+                <div 
+                  ref={scrollRef}
+                  onScroll={checkScroll}
+                  className="flex-1 overflow-auto custom-scrollbar p-6 relative"
+                >
+                  {quickViewFilteredAppointments.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
+                      
+                      {(() => {
+                        let lastDateLabel = null;
+                        return quickViewFilteredAppointments.map((appointment, idx) => {
+                          const currentDateLabel = format(new Date(appointment.start_at), "EEEE d 'de' MMMM", { locale: es });
+                          const isNewDay = currentDateLabel !== lastDateLabel;
+                          if (isNewDay) lastDateLabel = currentDateLabel;
 
-                        return (
-                          <React.Fragment key={appointment.id}>
-                            {quickView.filterType === 'semana' && isNewDay && (
-                              <div className="col-span-full mb-3 mt-6 first:mt-0">
-                                <div className="flex items-center gap-3">
-                                  <span className="text-[13px] font-bold text-slate-900 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200">
-                                    {currentDateLabel.charAt(0).toUpperCase() + currentDateLabel.slice(1)}
-                                  </span>
-                                  <div className="h-[1px] flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
+                          return (
+                            <React.Fragment key={appointment.id}>
+                              {quickView.filterType === 'semana' && isNewDay && (
+                                <div className="col-span-full mb-3 mt-6 first:mt-0">
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-[13px] font-bold text-slate-900 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200">
+                                      {currentDateLabel.charAt(0).toUpperCase() + currentDateLabel.slice(1)}
+                                    </span>
+                                    <div className="h-[1px] flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                            <motion.div 
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: idx * 0.01 }}
-                              className="w-full"
-                            >
-                              <AppointmentCard 
-                                appointment={appointment} 
-                                onClick={(app) => { 
-                                  setSelectedAppointment(app); 
-                                  setQuickView({ isOpen: false, filterType: null }); 
-                                  setQuickViewStatusFilter('all');
-                                }} 
-                              />
-                            </motion.div>
-                          </React.Fragment>
-                        );
-                      });
-                    })()}
-                  </div>
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                      <CalendarIcon className="w-8 h-8 text-slate-200" />
+                              )}
+                              <motion.div 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: idx * 0.01 }}
+                                className="w-full"
+                              >
+                                <AppointmentCard 
+                                  appointment={appointment} 
+                                  onClick={(app) => { 
+                                    setSelectedAppointment(app); 
+                                    setQuickView({ isOpen: false, filterType: null }); 
+                                    setQuickViewStatusFilter('all');
+                                  }} 
+                                />
+                              </motion.div>
+                            </React.Fragment>
+                          );
+                        });
+                      })()}
                     </div>
-                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos agendados</h3>
-                    <p className="text-xs text-slate-300 mt-1">Probá cambiando el filtro lateral para ver otros estados.</p>
-                  </div>
-                )}
-              </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                      <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                        <CalendarIcon className="w-8 h-8 text-slate-200" />
+                      </div>
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos agendados</h3>
+                      <p className="text-xs text-slate-300 mt-1">Probá cambiando el filtro lateral para ver otros estados.</p>
+                    </div>
+                  )}
 
-              {/* MODAL FOOTER */}
+                  {/* FLOATING SCROLL INDICATOR */}
+                  <AnimatePresence>
+                    {showScrollIndicator && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute bottom-10 right-10 z-50 pointer-events-none"
+                      >
+                        <div className="bg-white/80 backdrop-blur-md shadow-xl border border-slate-100 p-2.5 rounded-full animate-bounce">
+                          <ChevronDown className="w-5 h-5 text-indigo-600" />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
               <div className="px-8 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-2">
                   <span className={cn("text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border", quickViewTheme.bg, quickViewTheme.border, quickViewTheme.text)}>
                     Total: {quickViewFilteredAppointments.length} turnos
                   </span>
                 </div>
-                <p className="text-[10px] font-bold text-slate-400 italic">Deslizá para navegar {quickView.filterType === 'semana' ? 'hacia abajo' : 'frecuencialmente'} →</p>
               </div>
             </motion.div>
           </motion.div>
