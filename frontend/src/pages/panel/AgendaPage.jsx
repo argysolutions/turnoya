@@ -21,7 +21,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from '@/components/ui/card'
 import { useAppointments } from '@/hooks/useAppointments'
-import AppointmentRow from '@/components/Agenda/AppointmentRow'
+import AppointmentCard from '@/components/Agenda/AppointmentCard'
 import AgendaSkeleton from '@/components/Agenda/AgendaSkeleton'
 import AppointmentDialog from '@/components/Agenda/AppointmentDialog'
 import AppointmentDetailDialog from '@/components/Agenda/AppointmentDetailDialog'
