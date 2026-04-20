@@ -348,7 +348,7 @@ export default function AgendaPage() {
                     <TabsList className="flex flex-col h-auto w-full xl:w-64 bg-white border border-slate-200 space-y-1 p-2 rounded-2xl items-stretch justify-start shrink-0 shadow-sm">
                       <TabsTrigger 
                         value="pendientes" 
-                        className="flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-900 hover:bg-slate-50 transition-all"
+                        className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-slate-900 border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-900 hover:text-amber-600 hover:bg-amber-50/50 transition-all"
                       >
                         <span>Pendientes</span>
                         <span className="bg-amber-100 text-amber-700 py-0.5 px-2.5 rounded-full text-xs font-bold">{pendientes.length}</span>
@@ -356,7 +356,7 @@ export default function AgendaPage() {
 
                       <TabsTrigger 
                         value="confirmados" 
-                        className="flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-900 hover:bg-slate-50 transition-all"
+                        className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-slate-900 border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-900 hover:text-emerald-600 hover:bg-emerald-50/50 transition-all"
                       >
                         <span>Confirmados</span>
                         <span className="bg-emerald-100 text-emerald-700 py-0.5 px-2.5 rounded-full text-xs font-bold">{confirmados.length}</span>
@@ -364,7 +364,7 @@ export default function AgendaPage() {
 
                       <TabsTrigger 
                         value="finalizados" 
-                        className="flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-900 hover:bg-slate-50 transition-all"
+                        className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-slate-900 border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-900 hover:text-blue-600 hover:bg-blue-50/50 transition-all"
                       >
                         <span>Finalizados</span>
                         <span className="bg-blue-100 text-blue-700 py-0.5 px-2.5 rounded-full text-xs font-bold">{finalizados.length}</span>
@@ -372,7 +372,7 @@ export default function AgendaPage() {
 
                       <TabsTrigger 
                         value="cancelados" 
-                        className="flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 data-[state=active]:text-rose-900 hover:bg-slate-50 transition-all"
+                        className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-slate-900 border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 data-[state=active]:text-rose-900 hover:text-rose-600 hover:bg-rose-50/50 transition-all"
                       >
                         <span>Cancelados</span>
                         <span className="bg-rose-100 text-rose-700 py-0.5 px-2.5 rounded-full text-xs font-bold">{canceladosAusentes.length}</span>
