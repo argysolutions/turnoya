@@ -600,12 +600,12 @@ export default function AgendaPage() {
 
                 {/* MODAL INTERNAL FILTERS */}
                 <Tabs value={quickViewStatusFilter} onValueChange={setQuickViewStatusFilter} className="w-full">
-                  <TabsList className="bg-slate-100/50 p-1 rounded-xl h-11 mb-[-1px] border-b-0">
-                    <TabsTrigger value="all" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow-sm transition-all">Todos</TabsTrigger>
-                    <TabsTrigger value="pendientes" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all">Pendientes</TabsTrigger>
-                    <TabsTrigger value="confirmados" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm transition-all">Confirmados</TabsTrigger>
-                    <TabsTrigger value="finalizados" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all">Finalizados</TabsTrigger>
-                    <TabsTrigger value="cancelados" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm transition-all">Cancelados</TabsTrigger>
+                  <TabsList className="bg-white border border-slate-200 shadow-sm p-1 rounded-2xl h-auto flex flex-wrap gap-1 mb-4 justify-start">
+                    <TabsTrigger value="all" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-slate-50 data-[state=active]:shadow-inner transition-all">Todos</TabsTrigger>
+                    <TabsTrigger value="pendientes" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700 transition-all">Pendientes</TabsTrigger>
+                    <TabsTrigger value="confirmados" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 transition-all">Confirmados</TabsTrigger>
+                    <TabsTrigger value="finalizados" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-all">Finalizados</TabsTrigger>
+                    <TabsTrigger value="cancelados" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 transition-all">Cancelados</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
