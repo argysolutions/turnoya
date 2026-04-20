@@ -289,35 +289,25 @@ export default function AgendaPage() {
                 </div>
 
                 {/* 2. PESTAÑAS / ESTADOS (DEBAJO DEL BUSCADOR) */}
-                <Tabs defaultValue="pendientes" className="w-full">
-                  <TabsList className="flex w-full justify-start h-auto p-1 bg-slate-100/80 rounded-xl overflow-x-auto no-scrollbar flex-nowrap border border-slate-200/50 mb-6">
-                    <TabsTrigger value="pendientes" className="flex gap-2.5 px-4 py-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all whitespace-nowrap">
-                      <span className="font-bold text-xs sm:text-sm">Pendientes</span>
-                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
-                        {filteredSections.pendiente.length}
-                      </span>
+                <Tabs defaultValue="pendientes" className="w-full mt-6">
+                  
+                  {/* EL NAV COMPACTO */}
+                  <TabsList className="inline-flex h-12 items-center justify-start p-1 bg-slate-100/80 rounded-xl overflow-x-auto no-scrollbar flex-nowrap border border-slate-200/50 mb-6 w-full md:w-auto">
+                    <TabsTrigger value="pendientes" className="rounded-lg px-4 h-full text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all whitespace-nowrap gap-2">
+                       Pendientes <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">{filteredSections.pendiente.length}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="confirmados" className="flex gap-2.5 px-4 py-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-emerald-600 transition-all whitespace-nowrap">
-                      <span className="font-bold text-xs sm:text-sm">Confirmados</span>
-                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
-                        {filteredSections.confirmado.length}
-                      </span>
+                    <TabsTrigger value="confirmados" className="rounded-lg px-4 h-full text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all whitespace-nowrap gap-2">
+                       Confirmados <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">{filteredSections.confirmado.length}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="finalizados" className="flex gap-2.5 px-4 py-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 transition-all whitespace-nowrap">
-                      <span className="font-bold text-xs sm:text-sm">Finalizados</span>
-                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
-                        {filteredSections.finalizado.length}
-                      </span>
+                    <TabsTrigger value="finalizados" className="rounded-lg px-4 h-full text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all whitespace-nowrap gap-2">
+                       Finalizados <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">{filteredSections.finalizado.length}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="cancelados" className="flex gap-2.5 px-4 py-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-rose-600 transition-all whitespace-nowrap">
-                      <span className="font-bold text-xs sm:text-sm">Cancelados</span>
-                      <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">
-                        {filteredSections.cancelado.length + filteredSections.ausente.length}
-                      </span>
+                    <TabsTrigger value="cancelados" className="rounded-lg px-4 h-full text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all whitespace-nowrap gap-2">
+                       Cancelados <span className="bg-slate-200 text-slate-700 py-0.5 px-2 rounded-full text-[10px] font-black">{filteredSections.cancelado.length + filteredSections.ausente.length}</span>
                     </TabsTrigger>
                   </TabsList>
 
-                  {/* 3. CONTENIDO Y EMPTY STATE (OCUPANDO TODO EL ANCHO) */}
+                  {/* EL CONTENIDO QUE VA ABAJO (CARDS O EMPTY STATE) */}
                   <TabsContent value="pendientes" className="w-full mt-0 outline-none animate-in fade-in slide-in-from-left-4 duration-300">
                     {filteredSections.pendiente.length > 0 ? (
                       <div className="flex flex-col gap-3">
@@ -332,9 +322,9 @@ export default function AgendaPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-full flex flex-col items-center justify-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                        <Filter className="w-8 h-8 text-slate-300 mb-3" />
-                        <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">No hay turnos pendientes</p>
+                      <div className="w-full flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
+                        <Filter className="w-8 h-8 text-slate-300 mb-3 mx-auto" />
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">No hay turnos pendientes</p>
                       </div>
                     )}
                   </TabsContent>
@@ -353,9 +343,9 @@ export default function AgendaPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-full flex flex-col items-center justify-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                        <Filter className="w-8 h-8 text-slate-300 mb-3" />
-                        <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">No hay turnos confirmados</p>
+                      <div className="w-full flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
+                        <Filter className="w-8 h-8 text-slate-300 mb-3 mx-auto" />
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">No hay turnos confirmados</p>
                       </div>
                     )}
                   </TabsContent>
@@ -374,9 +364,9 @@ export default function AgendaPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-full flex flex-col items-center justify-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                        <Filter className="w-8 h-8 text-slate-300 mb-3" />
-                        <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Sin turnos finalizados</p>
+                      <div className="w-full flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
+                        <Filter className="w-8 h-8 text-slate-300 mb-3 mx-auto" />
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Sin turnos finalizados</p>
                       </div>
                     )}
                   </TabsContent>
@@ -397,9 +387,9 @@ export default function AgendaPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-full flex flex-col items-center justify-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                        <Filter className="w-8 h-8 text-slate-300 mb-3" />
-                        <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Sin turnos cancelados</p>
+                      <div className="w-full flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
+                        <Filter className="w-8 h-8 text-slate-300 mb-3 mx-auto" />
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Sin turnos cancelados</p>
                       </div>
                     )}
                   </TabsContent>
