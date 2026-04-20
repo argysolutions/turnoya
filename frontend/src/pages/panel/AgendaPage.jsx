@@ -69,6 +69,16 @@ export default function AgendaPage() {
   const [showScrollIndicator, setShowScrollIndicator] = useState(false)
   const [hasInitializedTab, setHasInitializedTab] = useState(false)
   const [isPriorityExpanded, setIsPriorityExpanded] = useState(true)
+  const [showSearchFilters, setShowSearchFilters] = useState(false)
+  const [activeSearchFilters, setActiveSearchFilters] = useState({
+    jornada: [], // 'manana', 'tarde'
+    cliente: [], // 'frecuente', 'nuevo'
+    staff: [] // array de IDs o nombres
+  })
+
+  // Derivado para saber si hay filtros activos y cambiar el color del botón
+  const hasActiveFilters = Object.values(activeSearchFilters).some(arr => arr.length > 0)
+
   const scrollRef = useRef(null)
 
   const handleConfirmAdd = async (data) => {
@@ -426,9 +436,10 @@ export default function AgendaPage() {
                 <AgendaSkeleton />
               ) : (
                 <>
-                  {/* 1. BUSCADOR, BOTÓN DE FILTRO Y CONMUTADOR DE VISTA */}
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="relative flex-1">
+                  {/* 1. BUSCADOR Y FILTROS AVANZADOS */}
+                  <div className="relative flex flex-col md:flex-row items-center gap-3 w-full">
+                    {/* Buscador */}
+                    <div className="relative flex-1 w-full">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input 
                         placeholder="Buscar cliente o servicio..." 
@@ -438,20 +449,99 @@ export default function AgendaPage() {
                       />
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <button type="button" className="flex items-center justify-center p-2.5 h-11 w-11 rounded-full bg-white text-slate-400 border border-slate-200 hover:text-blue-600 hover:border-blue-500 focus:outline-none transition-all shadow-sm active:scale-95 shrink-0">
-                        <Filter className="w-5 h-5" />
-                      </button>
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                      {/* Botón de Filtro (Con estado activo) */}
+                      <div className="relative">
+                        <button 
+                          type="button" 
+                          onClick={() => setShowSearchFilters(!showSearchFilters)}
+                          className={`flex items-center justify-center p-2.5 h-11 w-11 rounded-xl border transition-all shadow-sm shrink-0 active:scale-95 ${
+                            hasActiveFilters || showSearchFilters 
+                              ? 'bg-blue-50 border-blue-200 text-blue-600' 
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Filter className="w-5 h-5" />
+                          {/* Indicador de filtro activo */}
+                          {hasActiveFilters && <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white -mt-1 -mr-1"></span>}
+                        </button>
+
+                        {/* MENÚ FLOTANTE DE FILTROS (Popover) */}
+                        {showSearchFilters && (
+                          <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 z-[60] p-5 animate-in fade-in slide-in-from-top-2">
+                            {/* Header del Popover */}
+                            <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                              <h4 className="font-bold text-slate-700 text-sm">Filtros Avanzados</h4>
+                              <button onClick={() => setShowSearchFilters(false)} className="text-slate-400 hover:text-slate-600">
+                                <Plus className="w-5 h-5 rotate-45" />
+                              </button>
+                            </div>
+
+                            {/* Contenido de Filtros */}
+                            <div className="flex flex-col gap-5">
+                              {/* Bloque: Jornada */}
+                              <div>
+                                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Jornada</span>
+                                <div className="flex gap-2">
+                                  <label className="flex-1 flex items-center justify-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <input type="checkbox" className="accent-blue-600" />
+                                    <span className="text-sm text-slate-600 font-medium">Mañana</span>
+                                  </label>
+                                  <label className="flex-1 flex items-center justify-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <input type="checkbox" className="accent-blue-600" />
+                                    <span className="text-sm text-slate-600 font-medium">Tarde</span>
+                                  </label>
+                                </div>
+                              </div>
+
+                              {/* Bloque: Tipo de Cliente */}
+                              <div>
+                                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tipo de Cliente</span>
+                                <div className="flex flex-col gap-2">
+                                  <label className="flex items-center gap-3 p-1 cursor-pointer group">
+                                    <input type="checkbox" className="w-4 h-4 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" />
+                                    <span className="text-sm text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Cliente Frecuente (VIP)</span>
+                                  </label>
+                                  <label className="flex items-center gap-3 p-1 cursor-pointer group">
+                                    <input type="checkbox" className="w-4 h-4 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" />
+                                    <span className="text-sm text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Primera Vez</span>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Footer / Acciones */}
+                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                              <button 
+                                onClick={() => {
+                                  setActiveSearchFilters({ jornada: [], cliente: [], staff: [] });
+                                  setShowSearchFilters(false);
+                                }}
+                                className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+                              >
+                                Limpiar
+                              </button>
+                              <button 
+                                onClick={() => setShowSearchFilters(false)}
+                                className="px-4 py-2 bg-slate-900 hover:bg-blue-600 text-white text-sm font-bold rounded-xl transition-colors shadow-sm"
+                              >
+                                Aplicar Filtros
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                       
                       <button 
                         onClick={() => setIsGridView(!isGridView)}
-                        className="flex items-center justify-center p-2.5 h-11 w-11 rounded-full bg-white text-slate-400 border border-slate-200 hover:text-blue-600 hover:border-blue-500 focus:outline-none transition-all shrink-0 shadow-sm active:scale-95"
+                        className="flex items-center justify-center p-2.5 h-11 w-11 rounded-xl bg-white text-slate-400 border border-slate-200 hover:text-blue-600 hover:border-blue-500 focus:outline-none transition-all shrink-0 shadow-sm active:scale-95"
                         title={isGridView ? "Vista Lista" : "Vista Tablero"}
                       >
                         {isGridView ? <Rows3 className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
                       </button>
                     </div>
                   </div>
+
                   {/* BANDEJA DE ACCIÓN PRIORITARIA: Agrupada por fechas y colapsable */}
                   {groupedPendientes.length > 0 && (
                     <div className="w-full mb-8 mt-6">
