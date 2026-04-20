@@ -167,6 +167,13 @@ export default function AgendaPage() {
     }).sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
   }, [appointments, quickView.isOpen, quickView.filterType, activeTab])
 
+  // Helper para estilos del QuickView basados en el filtro
+  const quickViewTheme = useMemo(() => {
+    if (quickView.filterType === 'hoy') return { color: 'blue', label: 'Hoy', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900', secondary: 'text-blue-400', dot: 'bg-blue-600', shadow: 'shadow-blue-100' }
+    if (quickView.filterType === 'manana') return { color: 'emerald', label: 'Mañana', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-900', secondary: 'text-emerald-400', dot: 'bg-emerald-600', shadow: 'shadow-emerald-100' }
+    return { color: 'violet', label: 'Semana', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-900', secondary: 'text-violet-400', dot: 'bg-violet-600', shadow: 'shadow-violet-100' }
+  }, [quickView.filterType])
+
 
 
   const pendientes = filteredSections.pendiente;
@@ -484,28 +491,109 @@ export default function AgendaPage() {
 
       <AnimatePresence>
         {quickView.isOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-hidden">
-            <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden border border-slate-200">
-              <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white shrink-0">
-                <h2 className="text-lg font-black text-slate-900 tracking-tight">Vista Rápida: <span className="text-blue-600 capitalize">{quickView.filterType}</span></h2>
-                <Button onClick={() => setQuickView({ isOpen: false, filterType: null })} variant="ghost" size="sm" className="rounded-xl hover:bg-slate-100 text-slate-500 font-bold">Cerrar</Button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 overflow-hidden">
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 40 }} className="bg-white rounded-[32px] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
+              
+              {/* MODAL HEADER */}
+              <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${quickViewTheme.dot} animate-pulse`} />
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                    Vista Rápida: <span className={`${quickViewTheme.text.replace('text-', 'text-opacity-100 text-')}`}>{quickViewTheme.label}</span>
+                  </h2>
+                </div>
+                <Button 
+                  onClick={() => setQuickView({ isOpen: false, filterType: null })} 
+                  variant="ghost" 
+                  size="sm" 
+                  className="rounded-full w-10 h-10 p-0 hover:bg-slate-100 text-slate-400"
+                >
+                  <Plus className="w-6 h-6 rotate-45" />
+                </Button>
               </div>
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+
+              {/* MODAL CONTENT */}
+              <div className="flex-1 overflow-hidden flex flex-col">
                 {quickViewFilteredAppointments.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {quickViewFilteredAppointments.map(appointment => (
-                      <div key={appointment.id} onClick={() => { setSelectedAppointment(appointment); setQuickView({ isOpen: false, filterType: null }); }} className={`p-3 rounded-xl border flex flex-col gap-1 transition-all hover:scale-[1.02] cursor-pointer shadow-sm ${['pending', 'pending_block'].includes(appointment.status) ? 'bg-amber-50 border-amber-200 text-amber-900' : appointment.status === 'confirmed' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : appointment.status === 'completed' ? 'bg-blue-50 border-blue-200 text-blue-900' : 'bg-rose-50 border-rose-200 text-rose-900'}`}>
-                        <span className="text-sm font-black tracking-tight">{format(new Date(appointment.start_at), 'HH:mm')}</span>
-                        <span className="text-[11px] font-bold opacity-80 truncate">{appointment.client_name || appointment.service_name || 'Sin nombre'}</span>
-                      </div>
+                  <div className={cn(
+                    "p-8 overflow-auto custom-scrollbar flex-1",
+                    quickView.filterType === 'semana' ? "flex flex-col space-y-6" : "flex items-center gap-6 px-12 snap-x snap-mandatory pb-12"
+                  )}>
+                    
+                    {quickViewFilteredAppointments.map((appointment, idx) => (
+                      <motion.div 
+                        key={appointment.id}
+                        initial={{ opacity: 0, x: quickView.filterType === 'semana' ? 0 : 20, y: quickView.filterType === 'semana' ? 20 : 0 }}
+                        animate={{ opacity: 1, x: 0, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        onClick={() => { setSelectedAppointment(appointment); setQuickView({ isOpen: false, filterType: null }); }}
+                        className={cn(
+                          "relative group cursor-pointer transition-all snap-center",
+                          quickView.filterType === 'semana' ? "w-full" : "min-w-[280px] h-full flex flex-col justify-center"
+                        )}
+                      >
+                        {/* Timeline Connector */}
+                        {quickView.filterType === 'semana' ? (
+                          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-100 -translate-x-1/2 -z-10 group-last:bottom-1/2" />
+                        ) : (
+                          <div className="absolute left-0 right-0 bottom-0 h-0.5 bg-slate-100 -z-10 group-first:left-1/2 group-last:right-1/2" />
+                        )}
+
+                        <div className={cn(
+                          "relative p-6 rounded-[24px] border-2 transition-all group-hover:-translate-y-1 group-hover:shadow-xl group-active:scale-95",
+                          quickViewTheme.bg,
+                          quickViewTheme.border,
+                          quickViewTheme.shadow,
+                          quickView.filterType === 'semana' ? "ml-8" : "mb-8"
+                        )}>
+                          {/* Dot / Indicator */}
+                          <div className={cn(
+                            "absolute rounded-full border-4 border-white shadow-sm transition-transform group-hover:scale-125",
+                            quickViewTheme.dot,
+                            quickView.filterType === 'semana' ? "-left-[42px] top-1/2 -translate-y-1/2 w-5 h-5" : "left-1/2 -bottom-[42px] -translate-x-1/2 w-5 h-5"
+                          )} />
+
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className={cn("text-lg font-black tracking-tighter", quickViewTheme.text)}>
+                                {format(new Date(appointment.start_at), 'HH:mm')}
+                              </span>
+                              {quickView.filterType === 'semana' && (
+                                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                                  {format(new Date(appointment.start_at), 'EEEE d', { locale: es })}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="font-bold text-slate-800 text-base leading-tight truncate">
+                              {appointment.client_name || 'Sin nombre'}
+                            </h3>
+                            <p className={cn("text-[11px] font-bold uppercase tracking-wider opacity-60", quickViewTheme.text)}>
+                              {appointment.service_name || 'Servicio'}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
                     ))}
                   </div>
                 ) : (
-                  <div className="w-full h-48 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center"><p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p></div>
+                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                      <CalendarIcon className="w-8 h-8 text-slate-200" />
+                    </div>
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos agendados</h3>
+                    <p className="text-xs text-slate-300 mt-1">Probá cambiando el filtro lateral para ver otros estados.</p>
+                  </div>
                 )}
               </div>
-              <div className="px-6 py-3 bg-white border-t border-slate-100 flex justify-between items-center shrink-0">
-                <span className="text-[10px] font-bold text-slate-400 capitalize bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">Total: {quickViewFilteredAppointments.length}</span>
+
+              {/* MODAL FOOTER */}
+              <div className="px-8 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className={cn("text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border", quickViewTheme.bg, quickViewTheme.border, quickViewTheme.text)}>
+                    Total: {quickViewFilteredAppointments.length} turnos
+                  </span>
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 italic">Deslizá para navegar {quickView.filterType === 'semana' ? 'hacia abajo' : 'frecuencialmente'} →</p>
               </div>
             </motion.div>
           </motion.div>
