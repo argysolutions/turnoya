@@ -119,6 +119,7 @@ export const useAppointments = (initialDate = new Date()) => {
     date,
     setDate,
     appointments,
+    setAppointments,
     loading,
     error,
     refresh: fetchAppointments,

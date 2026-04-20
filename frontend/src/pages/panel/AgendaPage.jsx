@@ -39,6 +39,7 @@ export default function AgendaPage() {
     date, 
     setDate, 
     appointments, 
+    setAppointments,
     loading, 
     addAppointment, 
     updateStatus,
@@ -141,16 +142,24 @@ export default function AgendaPage() {
     }
   }, [loading, appointments, hasInitializedTab])
 
-  const handleAcceptAll = async () => {
-    if (pendientes.length === 0) return
-    const toastId = toast.loading('Confirmando todos los turnos...')
+  const handleAcceptAllPending = async () => {
     try {
-      await Promise.all(pendientes.map(app => updateStatus(app.id, 'confirmed')))
-      toast.success(`${pendientes.length} turnos confirmados con éxito`, { id: toastId })
-    } catch (err) {
-      toast.error('Error al confirmar algunos turnos', { id: toastId })
+      // 1. Actualización de Estado Local (Optimistic UI)
+      setAppointments(prevAppointments => 
+        prevAppointments.map(turno => 
+          turno.status === 'pending' || turno.status === 'pending_block'
+            ? { ...turno, status: 'confirmed' } 
+            : turno
+        )
+      );
+
+      // 2. Notificación de éxito
+      toast.success("Turnos confirmados exitosamente");
+    } catch (error) {
+      console.error("Error confirmando turnos:", error);
+      toast.error("Hubo un error al confirmar los turnos");
     }
-  }
+  };
 
   // Parse block reason safely
   const blockReason = useMemo(() => {
@@ -471,7 +480,7 @@ export default function AgendaPage() {
                         {/* Lado Derecho: Botón de Acción Masiva */}
                         <button 
                           type="button"
-                          onClick={handleAcceptAll}
+                          onClick={handleAcceptAllPending}
                           className="flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95"
                         >
                           <CheckCircle className="w-3.5 h-3.5" />
