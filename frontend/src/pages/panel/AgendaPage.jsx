@@ -61,6 +61,7 @@ export default function AgendaPage() {
   const [isGridView, setIsGridView] = useState(false)
   const [activeTab, setActiveTab] = useState('pendientes')
   const [quickView, setQuickView] = useState({ isOpen: false, filterType: null })
+  const [quickViewStatusFilter, setQuickViewStatusFilter] = useState('all')
   const [hasInitializedTab, setHasInitializedTab] = useState(false)
 
   const handleConfirmAdd = async (data) => {
@@ -170,24 +171,27 @@ export default function AgendaPage() {
     const weekEndAt = endOfWeek(todayForWeek, { weekStartsOn: 1 })     // Domingo
 
     return (appointments || []).filter(app => {
-      let matchesStatus = false
-      if (activeTab === 'pendientes') matchesStatus = ['pending', 'pending_block'].includes(app.status)
-      if (activeTab === 'confirmados') matchesStatus = app.status === 'confirmed'
-      if (activeTab === 'finalizados') matchesStatus = app.status === 'completed'
-      if (activeTab === 'cancelados') matchesStatus = ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(app.status)
-      
-      if (!matchesStatus) return false
-
+      // 1. Filtrar por Fecha
       const appDate = new Date(app.start_at)
-      if (quickView.filterType === 'hoy') return isSameDay(appDate, today)
-      if (quickView.filterType === 'manana') return isSameDay(appDate, tomorrow)
-      if (quickView.filterType === 'semana') {
-        return isWithinInterval(appDate, { start: weekStartAt, end: weekEndAt })
+      let matchesDate = false
+      if (quickView.filterType === 'hoy') matchesDate = isSameDay(appDate, today)
+      else if (quickView.filterType === 'manana') matchesDate = isSameDay(appDate, tomorrow)
+      else if (quickView.filterType === 'semana') {
+        matchesDate = isWithinInterval(appDate, { start: weekStartAt, end: weekEndAt })
       }
+      
+      if (!matchesDate) return false
+
+      // 2. Filtrar por Estado (si no es 'all')
+      if (quickViewStatusFilter === 'all') return true
+      if (quickViewStatusFilter === 'pendientes') return ['pending', 'pending_block'].includes(app.status)
+      if (quickViewStatusFilter === 'confirmados') return app.status === 'confirmed'
+      if (quickViewStatusFilter === 'finalizados') return app.status === 'completed'
+      if (quickViewStatusFilter === 'cancelados') return ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(app.status)
       
       return false
     }).sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
-  }, [appointments, quickView.isOpen, quickView.filterType, activeTab])
+  }, [appointments, quickView.isOpen, quickView.filterType, quickViewStatusFilter])
 
   // Helper para estilos del QuickView basados en el filtro
   const quickViewTheme = useMemo(() => {
@@ -548,21 +552,37 @@ export default function AgendaPage() {
             <motion.div initial={{ scale: 0.9, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 40 }} className="bg-white rounded-[32px] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
               
               {/* MODAL HEADER */}
-              <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${quickViewTheme.dot} animate-pulse`} />
-                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-                    Vista Rápida: <span className={`${quickViewTheme.text.replace('text-', 'text-opacity-100 text-')}`}>{quickViewTheme.label}</span>
-                  </h2>
+              <div className="px-8 pt-6 border-b border-slate-100 flex flex-col bg-white shrink-0">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${quickViewTheme.dot} animate-pulse`} />
+                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                      Vista Rápida: <span className={`${quickViewTheme.text.replace('text-', 'text-opacity-100 text-')}`}>{quickViewTheme.label}</span>
+                    </h2>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      setQuickView({ isOpen: false, filterType: null });
+                      setQuickViewStatusFilter('all');
+                    }} 
+                    variant="ghost" 
+                    size="sm" 
+                    className="rounded-full w-10 h-10 p-0 hover:bg-slate-100 text-slate-400"
+                  >
+                    <Plus className="w-6 h-6 rotate-45" />
+                  </Button>
                 </div>
-                <Button 
-                  onClick={() => setQuickView({ isOpen: false, filterType: null })} 
-                  variant="ghost" 
-                  size="sm" 
-                  className="rounded-full w-10 h-10 p-0 hover:bg-slate-100 text-slate-400"
-                >
-                  <Plus className="w-6 h-6 rotate-45" />
-                </Button>
+
+                {/* MODAL INTERNAL FILTERS */}
+                <Tabs value={quickViewStatusFilter} onValueChange={setQuickViewStatusFilter} className="w-full">
+                  <TabsList className="bg-slate-50 p-1 rounded-xl h-10 mb-[-1px] border-b-0">
+                    <TabsTrigger value="all" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:shadow-sm">Todos</TabsTrigger>
+                    <TabsTrigger value="pendientes" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm">Pendientes</TabsTrigger>
+                    <TabsTrigger value="confirmados" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm">Confirmados</TabsTrigger>
+                    <TabsTrigger value="finalizados" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Finalizados</TabsTrigger>
+                    <TabsTrigger value="cancelados" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm">Cancelados</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
 
               <div className="flex-1 overflow-auto custom-scrollbar p-6">
