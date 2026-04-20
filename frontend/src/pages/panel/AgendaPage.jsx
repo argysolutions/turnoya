@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { format, isSameDay } from 'date-fns'
+import { format, isSameDay, startOfToday, addDays, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { 
   Plus, 
@@ -56,6 +56,8 @@ export default function AgendaPage() {
   const [showBlockModal, setShowBlockModal] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isGridView, setIsGridView] = useState(false)
+  const [activeTab, setActiveTab] = useState('pendientes')
+  const [quickView, setQuickView] = useState({ isOpen: false, filterType: null })
 
   const handleConfirmAdd = async (data) => {
     await addAppointment(data)
@@ -138,6 +140,39 @@ export default function AgendaPage() {
       ausente: list.filter(a => a.status === 'no_show'),
     }
   }, [appointments, search])
+  
+  // Lógica de filtrado para la Vista Rápida (Modal)
+  const quickViewFilteredAppointments = useMemo(() => {
+    if (!quickView.isOpen || !quickView.filterType) return []
+    
+    const today = startOfToday()
+    const tomorrow = addDays(today, 1)
+    const weekStart = startOfToday()
+    const todayForWeek = startOfToday()
+    const weekStartAt = startOfWeek(todayForWeek, { weekStartsOn: 1 }) // Lunes
+    const weekEndAt = endOfWeek(todayForWeek, { weekStartsOn: 1 })     // Domingo
+
+    return (appointments || []).filter(app => {
+      // 1. Filtrar por Estado (Pestaña Activa)
+      let matchesStatus = false
+      if (activeTab === 'pendientes') matchesStatus = ['pending', 'pending_block'].includes(app.status)
+      if (activeTab === 'confirmados') matchesStatus = app.status === 'confirmed'
+      if (activeTab === 'finalizados') matchesStatus = app.status === 'completed'
+      if (activeTab === 'cancelados') matchesStatus = ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(app.status)
+      
+      if (!matchesStatus) return false
+
+      // 2. Filtrar por Tiempo
+      const appDate = new Date(app.start_at)
+      if (quickView.filterType === 'hoy') return isSameDay(appDate, today)
+      if (quickView.filterType === 'manana') return isSameDay(appDate, tomorrow)
+      if (quickView.filterType === 'semana') {
+        return isWithinInterval(appDate, { start: weekStartAt, end: weekEndAt })
+      }
+      
+      return false
+    }).sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
+  }, [appointments, quickView.isOpen, quickView.filterType, activeTab])
 
 
 
@@ -332,7 +367,11 @@ export default function AgendaPage() {
                   </div>
                 ) : (
                   /* --- MODO LISTA CON SIDEBAR (CURRENT DESIGN) --- */
-                  <Tabs defaultValue="pendientes" className="flex flex-col xl:flex-row gap-8 w-full mt-6 items-start">
+                  <Tabs 
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="flex flex-col xl:flex-row gap-8 w-full mt-6 items-start"
+                  >
                     
                     {/* MENÚ LATERAL IZQUIERDO */}
                     <TabsList className="flex flex-col h-auto w-full xl:w-64 bg-white border border-slate-200 space-y-1 p-2 rounded-2xl items-stretch justify-start shrink-0 shadow-sm">
@@ -368,6 +407,32 @@ export default function AgendaPage() {
                         <span className="bg-rose-200 text-rose-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{canceladosAusentes.length}</span>
                       </TabsTrigger>
                     </TabsList>
+
+                    {/* BOTONES DE FILTRO RÁPIDO */}
+                    <div className="mt-6 w-full xl:w-64">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Turnos de:</h4>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => setQuickView({ isOpen: true, filterType: 'hoy' })} 
+                          className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                        >
+                          Hoy
+                        </button>
+                        <button 
+                          onClick={() => setQuickView({ isOpen: true, filterType: 'manana' })} 
+                          className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                        >
+                          Mañana
+                        </button>
+                        <button 
+                          onClick={() => setQuickView({ isOpen: true, filterType: 'semana' })} 
+                          className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                        >
+                          Semana
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
                     {/* CONTENEDOR DE TARJETAS (Derecha) */}
                     <div className="flex-1 w-full">
@@ -483,6 +548,96 @@ export default function AgendaPage() {
         />
 
       </div>
+      {/* MODAL DE VISTA RÁPIDA (QUICK VIEW) */}
+      <AnimatePresence>
+        {quickView.isOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-hidden"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden border border-slate-200"
+            >
+              
+              {/* HEADER DEL MODAL */}
+              <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white shrink-0">
+                <div>
+                  <h2 className="text-lg font-black text-slate-900 tracking-tight">
+                    Vista Rápida: <span className="text-blue-600 capitalize">{quickView.filterType}</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Filtrando {activeTab} para el periodo seleccionado
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => setQuickView({ isOpen: false, filterType: null })} 
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-xl hover:bg-slate-100 text-slate-500 font-bold"
+                >
+                  Cerrar
+                </Button>
+              </div>
+
+              {/* CUERPO DEL MODAL CON LAS TARJETAS */}
+              <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4 custom-scrollbar">
+                {quickViewFilteredAppointments.length > 0 ? (
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                    {quickViewFilteredAppointments.map(appointment => (
+                      <AppointmentRow 
+                        key={appointment.id}
+                        appointment={appointment}
+                        onClick={(app) => {
+                          setSelectedAppointment(app)
+                          setQuickView({ isOpen: false, filterType: null })
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="w-full h-48 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center">
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
+                  </div>
+                )}
+              </div>
+
+              {/* FOOTER DEL MODAL */}
+              <div className="px-6 py-3 bg-white border-t border-slate-100 flex justify-between items-center shrink-0">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 py-1 bg-slate-50 rounded-lg border border-slate-100">
+                  Total: {quickViewFilteredAppointments.length}
+                </span>
+                <p className="text-[10px] text-slate-400 font-medium">
+                  Resultados basados en tu vista de {activeTab}
+                </p>
+              </div>
+              
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AppointmentDialog 
+        open={showDialog} 
+        onClose={() => setShowDialog(false)} 
+        onConfirm={handleConfirmAdd} 
+      />
+      <AppointmentDetailDialog 
+        appointment={selectedAppointment}
+        onClose={() => setSelectedAppointment(null)}
+        onUpdateStatus={handleUpdateStatus}
+        onDelete={handleDelete}
+      />
+      <BlockTimeModal
+        isOpen={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        onConfirm={handleConfirmBlock}
+        selectedDate={date}
+      />
     </Layout>
   )
 }
