@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card } from '@/components/ui/card'
 import { useAppointments } from '@/hooks/useAppointments'
 import AppointmentRow from '@/components/Agenda/AppointmentRow'
 import AgendaSkeleton from '@/components/Agenda/AgendaSkeleton'
