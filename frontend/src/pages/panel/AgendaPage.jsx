@@ -212,7 +212,7 @@ export default function AgendaPage() {
           <div>
             <div className="flex items-center gap-2">
               <CalendarIcon className="w-6 h-6 text-slate-900" />
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Agenda de Turnos</h1>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Agenda de Turnos</h1>
             </div>
             <p className="text-sm text-slate-500 leading-tight">
               Gestioná tu día, confirma citas y optimizá tu tiempo de trabajo.
@@ -264,7 +264,7 @@ export default function AgendaPage() {
                       className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-900 transition-all"
                     >
                       <span>Pendientes</span>
-                      <span className="bg-amber-200 text-amber-800 py-0.5 px-2.5 rounded-full text-[10px] font-black">{pendientes.length}</span>
+                      <span className="bg-amber-200 text-amber-800 py-0.5 px-2.5 rounded-full text-[10px] font-bold">{pendientes.length}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="confirmados" 
@@ -296,7 +296,7 @@ export default function AgendaPage() {
                   <div className="flex flex-col gap-3">
                     <button 
                       onClick={() => setQuickView({ isOpen: true, filterType: 'hoy' })} 
-                      className="w-full h-[60px] px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+                      className="w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
                       <div className="flex flex-col">
                         <span className="leading-tight">Hoy</span>
@@ -308,7 +308,7 @@ export default function AgendaPage() {
                     </button>
                     <button 
                       onClick={() => setQuickView({ isOpen: true, filterType: 'manana' })} 
-                      className="w-full h-[60px] px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+                      className="w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
                       <div className="flex flex-col">
                         <span className="leading-tight">Mañana</span>
@@ -520,7 +520,7 @@ export default function AgendaPage() {
               <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${quickViewTheme.dot} animate-pulse`} />
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                     Vista Rápida: <span className={`${quickViewTheme.text.replace('text-', 'text-opacity-100 text-')}`}>{quickViewTheme.label}</span>
                   </h2>
                 </div>
@@ -577,11 +577,11 @@ export default function AgendaPage() {
 
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center justify-between">
-                              <span className={cn("text-lg font-black tracking-tighter", quickViewTheme.text)}>
+                              <span className={cn("text-lg font-bold tracking-tighter", quickViewTheme.text)}>
                                 {format(new Date(appointment.start_at), 'HH:mm')}
                               </span>
                               {quickView.filterType === 'semana' && (
-                                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">
                                   {format(new Date(appointment.start_at), 'EEEE d', { locale: es })}
                                 </span>
                               )}
@@ -611,7 +611,7 @@ export default function AgendaPage() {
               {/* MODAL FOOTER */}
               <div className="px-8 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-2">
-                  <span className={cn("text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border", quickViewTheme.bg, quickViewTheme.border, quickViewTheme.text)}>
+                  <span className={cn("text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border", quickViewTheme.bg, quickViewTheme.border, quickViewTheme.text)}>
                     Total: {quickViewFilteredAppointments.length} turnos
                   </span>
                 </div>
