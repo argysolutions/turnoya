@@ -8,7 +8,7 @@ const statusStyles = {
   pending: 'bg-amber-50 border-amber-200 text-amber-700',
   confirmed: 'bg-emerald-50 border-emerald-200 text-emerald-700',
   completed: 'bg-blue-50 border-blue-200 text-blue-700',
-  cancelled: 'bg-slate-50 border-slate-200 text-slate-500 line-through',
+  cancelled: 'bg-rose-50 border-rose-200 text-rose-700',
   cancelled_occupied: 'bg-slate-100 border-slate-300 text-slate-400 italic',
   pending_block: 'bg-amber-100 border-amber-300 text-amber-800 border-dashed'
 }
