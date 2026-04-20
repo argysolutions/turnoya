@@ -575,12 +575,12 @@ export default function AgendaPage() {
 
                 {/* MODAL INTERNAL FILTERS */}
                 <Tabs value={quickViewStatusFilter} onValueChange={setQuickViewStatusFilter} className="w-full">
-                  <TabsList className="bg-slate-50 p-1 rounded-xl h-10 mb-[-1px] border-b-0">
-                    <TabsTrigger value="all" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:shadow-sm">Todos</TabsTrigger>
-                    <TabsTrigger value="pendientes" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm">Pendientes</TabsTrigger>
-                    <TabsTrigger value="confirmados" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm">Confirmados</TabsTrigger>
-                    <TabsTrigger value="finalizados" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm">Finalizados</TabsTrigger>
-                    <TabsTrigger value="cancelados" className="text-[11px] font-bold rounded-lg px-4 h-8 data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm">Cancelados</TabsTrigger>
+                  <TabsList className="bg-slate-100/50 p-1 rounded-xl h-11 mb-[-1px] border-b-0">
+                    <TabsTrigger value="all" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow-sm transition-all">Todos</TabsTrigger>
+                    <TabsTrigger value="pendientes" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all">Pendientes</TabsTrigger>
+                    <TabsTrigger value="confirmados" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm transition-all">Confirmados</TabsTrigger>
+                    <TabsTrigger value="finalizados" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all">Finalizados</TabsTrigger>
+                    <TabsTrigger value="cancelados" className="text-[13px] font-bold rounded-lg px-4 h-9 text-slate-600 data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm transition-all">Cancelados</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
@@ -599,12 +599,12 @@ export default function AgendaPage() {
                         return (
                           <React.Fragment key={appointment.id}>
                             {quickView.filterType === 'semana' && isNewDay && (
-                              <div className="col-span-full mb-2 mt-4 first:mt-0">
+                              <div className="col-span-full mb-3 mt-6 first:mt-0">
                                 <div className="flex items-center gap-3">
-                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                    {currentDateLabel}
+                                  <span className="text-[13px] font-bold text-slate-900 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200">
+                                    {currentDateLabel.charAt(0).toUpperCase() + currentDateLabel.slice(1)}
                                   </span>
-                                  <div className="h-[1px] flex-1 bg-gradient-to-r from-slate-100 to-transparent" />
+                                  <div className="h-[1px] flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
                                 </div>
                               </div>
                             )}
