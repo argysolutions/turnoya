@@ -276,7 +276,7 @@ export default function AgendaPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input 
                       placeholder="Buscar cliente o servicio..." 
-                      className="w-full pl-10 pr-4 py-2.5 h-11 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 h-11 bg-slate-50/80 border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                     />
