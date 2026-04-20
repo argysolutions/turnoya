@@ -138,6 +138,11 @@ export default function AgendaPage() {
 
 
 
+  const pendientes = filteredSections.pendiente;
+  const confirmados = filteredSections.confirmado;
+  const finalizados = filteredSections.finalizado;
+  const canceladosAusentes = [...filteredSections.cancelado, ...filteredSections.ausente];
+
   return (
     <Layout maxWidth="max-w-screen-2xl">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -292,33 +297,42 @@ export default function AgendaPage() {
                 <Tabs defaultValue="pendientes" className="flex flex-col xl:flex-row gap-8 w-full mt-6 items-start">
                   
                   {/* MENÚ LATERAL IZQUIERDO (Limpio y vertical en Desktop) */}
-                  <TabsList className="flex flex-col h-auto w-full xl:w-72 bg-transparent space-y-2 p-0 items-stretch justify-start shrink-0 border-none">
-                    <TabsTrigger value="pendientes" className="flex items-center justify-between px-5 py-3.5 text-sm font-semibold rounded-2xl text-slate-500 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-slate-100 transition-all group">
-                       <span>Pendientes</span>
-                       <span className="bg-slate-100 text-slate-500 group-data-[state=active]:bg-indigo-50 group-data-[state=active]:text-indigo-600 py-0.5 px-2.5 rounded-full text-xs font-bold transition-colors">
-                         {filteredSections.pendiente.length}
-                       </span>
-                    </TabsTrigger>
+                  <TabsList className="flex flex-col h-auto w-full xl:w-64 bg-white border border-slate-200 space-y-1 p-2 rounded-2xl items-stretch justify-start shrink-0 shadow-sm">
                     
-                    <TabsTrigger value="confirmados" className="flex items-center justify-between px-5 py-3.5 text-sm font-semibold rounded-2xl text-slate-500 data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-slate-100 transition-all group">
-                       <span>Confirmados</span>
-                       <span className="bg-slate-100 text-slate-500 group-data-[state=active]:bg-emerald-50 group-data-[state=active]:text-emerald-600 py-0.5 px-2.5 rounded-full text-xs font-bold transition-colors">
-                         {filteredSections.confirmado.length}
-                       </span>
+                    {/* 1. PENDIENTES (Amarillo / Amber) */}
+                    <TabsTrigger 
+                      value="pendientes" 
+                      className="flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-900 hover:bg-slate-50 transition-all"
+                    >
+                      <span>Pendientes</span>
+                      <span className="bg-amber-100 text-amber-700 py-0.5 px-2.5 rounded-full text-xs font-bold">{pendientes.length}</span>
                     </TabsTrigger>
 
-                    <TabsTrigger value="finalizados" className="flex items-center justify-between px-5 py-3.5 text-sm font-semibold rounded-2xl text-slate-500 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-slate-100 transition-all group">
-                       <span>Finalizados</span>
-                       <span className="bg-slate-100 text-slate-500 group-data-[state=active]:bg-slate-100 group-data-[state=active]:text-slate-900 py-0.5 px-2.5 rounded-full text-xs font-bold transition-colors">
-                         {filteredSections.finalizado.length}
-                       </span>
+                    {/* 2. CONFIRMADOS (Verde / Emerald) */}
+                    <TabsTrigger 
+                      value="confirmados" 
+                      className="flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-900 hover:bg-slate-50 transition-all"
+                    >
+                      <span>Confirmados</span>
+                      <span className="bg-emerald-100 text-emerald-700 py-0.5 px-2.5 rounded-full text-xs font-bold">{confirmados.length}</span>
                     </TabsTrigger>
 
-                    <TabsTrigger value="cancelados" className="flex items-center justify-between px-5 py-3.5 text-sm font-semibold rounded-2xl text-slate-500 data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-slate-100 transition-all group">
-                       <span>Cancelados</span>
-                       <span className="bg-slate-100 text-slate-500 group-data-[state=active]:bg-rose-50 group-data-[state=active]:text-rose-600 py-0.5 px-2.5 rounded-full text-xs font-bold transition-colors">
-                         {filteredSections.cancelado.length + filteredSections.ausente.length}
-                       </span>
+                    {/* 3. FINALIZADOS (Azul / Blue) */}
+                    <TabsTrigger 
+                      value="finalizados" 
+                      className="flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-900 hover:bg-slate-50 transition-all"
+                    >
+                      <span>Finalizados</span>
+                      <span className="bg-blue-100 text-blue-700 py-0.5 px-2.5 rounded-full text-xs font-bold">{finalizados.length}</span>
+                    </TabsTrigger>
+
+                    {/* 4. CANCELADOS / AUSENTES (Rojo / Rose) */}
+                    <TabsTrigger 
+                      value="cancelados" 
+                      className="flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 data-[state=active]:text-rose-900 hover:bg-slate-50 transition-all"
+                    >
+                      <span>Cancelados</span>
+                      <span className="bg-rose-100 text-rose-700 py-0.5 px-2.5 rounded-full text-xs font-bold">{canceladosAusentes.length}</span>
                     </TabsTrigger>
                   </TabsList>
 
