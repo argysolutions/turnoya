@@ -141,7 +141,7 @@ export default function Layout({ children, maxWidth = "max-w-5xl" }) {
             <div className="flex items-center gap-2 shrink-0">
               <span className="font-semibold text-slate-900 text-sm">TurnoYa</span>
               {isActuallyEmployee && (
-                <span className="bg-indigo-600 text-[9px] text-white font-black uppercase px-1.5 py-0.5 rounded-md tracking-widest shrink-0 animate-pulse">Staff Mode</span>
+                <span className="bg-blue-600 text-[9px] text-white font-black uppercase px-1.5 py-0.5 rounded-md tracking-widest shrink-0 animate-pulse">Staff Mode</span>
               )}
             </div>
             <Separator orientation="vertical" className="h-4 shrink-0" />
@@ -175,7 +175,7 @@ export default function Layout({ children, maxWidth = "max-w-5xl" }) {
                 </div>
                 <DropdownMenuSeparator />
                 {activeProfile && (
-                  <DropdownMenuItem className="cursor-pointer py-2 text-indigo-600 focus:text-indigo-700 focus:bg-indigo-50" onClick={handleChangeProfile}>
+                  <DropdownMenuItem className="cursor-pointer py-2 text-blue-600 focus:text-blue-700 focus:bg-blue-50" onClick={handleChangeProfile}>
                     <RefreshCcw className="mr-2 h-4 w-4" />
                     <span className="font-bold">Cambiar de perfil</span>
                   </DropdownMenuItem>

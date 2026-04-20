@@ -205,7 +205,7 @@ function AperturaBanner({ onOpen, inline = false }) {
                 <Button
                   onClick={handleOpen}
                   disabled={saving}
-                  className="h-9 px-4 bg-amber-600 text-white font-black text-xs rounded-xl hover:bg-amber-700"
+                  className="h-9 px-4 bg-blue-600 text-white font-black text-xs rounded-xl hover:bg-blue-700 shadow-sm"
                 >
                   {saving ? '...' : 'Confirmar'}
                 </Button>
@@ -228,7 +228,7 @@ function AperturaBanner({ onOpen, inline = false }) {
           <p className="text-[10px] text-amber-600 font-bold">Fijar fondo inicial de efectivo</p>
         </div>
         {!formOpen ? (
-          <Button onClick={() => setFormOpen(true)} className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl">Configurar Apertura</Button>
+          <Button onClick={() => setFormOpen(true)} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl shadow-lg shadow-blue-600/10 transition-all active:scale-[0.98]">Configurar Apertura</Button>
         ) : (
           <div className="flex flex-col w-full gap-2">
             <input
@@ -288,13 +288,13 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
             </div>
           </div>
 
-          <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-xl flex justify-between items-center">
+          <div className="bg-blue-950 text-white p-5 rounded-2xl shadow-xl flex justify-between items-center">
             <div>
-              <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Efectivo Esperado</p>
+              <p className="text-[8px] uppercase font-black text-blue-300 mb-0.5">Efectivo Esperado</p>
               <p className="text-xl font-black">{fmt(session?.expected_cash)}</p>
             </div>
             <div className="text-right">
-              <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Cant. Cobros</p>
+              <p className="text-[8px] uppercase font-black text-blue-300 mb-0.5">Cant. Cobros</p>
               <p className="text-xl font-black">{summary?.salesCount || 0}</p>
             </div>
           </div>
@@ -307,11 +307,11 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
               value={counted}
               autoFocus
               onChange={e => setCounted(fmtNumericInput(e.target.value))}
-              className="w-full h-12 rounded-2xl border border-slate-200 px-4 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"
+              className="w-full h-12 rounded-2xl border border-slate-200 px-4 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
               placeholder="0"
             />
           </div>
-          <Button onClick={handleClose} disabled={saving} className="w-full h-12 bg-slate-900 text-white uppercase font-black text-xs tracking-widest rounded-2xl">
+          <Button onClick={handleClose} disabled={saving} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white uppercase font-black text-xs tracking-widest rounded-2xl shadow-lg shadow-blue-600/20">
             {saving ? 'Cerrando...' : 'Confirmar Cierre y Guardar'}
           </Button>
         </div>
@@ -433,14 +433,14 @@ function ManagementContent({
       {session?.status === 'open' && (
         <div>
           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-2">Arqueo de Caja</p>
-          <div className="mx-1 p-4 rounded-2xl bg-slate-900 text-white">
+          <div className="mx-1 p-4 rounded-2xl bg-blue-950 text-white shadow-lg">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Esperado</p>
+                <p className="text-[8px] uppercase font-black text-blue-400 mb-0.5">Esperado</p>
                 <p className="text-base font-black">{fmt(session.expected_cash)}</p>
               </div>
               <div className="text-right">
-                <p className="text-[8px] uppercase font-black text-slate-500 mb-0.5">Inicial</p>
+                <p className="text-[8px] uppercase font-black text-blue-400 mb-0.5">Inicial</p>
                 <p className="text-base font-black">{fmt(session.initial_amount)}</p>
               </div>
             </div>
@@ -452,14 +452,14 @@ function ManagementContent({
       {professionals.length > 0 && commissionRate > 0 && (
         <div>
           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-2">Comisiones Staff ({commissionRate}%)</p>
-          <div className="mx-1 space-y-2">
+          <div className="mx-1 space-y-1">
             {professionals.map(p => (
-              <div key={p.name} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div key={p.name} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
                 <div>
-                  <p className="text-xs font-bold text-slate-800">{p.name}</p>
-                  <p className="text-[10px] text-slate-400">Bruto: {fmt(p.total)}</p>
+                  <p className="text-[11px] font-bold text-slate-800">{p.name}</p>
+                  <p className="text-[9px] text-slate-400">Bruto: {fmt(p.total)}</p>
                 </div>
-                <p className="text-sm font-black text-blue-600">{display(p.total * commissionRate / 100)}</p>
+                <p className="text-xs font-black text-blue-600">{display(p.total * commissionRate / 100)}</p>
               </div>
             ))}
           </div>

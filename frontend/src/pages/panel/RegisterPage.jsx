@@ -61,7 +61,7 @@ export default function RegisterPage() {
               <Label htmlFor="address" className="text-slate-700 font-semibold ml-1 text-xs uppercase tracking-wider">Dirección</Label>
               <Input id="address" name="address" placeholder="Av. San Martín 123" value={form.address} onChange={handleChange} className="bg-slate-50/50 border-slate-200 h-11 rounded-xl focus:bg-white transition-all" />
             </div>
-            <Button type="submit" className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-lg shadow-slate-900/10 transition-all active:scale-[0.98] mt-4" disabled={loading}>
+            <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-600/10 transition-all active:scale-[0.98] mt-4" disabled={loading}>
               {loading ? 'Registrando...' : 'Crear mi cuenta'}
             </Button>
           </form>
@@ -69,7 +69,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-slate-500 mt-8">
           ¿Ya tenés cuenta?{' '}
-          <Link to="/login" className="text-slate-900 font-bold hover:underline underline-offset-4 decoration-indigo-500">
+          <Link to="/login" className="text-blue-900 font-bold hover:underline underline-offset-4 decoration-blue-500">
             Iniciá sesión
           </Link>
         </p>

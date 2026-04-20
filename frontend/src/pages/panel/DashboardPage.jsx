@@ -343,99 +343,65 @@ export default function DashboardPage() {
 
   // REUSABLE RENDERER
   const renderAppointmentList = (list, emptyMessage = 'No hay turnos') => {
-    if (loading) return <p className="text-sm text-slate-400 py-4 text-center">Cargando...</p>
-    if (list.length === 0) return <p className="text-sm text-slate-400 py-4 text-center">{emptyMessage}</p>
+    if (loading) return <p className="text-[10px] font-bold text-slate-400 py-6 text-center tracking-widest uppercase">Cargando...</p>
+    if (list.length === 0) return <p className="text-[10px] font-bold text-slate-400 py-6 text-center tracking-widest uppercase">{emptyMessage}</p>
 
     return (
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-slate-50">
         {list.map((a) => {
           const isLiberating = a.status === 'cancelled_occupied' && a.liberates_at != null
           return (
             <div 
               key={a.id} 
-              className={`py-3 flex items-center justify-between group transition-colors ${
+              className={`py-2 px-1 flex items-center justify-between group transition-colors ${
                 isLiberating ? 'bg-yellow-50/80 -mx-4 px-4 border-l-4 border-l-yellow-400' : 'hover:bg-slate-50/50'
               }`}
-              onDoubleClick={() => {
-                if (a.status === 'cancelled_occupied' && !isLiberating) setLiberateModal(a)
-              }}
             >
-              <div className="flex gap-4 sm:gap-6 w-full min-w-0 flex-1 pr-2 sm:pr-4 cursor-default">
-                <div className="text-sm font-semibold text-slate-900 w-12 pt-0.5 shrink-0 tabular-nums">
+              <div className="flex gap-3 w-full min-w-0 flex-1 pr-2 cursor-default">
+                <div className="text-[11px] font-bold text-slate-900 w-10 pt-0.5 shrink-0 tabular-nums">
                   {a.start_time.slice(0, 5)}
                 </div>
                 
                 <div className="flex flex-col min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-slate-900 truncate">
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    <p className="text-[11px] font-bold text-slate-900 truncate">
                       {a.client_name}
                     </p>
-                    {isLiberating && <span className="text-xs text-yellow-600 font-normal truncate">(Liberando slot temporalmente...)</span>}
                     {(() => {
                       const count = a.client_history_count || 1;
-                      if (count === 1) return <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shadow-sm">NUEVO 🥇</span>
-                      if (count > 1) return <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded shadow-sm">FRECUENTE 🔥</span>
+                      if (count === 1) return <span className="text-[8px] font-black bg-amber-50 text-amber-700 px-1 py-0 rounded border border-amber-100 shrink-0">NUEVO</span>
                       return null
                     })()}
                   </div>
                   
-                  {isLiberating ? (
-                    <div className="mt-1 flex items-center gap-3">
-                      <span className="text-xs font-semibold text-yellow-700 bg-yellow-100/70 px-2 py-0.5 rounded-full inline-flex items-center">
-                        Volverá a figurar disponible en:
-                        <Countdown targetTime={a.liberates_at} onFinished={fetchAppointments} />
-                      </span>
-                      <Button 
-                        variant="ghost" size="sm" 
-                        className="h-11 sm:h-9 text-xs text-yellow-800 bg-yellow-200/50 hover:bg-yellow-200 hover:text-yellow-900 border border-yellow-300/50 px-3 sm:px-2"
-                        onClick={() => handleUndoLiberation(a.id)}
-                      >
-                        Deshacer
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {a.service_name}
-                      </span>
-                      <span className="text-xs text-slate-400 whitespace-nowrap">{a.duration} min</span>
-                      <span className="text-xs text-slate-400 whitespace-nowrap">{a.client_phone}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 mt-0">
+                    <span className="text-[9px] font-bold text-blue-600 truncate max-w-[100px]">
+                      {a.service_name}
+                    </span>
+                    <span className="text-[9px] text-slate-400 shrink-0">{a.duration}m</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <Badge variant={STATUS_VARIANT[a.status]}>
-                  {STATUS_LABEL[a.status]}
-                </Badge>
+              <div className="flex items-center gap-2 shrink-0">
                  {a.status === 'pending' && (
-                  <div className="flex gap-1 sm:gap-2">
-                     <Button size="sm" className="h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 bg-[#34C759] hover:bg-[#2eaa4d] text-white border-none shadow-md shadow-emerald-100 rounded-xl sm:rounded-md transition-all active:scale-95" onClick={() => handleStatus(a.id, 'confirmed')}>
-                       <Check className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
-                       <span className="hidden sm:inline">Confirmar</span>
+                  <div className="flex gap-1">
+                     <Button size="sm" className="h-7 w-7 p-0 bg-[#34C759] hover:bg-[#2eaa4d] text-white rounded-lg shadow-sm transition-all active:scale-95" onClick={() => handleStatus(a.id, 'confirmed')}>
+                       <Check className="h-3.5 w-3.5" />
                      </Button>
-                     <Button size="sm" variant="ghost" className="h-10 sm:h-9 w-10 sm:w-auto px-0 sm:px-3 text-red-600 bg-red-50 hover:bg-red-100/80 hover:text-red-700 border-none rounded-xl sm:rounded-md transition-all active:scale-95" onClick={() => setPendingCancelModal(a)}>
-                       <X className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-1" />
-                       <span className="hidden sm:inline">Rechazar</span>
+                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-600 bg-red-50 hover:bg-red-100 transition-all active:scale-95" onClick={() => setPendingCancelModal(a)}>
+                       <X className="h-3.5 w-3.5" />
                      </Button>
                   </div>
                 )}
                 {a.status === 'confirmed' && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950">
-                      <MoreVertical className="h-5 w-5" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem className="text-emerald-600 font-medium cursor-pointer mb-1 focus:bg-emerald-50 focus:text-emerald-700" onClick={() => openFinishModal(a)}>
-                        Finalizar y Cobrar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600 focus:text-red-700 cursor-pointer" onClick={() => setCancelModal(a)}>
-                        Cancelar turno
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600" onClick={() => openFinishModal(a)}>
+                     <Check className="h-4 w-4" />
+                   </Button>
                 )}
+                <Badge className="text-[8px] font-black uppercase tracking-tighter h-5 px-1.5 bg-slate-50 text-slate-500 border-slate-100">
+                  {STATUS_LABEL[a.status]}
+                </Badge>
               </div>
             </div>
           )
@@ -479,7 +445,7 @@ export default function DashboardPage() {
           />
           {/* Acciones rápidas mobile */}
           <div className="flex gap-2 -mt-2 mb-4">
-            <Button size="sm" className="flex-1 h-9 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
+            <Button size="sm" className="flex-1 h-9 text-[10px] bg-blue-600 hover:bg-blue-700 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
               Bloquear Día/Horario
             </Button>
             <Button size="sm" variant="outline" className="flex-1 h-9 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>
@@ -555,7 +521,7 @@ export default function DashboardPage() {
                 {/* === BOTONES DE ACCIÓN === */}
                 <div className="px-4 pb-4">
                   <div className="flex flex-col gap-2 w-full pt-4 border-t border-slate-50">
-                    <Button size="sm" className="w-full h-10 text-[10px] bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
+                    <Button size="sm" className="w-full h-10 text-[10px] bg-blue-600 hover:bg-blue-700 text-white shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setBlockModal(true)}>
                       Bloquear Día/Horario
                     </Button>
                     <Button size="sm" variant="outline" className="w-full h-10 text-[10px] text-blue-600 border-blue-100 bg-blue-50/30 hover:bg-blue-50 hover:text-blue-700 shadow-sm rounded-xl font-bold uppercase tracking-wider" onClick={() => setEventModal(true)}>

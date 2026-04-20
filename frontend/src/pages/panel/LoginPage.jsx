@@ -68,7 +68,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight transition-all">TurnoYa</h1>
           {savedAccount ? (
-            <p className="text-indigo-600 mt-2 font-medium">Hola de nuevo, <span className="font-bold text-indigo-700">{savedAccount.name}</span></p>
+            <p className="text-blue-600 mt-2 font-medium">Hola de nuevo, <span className="font-bold text-blue-700">{savedAccount.name}</span></p>
           ) : (
             <p className="text-slate-500 mt-2 font-medium">Gestioná tu agenda con facilidad</p>
           )}
@@ -100,7 +100,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between ml-1">
                 <Label htmlFor="email" className="text-slate-700 font-semibold">Email</Label>
                 {savedAccount && (
-                  <button type="button" onClick={handleClearAccount} className="text-xs text-indigo-600 font-medium hover:text-indigo-700">Cambiar cuenta</button>
+                  <button type="button" onClick={handleClearAccount} className="text-xs text-blue-600 font-medium hover:text-blue-700">Cambiar cuenta</button>
                 )}
               </div>
               <Input
@@ -119,7 +119,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between ml-1">
                 <Label htmlFor="password" className="text-slate-700 font-semibold">Contraseña</Label>
-                <Link to="/recovery" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">¿Olvidaste tu clave?</Link>
+                <Link to="/recovery" className="text-xs text-blue-600 hover:text-blue-700 font-medium">¿Olvidaste tu clave?</Link>
               </div>
               <Input
                 ref={passwordInputRef}
@@ -135,7 +135,7 @@ export default function LoginPage() {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-lg shadow-slate-900/10 transition-all active:scale-[0.98]"
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-600/10 transition-all active:scale-[0.98]"
               disabled={loading}
             >
               {loading ? 'Ingresando...' : 'Iniciar Sesión'}
@@ -145,7 +145,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-slate-500 mt-8">
           ¿No tenés cuenta?{' '}
-          <Link to="/register" className="text-slate-900 font-bold hover:underline underline-offset-4 decoration-indigo-500">
+          <Link to="/register" className="text-blue-900 font-bold hover:underline underline-offset-4 decoration-blue-500">
             Registrá tu negocio
           </Link>
         </p>

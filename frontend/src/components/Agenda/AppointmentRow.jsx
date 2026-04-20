@@ -30,7 +30,7 @@ const statusLabels = {
  * Individual appointment representation.
  * Updated to match the high-contrast, minimal design system.
  */
-const AppointmentRow = ({ appointment, onClick }) => {
+const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
   const { start_at, client_name, service_name, status, client_phone } = appointment
   
   // Safe time formatting
@@ -39,32 +39,41 @@ const AppointmentRow = ({ appointment, onClick }) => {
   return (
     <div 
       onClick={() => onClick?.(appointment)}
-      className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white hover:bg-slate-50/80 transition-all cursor-pointer border-b border-slate-50 last:border-0"
+      className={cn(
+        "group flex items-center justify-between bg-white hover:bg-slate-50 transition-all cursor-pointer border-b border-slate-50 last:border-0",
+        isCompact ? "p-1.5 gap-2" : "p-5 gap-5 sm:gap-8"
+      )}
     >
-      <div className="flex items-center gap-5 sm:gap-8">
-        {/* Time - High contrast */}
-        <div className="flex flex-col items-center min-w-[45px]">
-          <span className="text-base font-black text-slate-900 tracking-tight">{startTime}</span>
-          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Inicio</span>
+      <div className="flex items-center flex-1 min-w-0 gap-3 sm:gap-6">
+        {/* Time */}
+        <div className={cn("flex flex-col items-center shrink-0", isCompact ? "min-w-[32px]" : "min-w-[45px]")}>
+          <span className={cn("font-bold text-slate-900 tracking-tighter", isCompact ? "text-[10px]" : "text-base")}>
+            {startTime}
+          </span>
+          <span className={cn("font-bold text-slate-400 uppercase tracking-widest", isCompact ? "text-[6px] -mt-1" : "text-[8px] mt-0.5")}>
+            Inicio
+          </span>
         </div>
 
         {/* Content */}
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-900 tracking-tight">{client_name}</span>
-            {appointment.client_history_count > 1 && (
-              <span className="bg-emerald-50 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter">
+        <div className="flex flex-col min-w-0 overflow-hidden space-y-0">
+          <div className="flex items-center gap-1.5 truncate">
+            <span className={cn("font-bold text-slate-900 tracking-tight truncate", isCompact ? "text-[11px]" : "text-sm")}>
+              {client_name}
+            </span>
+            {appointment.client_history_count > 1 && !isCompact && (
+              <span className="bg-emerald-50 text-emerald-600 text-[8px] font-bold px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter">
                 Frecuente 🔥
               </span>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 font-medium">
-            <div className="flex items-center gap-1.5">
-              <Scissors className="w-3 h-3 text-slate-300" />
-              <span>{service_name}</span>
+          <div className={cn("flex items-center gap-x-3 text-slate-500 font-medium truncate", isCompact ? "text-[9px]" : "text-xs")}>
+            <div className="flex items-center gap-1 shrink-0">
+              <Scissors className={cn("text-slate-300", isCompact ? "w-2.5 h-2.5" : "w-3 h-3")} />
+              <span className="truncate max-w-[120px]">{service_name}</span>
             </div>
-            {client_phone && (
-              <div className="flex items-center gap-1.5">
+            {client_phone && !isCompact && (
+              <div className="flex items-center gap-1.5 hidden sm:flex">
                 <Phone className="w-3 h-3 text-slate-300" />
                 <span className="tabular-nums">{client_phone}</span>
               </div>
@@ -73,19 +82,21 @@ const AppointmentRow = ({ appointment, onClick }) => {
         </div>
       </div>
 
-      {/* Right side - Badge & Action */}
-      <div className="flex items-center justify-between sm:justify-end gap-4 mt-4 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-0 border-slate-50">
-        <div className="flex items-center gap-2 bg-slate-50/50 px-3 py-1.5 rounded-xl border border-slate-100">
-          <div className={cn("w-2 h-2 rounded-full", statusColors[status] || 'bg-slate-300')} />
-          <span className="text-[9px] font-black uppercase tracking-wider text-slate-600">
+      {/* Right side - Badge */}
+      <div className="flex items-center gap-3 shrink-0">
+        <div className={cn(
+          "flex items-center gap-1.5 bg-slate-50/50 rounded-xl border border-slate-100",
+          isCompact ? "px-1.5 py-0.5" : "px-3 py-1.5"
+        )}>
+          <div className={cn("rounded-full", isCompact ? "w-1 h-1" : "w-2 h-2", statusColors[status] || 'bg-slate-300')} />
+          <span className={cn("font-bold uppercase tracking-wider text-slate-600", isCompact ? "text-[6px]" : "text-[9px]")}>
             {statusLabels[status] || status}
           </span>
         </div>
         
-        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-1 transition-all hidden sm:block" />
-        <div className="sm:hidden text-[9px] font-bold text-slate-400 flex items-center gap-1">
-          Ver detalle <ChevronRight className="w-3 h-3" />
-        </div>
+        {!isCompact && (
+          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-1 transition-all hidden sm:block" />
+        )}
       </div>
     </div>
   )

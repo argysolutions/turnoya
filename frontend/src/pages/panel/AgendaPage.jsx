@@ -26,6 +26,7 @@ import AppointmentDetailDialog from '@/components/Agenda/AppointmentDetailDialog
 import { BlockTimeModal } from '@/components/Agenda/BlockTimeModal'
 import Layout from '@/components/shared/Layout'
 import { motion, AnimatePresence } from 'framer-motion'
+import AgendaGridColumn from '@/components/panel/AgendaGridColumn'
 
 export default function AgendaPage() {
   const { 
@@ -42,7 +43,6 @@ export default function AgendaPage() {
     refresh
   } = useAppointments()
 
-  console.log('DEBUG: FECHAS BLOQUEADAS ACTUALES:', blockedDates)
 
   // Fetch blocked dates for the calendar whenever the visible month changes
   const [currentMonth, setCurrentMonth] = React.useState(new Date())
@@ -311,110 +311,34 @@ export default function AgendaPage() {
                 {isGridView ? (
                   /* --- MODO TABLERO KANBAN (GRID VIEW) --- */
                   <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 w-full mt-4 items-start">
-                    
-                    {/* COLUMNA PENDIENTES */}
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-center justify-between px-2">
-                        <h3 className="text-xs font-black text-amber-600 uppercase tracking-widest flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-amber-400" />
-                          Pendientes
-                        </h3>
-                        <span className="bg-amber-100 text-amber-700 py-0.5 px-2 rounded-full text-[10px] font-bold">
-                          {pendientes.length}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        {pendientes.length > 0 ? (
-                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
-                            {pendientes.map(app => (
-                              <AppointmentRow key={app.id} appointment={app} onClick={setSelectedAppointment} />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Sin turnos</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* COLUMNA CONFIRMADOS */}
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-center justify-between px-2">
-                        <h3 className="text-xs font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                          Confirmados
-                        </h3>
-                        <span className="bg-emerald-100 text-emerald-700 py-0.5 px-2 rounded-full text-[10px] font-bold">
-                          {confirmados.length}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        {confirmados.length > 0 ? (
-                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
-                            {confirmados.map(app => (
-                              <AppointmentRow key={app.id} appointment={app} onClick={setSelectedAppointment} />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Sin turnos</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* COLUMNA FINALIZADOS */}
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-center justify-between px-2">
-                        <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-blue-500" />
-                          Finalizados
-                        </h3>
-                        <span className="bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-[10px] font-bold">
-                          {finalizados.length}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        {finalizados.length > 0 ? (
-                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
-                            {finalizados.map(app => (
-                              <AppointmentRow key={app.id} appointment={app} onClick={setSelectedAppointment} />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Sin turnos</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* COLUMNA CANCELADOS */}
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-center justify-between px-2">
-                        <h3 className="text-xs font-black text-rose-600 uppercase tracking-widest flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-rose-500" />
-                          Cancelados
-                        </h3>
-                        <span className="bg-rose-100 text-rose-700 py-0.5 px-2 rounded-full text-[10px] font-bold">
-                          {canceladosAusentes.length}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        {canceladosAusentes.length > 0 ? (
-                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
-                            {canceladosAusentes.map(app => (
-                              <AppointmentRow key={app.id} appointment={app} onClick={setSelectedAppointment} />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-center">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Sin turnos</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <AgendaGridColumn 
+                      title="Pendientes" 
+                      count={pendientes.length} 
+                      dotColor="bg-amber-400" 
+                      items={pendientes} 
+                      onCardClick={setSelectedAppointment}
+                    />
+                    <AgendaGridColumn 
+                      title="Confirmados" 
+                      count={confirmados.length} 
+                      dotColor="bg-emerald-500" 
+                      items={confirmados} 
+                      onCardClick={setSelectedAppointment}
+                    />
+                    <AgendaGridColumn 
+                      title="Finalizados" 
+                      count={finalizados.length} 
+                      dotColor="bg-blue-500" 
+                      items={finalizados} 
+                      onCardClick={setSelectedAppointment}
+                    />
+                    <AgendaGridColumn 
+                      title="Cancelados" 
+                      count={canceladosAusentes.length} 
+                      dotColor="bg-rose-500" 
+                      items={canceladosAusentes} 
+                      onCardClick={setSelectedAppointment}
+                    />
                   </div>
                 ) : (
                   /* --- MODO LISTA CON SIDEBAR (CURRENT DESIGN) --- */
