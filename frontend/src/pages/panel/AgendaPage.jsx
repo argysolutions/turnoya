@@ -226,7 +226,7 @@ export default function AgendaPage() {
             
             {/* Sidebar IZQUIERDA - Filtros y Estados (Sticky) */}
             {!isGridView && (
-              <aside className="hidden xl:flex flex-col w-64 shrink-0 sticky top-6 gap-8">
+              <aside className="hidden xl:flex flex-col w-64 shrink-0 sticky top-6 gap-10">
                 <div className="flex flex-col w-full">
                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-1">Turnos:</h4>
                   <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 shadow-sm p-1.5 rounded-2xl items-stretch justify-start">
@@ -263,11 +263,11 @@ export default function AgendaPage() {
 
                 {/* FILTROS RÁPIDOS - FORMATO MOSAICO PREMIUM */}
                 <div className="w-full">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-1 border-t border-slate-100 pt-8">Vista Rápida:</h4>
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-1 border-t border-slate-100 pt-6">Vista Rápida:</h4>
                   <div className="flex flex-col gap-3">
                     <button 
                       onClick={() => setQuickView({ isOpen: true, filterType: 'hoy' })} 
-                      className="w-full h-14 px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+                      className="w-full h-[60px] px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
                       <div className="flex flex-col">
                         <span className="leading-tight">Hoy</span>
@@ -279,7 +279,7 @@ export default function AgendaPage() {
                     </button>
                     <button 
                       onClick={() => setQuickView({ isOpen: true, filterType: 'manana' })} 
-                      className="w-full h-14 px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+                      className="w-full h-[60px] px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
                       <div className="flex flex-col">
                         <span className="leading-tight">Mañana</span>
@@ -291,7 +291,7 @@ export default function AgendaPage() {
                     </button>
                     <button 
                       onClick={() => setQuickView({ isOpen: true, filterType: 'semana' })} 
-                      className="w-full h-14 px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+                      className="w-full h-[60px] px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
                       <div className="flex flex-col">
                         <span className="leading-tight">Esta Semana</span>
