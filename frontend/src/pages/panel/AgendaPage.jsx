@@ -370,10 +370,10 @@ export default function AgendaPage() {
                   <Tabs 
                     value={activeTab}
                     onValueChange={setActiveTab}
-                    className="flex flex-col xl:flex-row gap-8 w-full mt-6 items-stretch"
+                    className="flex flex-col xl:flex-row gap-8 w-full mt-6 items-start"
                   >
                     
-                    <div className="flex flex-col w-full xl:w-64 shrink-0 justify-between">
+                    <div className="flex flex-col w-full xl:w-64 shrink-0 xl:sticky xl:top-6">
                       {/* MENÚ LATERAL IZQUIERDO */}
                       <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 space-y-1 p-2 rounded-2xl items-stretch justify-start shadow-sm mb-6">
                         <TabsTrigger 
@@ -409,7 +409,7 @@ export default function AgendaPage() {
                         </TabsTrigger>
                       </TabsList>
 
-                      <div className="w-full mt-auto pt-10 pb-2">
+                      <div className="w-full pt-4 pb-2">
                         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-4 px-1">Turnos de:</h4>
                         <div className="flex flex-col gap-2">
                           <button 
