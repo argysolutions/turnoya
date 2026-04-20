@@ -162,7 +162,7 @@ export default function AgendaPage() {
               className="rounded-xl font-bold gap-2"
             >
               <Plus className="w-4 h-4" />
-              Nuevo Turno
+              Nuevo Turno (v2.1)
             </Button>
           </div>
         </header>
@@ -336,7 +336,7 @@ export default function AgendaPage() {
                         ))}
                       </div>
                     ) : (
-                      <EmptyState message="NO HAY TURNOS PENDIENTES" />
+                      <EmptyState message="ESTA ZONA ESTA VACIA" />
                     )}
                   </TabsContent>
 
@@ -424,12 +424,12 @@ export default function AgendaPage() {
 
 function EmptyState({ message }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200/60 animate-in fade-in zoom-in-95 duration-500">
-      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-slate-100">
-        <Inbox className="w-8 h-8 text-slate-300" /> 
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-amber-50 rounded-3xl border-2 border-dashed border-amber-300 animate-in fade-in zoom-in-95 duration-500">
+      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-amber-100">
+        <Inbox className="w-8 h-8 text-amber-500" /> 
       </div>
-      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{message}</p>
-      <p className="text-[10px] text-slate-400 mt-2 font-medium">No se encontraron resultados para los filtros aplicados</p>
+      <p className="text-sm font-bold text-amber-900 uppercase tracking-widest">{message}</p>
+      <p className="text-[10px] text-amber-700 mt-2 font-medium tracking-normal">Si ves esto en color NARANJA, la actualización funcionó.</p>
     </div>
   )
 }
