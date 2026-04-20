@@ -41,7 +41,7 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
       onClick={() => onClick?.(appointment)}
       className={cn(
         "group flex items-center justify-between bg-white hover:bg-slate-50 transition-all cursor-pointer border-b border-slate-50 last:border-0",
-        isCompact ? "px-6 py-10 gap-6" : "p-5 gap-5 sm:gap-8"
+        isCompact ? "px-6 py-8 gap-6" : "p-5 gap-5 sm:gap-8"
       )}
     >
       <div className="flex items-center flex-1 min-w-0 gap-3 sm:gap-6">
