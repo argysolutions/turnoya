@@ -589,23 +589,44 @@ export default function AgendaPage() {
                 {quickViewFilteredAppointments.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
                     
-                    {quickViewFilteredAppointments.map((appointment, idx) => (
-                      <motion.div 
-                        key={appointment.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: idx * 0.03 }}
-                        className="w-full"
-                      >
-                        <AppointmentCard 
-                          appointment={appointment} 
-                          onClick={(app) => { 
-                            setSelectedAppointment(app); 
-                            setQuickView({ isOpen: false, filterType: null }); 
-                          }} 
-                        />
-                      </motion.div>
-                    ))}
+                    {(() => {
+                      let lastDateLabel = null;
+                      return quickViewFilteredAppointments.map((appointment, idx) => {
+                        const currentDateLabel = format(new Date(appointment.start_at), "EEEE d 'de' MMMM", { locale: es });
+                        const isNewDay = currentDateLabel !== lastDateLabel;
+                        if (isNewDay) lastDateLabel = currentDateLabel;
+
+                        return (
+                          <React.Fragment key={appointment.id}>
+                            {quickView.filterType === 'semana' && isNewDay && (
+                              <div className="col-span-full mb-2 mt-4 first:mt-0">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                    {currentDateLabel}
+                                  </span>
+                                  <div className="h-[1px] flex-1 bg-gradient-to-r from-slate-100 to-transparent" />
+                                </div>
+                              </div>
+                            )}
+                            <motion.div 
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: idx * 0.01 }}
+                              className="w-full"
+                            >
+                              <AppointmentCard 
+                                appointment={appointment} 
+                                onClick={(app) => { 
+                                  setSelectedAppointment(app); 
+                                  setQuickView({ isOpen: false, filterType: null }); 
+                                  setQuickViewStatusFilter('all');
+                                }} 
+                              />
+                            </motion.div>
+                          </React.Fragment>
+                        );
+                      });
+                    })()}
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
