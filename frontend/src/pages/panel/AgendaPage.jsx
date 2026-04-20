@@ -373,66 +373,67 @@ export default function AgendaPage() {
                     className="flex flex-col xl:flex-row gap-8 w-full mt-6 items-start"
                   >
                     
-                    {/* MENÚ LATERAL IZQUIERDO */}
-                    <TabsList className="flex flex-col h-auto w-full xl:w-64 bg-white border border-slate-200 space-y-1 p-2 rounded-2xl items-stretch justify-start shrink-0 shadow-sm">
-                      <TabsTrigger 
-                        value="pendientes" 
-                        className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-900 hover:text-slate-400 hover:bg-amber-50/30 transition-all group"
-                      >
-                        <span>Pendientes</span>
-                        <span className="bg-amber-200 text-amber-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{pendientes.length}</span>
-                      </TabsTrigger>
-
-                      <TabsTrigger 
-                        value="confirmados" 
-                        className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-900 hover:text-slate-400 hover:bg-emerald-50/30 transition-all group"
-                      >
-                        <span>Confirmados</span>
-                        <span className="bg-emerald-200 text-emerald-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{confirmados.length}</span>
-                      </TabsTrigger>
-
-                      <TabsTrigger 
-                        value="finalizados" 
-                        className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-900 hover:text-slate-400 hover:bg-blue-50/30 transition-all group"
-                      >
-                        <span>Finalizados</span>
-                        <span className="bg-blue-200 text-blue-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{finalizados.length}</span>
-                      </TabsTrigger>
-
-                      <TabsTrigger 
-                        value="cancelados" 
-                        className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 data-[state=active]:text-rose-900 hover:text-slate-400 hover:bg-rose-50/30 transition-all group"
-                      >
-                        <span>Cancelados</span>
-                        <span className="bg-rose-200 text-rose-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{canceladosAusentes.length}</span>
-                      </TabsTrigger>
-                    </TabsList>
-
-                    {/* BOTONES DE FILTRO RÁPIDO */}
-                    <div className="mt-6 w-full xl:w-64">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Turnos de:</h4>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => setQuickView({ isOpen: true, filterType: 'hoy' })} 
-                          className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                    <div className="flex flex-col w-full xl:w-64 shrink-0 gap-0">
+                      {/* MENÚ LATERAL IZQUIERDO */}
+                      <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 space-y-1 p-2 rounded-2xl items-stretch justify-start shadow-sm mb-6">
+                        <TabsTrigger 
+                          value="pendientes" 
+                          className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-900 hover:text-slate-400 hover:bg-amber-50/30 transition-all group"
                         >
-                          Hoy
-                        </button>
-                        <button 
-                          onClick={() => setQuickView({ isOpen: true, filterType: 'manana' })} 
-                          className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                          <span>Pendientes</span>
+                          <span className="bg-amber-200 text-amber-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{pendientes.length}</span>
+                        </TabsTrigger>
+
+                        <TabsTrigger 
+                          value="confirmados" 
+                          className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-900 hover:text-slate-400 hover:bg-emerald-50/30 transition-all group"
                         >
-                          Mañana
-                        </button>
-                        <button 
-                          onClick={() => setQuickView({ isOpen: true, filterType: 'semana' })} 
-                          className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                          <span>Confirmados</span>
+                          <span className="bg-emerald-200 text-emerald-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{confirmados.length}</span>
+                        </TabsTrigger>
+
+                        <TabsTrigger 
+                          value="finalizados" 
+                          className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-900 hover:text-slate-400 hover:bg-blue-50/30 transition-all group"
                         >
-                          Semana
-                        </button>
+                          <span>Finalizados</span>
+                          <span className="bg-blue-200 text-blue-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{finalizados.length}</span>
+                        </TabsTrigger>
+
+                        <TabsTrigger 
+                          value="cancelados" 
+                          className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 data-[state=active]:text-rose-900 hover:text-slate-400 hover:bg-rose-50/30 transition-all group"
+                        >
+                          <span>Cancelados</span>
+                          <span className="bg-rose-200 text-rose-800 py-0.5 px-2.5 rounded-full text-xs font-bold">{canceladosAusentes.length}</span>
+                        </TabsTrigger>
+                      </TabsList>
+
+                      {/* BOTONES DE FILTRO RÁPIDO */}
+                      <div className="w-full">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Turnos de:</h4>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => setQuickView({ isOpen: true, filterType: 'hoy' })} 
+                            className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                          >
+                            Hoy
+                          </button>
+                          <button 
+                            onClick={() => setQuickView({ isOpen: true, filterType: 'manana' })} 
+                            className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                          >
+                            Mañana
+                          </button>
+                          <button 
+                            onClick={() => setQuickView({ isOpen: true, filterType: 'semana' })} 
+                            className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                          >
+                            Semana
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
                     {/* CONTENEDOR DE TARJETAS (Derecha) */}
                     <div className="flex-1 w-full">
