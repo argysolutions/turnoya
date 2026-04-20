@@ -223,7 +223,7 @@ export default function AgendaPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col lg:flex-row-reverse gap-8 w-full items-start pb-8">
+        <div className="flex flex-col lg:flex-row-reverse gap-8 w-full items-stretch pb-8">
           
           {/* Sidebar - Desktop Only sticky (Ahora a la DERECHA vía flex-row-reverse) */}
           <aside className="hidden lg:block w-full lg:w-[350px] lg:shrink-0 lg:pr-4 space-y-4 sticky top-6">
@@ -370,10 +370,10 @@ export default function AgendaPage() {
                   <Tabs 
                     value={activeTab}
                     onValueChange={setActiveTab}
-                    className="flex flex-col xl:flex-row gap-8 w-full mt-6 items-start"
+                    className="flex flex-col xl:flex-row gap-8 w-full mt-6 items-stretch"
                   >
                     
-                    <div className="flex flex-col w-full xl:w-64 shrink-0 gap-0">
+                    <div className="flex flex-col w-full xl:w-64 shrink-0 justify-between">
                       {/* MENÚ LATERAL IZQUIERDO */}
                       <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 space-y-1 p-2 rounded-2xl items-stretch justify-start shadow-sm mb-6">
                         <TabsTrigger 
@@ -409,27 +409,29 @@ export default function AgendaPage() {
                         </TabsTrigger>
                       </TabsList>
 
-                      {/* BOTONES DE FILTRO RÁPIDO */}
-                      <div className="w-full">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Turnos de:</h4>
-                        <div className="flex gap-2">
+                      <div className="w-full mt-auto pt-10 pb-2">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-4 px-1">Turnos de:</h4>
+                        <div className="flex flex-col gap-2">
                           <button 
                             onClick={() => setQuickView({ isOpen: true, filterType: 'hoy' })} 
-                            className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                            className="w-full py-3 px-4 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm text-left flex items-center justify-between group"
                           >
-                            Hoy
+                            <span>Hoy</span>
+                            <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition-colors" />
                           </button>
                           <button 
                             onClick={() => setQuickView({ isOpen: true, filterType: 'manana' })} 
-                            className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                            className="w-full py-3 px-4 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm text-left flex items-center justify-between group"
                           >
-                            Mañana
+                            <span>Mañana</span>
+                            <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition-colors" />
                           </button>
                           <button 
                             onClick={() => setQuickView({ isOpen: true, filterType: 'semana' })} 
-                            className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors shadow-sm"
+                            className="w-full py-3 px-4 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm text-left flex items-center justify-between group"
                           >
-                            Semana
+                            <span>Esta Semana</span>
+                            <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition-colors" />
                           </button>
                         </div>
                       </div>
@@ -585,20 +587,41 @@ export default function AgendaPage() {
                 </Button>
               </div>
 
-              {/* CUERPO DEL MODAL CON LAS TARJETAS */}
-              <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4 custom-scrollbar">
+              {/* CUERPO DEL MODAL CON LAS TARJETAS (GRILLA MINIMALISTA) */}
+              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
                 {quickViewFilteredAppointments.length > 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
-                    {quickViewFilteredAppointments.map(appointment => (
-                      <AppointmentRow 
-                        key={appointment.id}
-                        appointment={appointment}
-                        onClick={(app) => {
-                          setSelectedAppointment(app)
-                          setQuickView({ isOpen: false, filterType: null })
-                        }}
-                      />
-                    ))}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {quickViewFilteredAppointments.map(appointment => {
+                      // Función para obtener colores según estado
+                      const getStatusStyles = (status) => {
+                        const base = "p-3 rounded-xl border flex flex-col gap-1 transition-all hover:scale-[1.02] cursor-pointer shadow-sm";
+                        if (['pending', 'pending_block'].includes(status)) 
+                          return `${base} bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100`;
+                        if (status === 'confirmed')
+                          return `${base} bg-emerald-50 border-emerald-200 text-emerald-900 hover:bg-emerald-100`;
+                        if (status === 'completed')
+                          return `${base} bg-blue-50 border-blue-200 text-blue-900 hover:bg-blue-100`;
+                        return `${base} bg-rose-50 border-rose-200 text-rose-900 hover:bg-rose-100`;
+                      };
+
+                      return (
+                        <div 
+                          key={appointment.id}
+                          onClick={() => {
+                            setSelectedAppointment(appointment)
+                            setQuickView({ isOpen: false, filterType: null })
+                          }}
+                          className={getStatusStyles(appointment.status)}
+                        >
+                          <span className="text-sm font-black tracking-tight">
+                            {format(new Date(appointment.start_at), 'HH:mm')}
+                          </span>
+                          <span className="text-[11px] font-bold opacity-80 truncate">
+                            {appointment.client_name || appointment.service_name || 'Sin nombre'}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="w-full h-48 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center">
