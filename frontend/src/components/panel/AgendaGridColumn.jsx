@@ -19,7 +19,7 @@ export default function AgendaGridColumn({ title, count, dotColor, items, onCard
 
       {/* CONTENEDOR DE TARJETAS: Usamos flex-col y gap-4 para separarlas. NINGÚN bg-white en este contenedor padre. */}
       {items.length > 0 ? (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {items.map(turno => (
             /* CADA TARJETA va en su propio contenedor blanco con borde y sombra para que no se peguen */
             <div key={turno.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden w-full">
