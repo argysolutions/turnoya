@@ -41,16 +41,16 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
       onClick={() => onClick?.(appointment)}
       className={cn(
         "group flex items-center justify-between bg-white hover:bg-slate-50 transition-all cursor-pointer border-b border-slate-50 last:border-0",
-        isCompact ? "p-1.5 gap-2" : "p-5 gap-5 sm:gap-8"
+        isCompact ? "px-4 py-3.5 gap-3" : "p-5 gap-5 sm:gap-8"
       )}
     >
       <div className="flex items-center flex-1 min-w-0 gap-3 sm:gap-6">
         {/* Time */}
-        <div className={cn("flex flex-col items-center shrink-0", isCompact ? "min-w-[32px]" : "min-w-[45px]")}>
-          <span className={cn("font-bold text-slate-900 tracking-tighter", isCompact ? "text-[10px]" : "text-base")}>
+        <div className={cn("flex flex-col items-center shrink-0", isCompact ? "min-w-[48px]" : "min-w-[55px]")}>
+          <span className={cn("font-bold text-slate-900 tracking-tighter", isCompact ? "text-[13px]" : "text-base")}>
             {startTime}
           </span>
-          <span className={cn("font-bold text-slate-400 uppercase tracking-widest", isCompact ? "text-[6px] -mt-1" : "text-[8px] mt-0.5")}>
+          <span className={cn("font-bold text-slate-400 uppercase tracking-widest", isCompact ? "text-[8px] -mt-0.5" : "text-[9px] mt-0.5")}>
             Inicio
           </span>
         </div>
@@ -58,7 +58,7 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
         {/* Content */}
         <div className="flex flex-col min-w-0 overflow-hidden space-y-0">
           <div className="flex items-center gap-1.5 truncate">
-            <span className={cn("font-bold text-slate-900 tracking-tight truncate", isCompact ? "text-[11px]" : "text-sm")}>
+            <span className={cn("font-bold text-slate-900 tracking-tight truncate", isCompact ? "text-[13px]" : "text-sm")}>
               {client_name}
             </span>
             {appointment.client_history_count > 1 && !isCompact && (
@@ -67,9 +67,9 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
               </span>
             )}
           </div>
-          <div className={cn("flex items-center gap-x-3 text-slate-500 font-medium truncate", isCompact ? "text-[9px]" : "text-xs")}>
+          <div className={cn("flex items-center gap-x-3 text-slate-500 font-medium truncate", isCompact ? "text-[11px]" : "text-xs")}>
             <div className="flex items-center gap-1 shrink-0">
-              <Scissors className={cn("text-slate-300", isCompact ? "w-2.5 h-2.5" : "w-3 h-3")} />
+              <Scissors className={cn("text-slate-300", isCompact ? "w-3 h-3" : "w-3 h-3")} />
               <span className="truncate max-w-[120px]">{service_name}</span>
             </div>
             {client_phone && !isCompact && (
@@ -85,11 +85,11 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
       {/* Right side - Badge */}
       <div className="flex items-center gap-3 shrink-0">
         <div className={cn(
-          "flex items-center gap-1.5 bg-slate-50/50 rounded-xl border border-slate-100",
-          isCompact ? "px-1.5 py-0.5" : "px-3 py-1.5"
+          "flex items-center gap-1.5 bg-slate-50/50 rounded-lg border border-slate-100",
+          isCompact ? "px-2 py-1" : "px-3 py-1.5"
         )}>
-          <div className={cn("rounded-full", isCompact ? "w-1 h-1" : "w-2 h-2", statusColors[status] || 'bg-slate-300')} />
-          <span className={cn("font-bold uppercase tracking-wider text-slate-600", isCompact ? "text-[6px]" : "text-[9px]")}>
+          <div className={cn("rounded-full", isCompact ? "w-1.5 h-1.5" : "w-2 h-2", statusColors[status] || 'bg-slate-300')} />
+          <span className={cn("font-bold uppercase tracking-wider text-slate-600", isCompact ? "text-[9px]" : "text-[9px]")}>
             {statusLabels[status] || status}
           </span>
         </div>

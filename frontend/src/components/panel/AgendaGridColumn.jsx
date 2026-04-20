@@ -12,7 +12,7 @@ export default function AgendaGridColumn({ title, count, dotColor, items, onCard
             {title}
           </span>
         </div>
-        <span className="!font-sans !text-xs !font-bold bg-slate-100 !text-slate-600 py-1 px-2.5 rounded-full">
+        <span className="!font-sans !text-xs !font-bold bg-slate-100 !text-slate-600 py-1.5 px-3 rounded-full">
           {count}
         </span>
       </div>
