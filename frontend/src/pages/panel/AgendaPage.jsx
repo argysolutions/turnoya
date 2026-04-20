@@ -381,9 +381,11 @@ export default function AgendaPage() {
                       
                       <TabsContent value="pendientes" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {pendientes.length > 0 ? (
-                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-4">
                             {pendientes.map(appointment => (
-                              <AppointmentRow key={appointment.id} appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
+                              <div key={appointment.id} className="w-full">
+                                <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
+                              </div>
                             ))}
                           </div>
                         ) : (
@@ -395,9 +397,11 @@ export default function AgendaPage() {
 
                       <TabsContent value="confirmados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {confirmados.length > 0 ? (
-                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-4">
                             {confirmados.map(appointment => (
-                              <AppointmentRow key={appointment.id} appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
+                              <div key={appointment.id} className="w-full">
+                                <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
+                              </div>
                             ))}
                           </div>
                         ) : (
@@ -409,9 +413,11 @@ export default function AgendaPage() {
 
                       <TabsContent value="finalizados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {finalizados.length > 0 ? (
-                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-4">
                             {finalizados.map(appointment => (
-                              <AppointmentRow key={appointment.id} appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
+                              <div key={appointment.id} className="w-full">
+                                <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
+                              </div>
                             ))}
                           </div>
                         ) : (
@@ -423,9 +429,11 @@ export default function AgendaPage() {
 
                       <TabsContent value="cancelados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {canceladosAusentes.length > 0 ? (
-                          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-4">
                             {canceladosAusentes.sort((a, b) => a.time?.localeCompare(b.time || '')).map(appointment => (
-                              <AppointmentRow key={appointment.id} appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
+                              <div key={appointment.id} className="w-full">
+                                <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
+                              </div>
                             ))}
                           </div>
                         ) : (
@@ -534,66 +542,25 @@ export default function AgendaPage() {
                 </Button>
               </div>
 
-              {/* MODAL CONTENT */}
-              <div className="flex-1 overflow-hidden flex flex-col">
+              <div className="flex-1 overflow-auto custom-scrollbar p-6">
                 {quickViewFilteredAppointments.length > 0 ? (
-                  <div className={cn(
-                    "p-8 overflow-auto custom-scrollbar flex-1",
-                    quickView.filterType === 'semana' ? "flex flex-col space-y-6" : "flex items-center gap-6 px-12 snap-x snap-mandatory pb-12"
-                  )}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
                     
                     {quickViewFilteredAppointments.map((appointment, idx) => (
                       <motion.div 
                         key={appointment.id}
-                        initial={{ opacity: 0, x: quickView.filterType === 'semana' ? 0 : 20, y: quickView.filterType === 'semana' ? 20 : 0 }}
-                        animate={{ opacity: 1, x: 0, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        onClick={() => { setSelectedAppointment(appointment); setQuickView({ isOpen: false, filterType: null }); }}
-                        className={cn(
-                          "relative group cursor-pointer transition-all snap-center",
-                          quickView.filterType === 'semana' ? "w-full" : "min-w-[280px] h-full flex flex-col justify-center"
-                        )}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className="w-full"
                       >
-                        {/* Timeline Connector */}
-                        {quickView.filterType === 'semana' ? (
-                          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-100 -translate-x-1/2 -z-10 group-last:bottom-1/2" />
-                        ) : (
-                          <div className="absolute left-0 right-0 bottom-0 h-0.5 bg-slate-100 -z-10 group-first:left-1/2 group-last:right-1/2" />
-                        )}
-
-                        <div className={cn(
-                          "relative p-6 rounded-[24px] border-2 transition-all group-hover:-translate-y-1 group-hover:shadow-xl group-active:scale-95",
-                          quickViewTheme.bg,
-                          quickViewTheme.border,
-                          quickViewTheme.shadow,
-                          quickView.filterType === 'semana' ? "ml-8" : "mb-8"
-                        )}>
-                          {/* Dot / Indicator */}
-                          <div className={cn(
-                            "absolute rounded-full border-4 border-white shadow-sm transition-transform group-hover:scale-125",
-                            quickViewTheme.dot,
-                            quickView.filterType === 'semana' ? "-left-[42px] top-1/2 -translate-y-1/2 w-5 h-5" : "left-1/2 -bottom-[42px] -translate-x-1/2 w-5 h-5"
-                          )} />
-
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center justify-between">
-                              <span className={cn("text-lg font-bold tracking-tighter", quickViewTheme.text)}>
-                                {format(new Date(appointment.start_at), 'HH:mm')}
-                              </span>
-                              {quickView.filterType === 'semana' && (
-                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">
-                                  {format(new Date(appointment.start_at), 'EEEE d', { locale: es })}
-                                </span>
-                              )}
-                            </div>
-                            <h3 className="font-bold text-slate-800 text-base leading-tight truncate">
-                              {appointment.client_name || 'Sin nombre'}
-                            </h3>
-                            <p className={cn("text-[11px] font-bold uppercase tracking-wider opacity-60", quickViewTheme.text)}>
-                              {appointment.service_name || 'Servicio'}
-                            </p>
-                          </div>
-                        </div>
+                        <AppointmentCard 
+                          appointment={appointment} 
+                          onClick={(app) => { 
+                            setSelectedAppointment(app); 
+                            setQuickView({ isOpen: false, filterType: null }); 
+                          }} 
+                        />
                       </motion.div>
                     ))}
                   </div>

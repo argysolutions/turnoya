@@ -23,50 +23,46 @@ const statusLabels = {
 }
 
 export const AppointmentCard = ({ appointment, onClick }) => {
-  const { start_at, end_at, client_name, service_name, status, notes } = appointment
-  
+  const { start_at, client_name, service_name, status, phone } = appointment
   const startTime = format(new Date(start_at), 'HH:mm')
-  const endTime = format(new Date(end_at), 'HH:mm')
 
   return (
     <div 
       onClick={() => onClick?.(appointment)}
       className={cn(
-        "group relative flex flex-col md:flex-row md:items-center justify-between p-4 mb-3 border rounded-xl transition-all cursor-pointer hover:shadow-md",
-        statusStyles[status] || 'bg-white border-gray-200'
+        "group relative flex items-center p-3 border rounded-2xl transition-all cursor-pointer hover:shadow-lg active:scale-[0.98] bg-white",
+        statusStyles[status] || 'border-slate-100 shadow-sm'
       )}
     >
-      <div className="flex items-start md:items-center space-x-4">
-        <div className="flex flex-col items-center justify-center min-w-[60px] py-1 bg-white/50 rounded-lg border border-current/10">
-          <span className="text-xs font-bold uppercase tracking-tighter opacity-70">Inicio</span>
-          <span className="text-lg font-black">{startTime}</span>
+      <div className="flex items-center gap-3 w-full">
+        {/* TIME BLOCK */}
+        <div className="flex flex-col items-center justify-center min-w-[3.5rem]">
+          <span className="text-base font-bold text-slate-900 leading-none">{startTime}</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase mt-1">Inicio</span>
         </div>
 
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <User className="w-4 h-4 opacity-70" />
-            <h4 className="font-bold leading-none">{client_name}</h4>
+        {/* CONTENT BLOCK with vertical separator */}
+        <div className="flex flex-col border-l border-slate-200 pl-3 flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-slate-800 truncate max-w-[140px]">
+              {client_name || 'Sin nombre'}
+            </span>
+            {/* Quick status badge mini */}
+            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/50 border border-current/10">
+              {statusLabels[status]?.split(' ')[0] || status}
+            </span>
           </div>
-          <div className="flex items-center gap-2 text-sm opacity-80">
-            <Scissors className="w-3.5 h-3.5" />
-            <span>{service_name}</span>
-            <span className="mx-1">•</span>
-            <Clock className="w-3.5 h-3.5" />
-            <span>{endTime} fin</span>
+          <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 font-medium truncate">
+            <Scissors className="w-3 h-3 shrink-0" /> 
+            <span className="truncate">{service_name || 'Servicio'}</span>
+            {phone && (
+              <>
+                <span className="opacity-30">•</span>
+                <span className="truncate">{phone}</span>
+              </>
+            )}
           </div>
         </div>
-      </div>
-
-      <div className="mt-3 md:mt-0 flex items-center justify-between md:justify-end gap-3">
-        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/60">
-          {statusLabels[status] || status}
-        </span>
-        {notes && (
-          <div className="text-xs italic opacity-60 flex items-center gap-1 max-w-[150px] truncate">
-            <InfoIcon className="w-3 h-3" />
-            {notes}
-          </div>
-        )}
       </div>
     </div>
   )
