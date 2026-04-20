@@ -23,7 +23,7 @@ function Calendar({
         months: "relative",
         month: "space-y-4",
         month_caption: "flex justify-center relative items-center h-10 w-full mb-6",
-        caption_label: "text-sm font-medium text-slate-900",
+        caption_label: "text-sm font-bold text-slate-900 capitalize",
         nav: "flex items-center",
         button_previous: "h-8 w-8 bg-slate-900 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center p-0 absolute left-2 top-5 -translate-y-1/2 z-10",
         button_next: "h-8 w-8 bg-slate-900 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center p-0 absolute right-2 top-5 -translate-y-1/2 z-10",
