@@ -62,6 +62,7 @@ export default function AgendaPage() {
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isGridView, setIsGridView] = useState(false)
   const [activeTab, setActiveTab] = useState('pendientes')
+  const [quickView, setQuickView] = useState({ isOpen: false, filterType: null })
   const [quickViewStatusFilter, setQuickViewStatusFilter] = useState('all')
   const [showScrollIndicator, setShowScrollIndicator] = useState(false)
   const [hasInitializedTab, setHasInitializedTab] = useState(false)
