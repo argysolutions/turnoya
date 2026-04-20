@@ -32,13 +32,13 @@ function Calendar({
         weekday: "text-slate-500 font-medium text-xs uppercase tracking-tight text-center flex items-center justify-center h-10",
         weeks: "w-full",
         week: "grid grid-cols-7 w-full mt-1.5 gap-1",
-        day: "h-12 w-full flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
+        day: "h-10 w-full flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-12 w-12 p-0 text-base font-normal transition-all cursor-pointer rounded-xl flex items-center justify-center hover:bg-blue-50 hover:text-blue-700"
+          "h-10 w-10 p-0 text-sm font-semibold transition-all cursor-pointer rounded-xl flex items-center justify-center hover:bg-blue-50 hover:text-blue-700"
         ),
-        selected: "[&_button]:bg-slate-900 [&_button]:text-white [&_button]:font-semibold [&_button]:opacity-100 [&_button]:hover:bg-blue-600 [&_button]:hover:text-white [&_button]:transition-colors", 
-        today: "[&_button]:border-2 [&_button]:border-slate-100 [&_button]:text-slate-900 [&_button]:font-bold",
+        selected: "[&_button]:bg-slate-900 [&_button]:text-white [&_button]:font-black [&_button]:opacity-100 [&_button]:hover:bg-blue-600 [&_button]:hover:text-white [&_button]:transition-colors", 
+        today: "[&_button]:border-2 [&_button]:border-slate-200 [&_button]:text-slate-900 [&_button]:font-black",
         outside: "day-outside text-slate-300 opacity-30",
         disabled: "text-slate-300 opacity-20",
         hidden: "invisible",
