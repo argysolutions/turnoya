@@ -367,6 +367,29 @@ export default function AgendaPage() {
                       </button>
                     </div>
                   </div>
+                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo se muestra si hay pendientes */}
+                  {pendientes.length > 0 && (
+                    <div className="w-full mb-8 mt-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                        </span>
+                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                          Requieren Acción Inmediata ({pendientes.length})
+                        </h3>
+                      </div>
+                      
+                      {/* Grilla compacta de 3 columnas para los pendientes */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full">
+                        {pendientes.map(turno => (
+                          <div key={`priority-pending-${turno.id}`} className="w-full">
+                            <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* 2. AREA DE CONTENIDO (LISTA O TABLERO KANBAN) */}
                   {isGridView ? (
