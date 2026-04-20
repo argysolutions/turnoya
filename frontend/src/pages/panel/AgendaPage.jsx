@@ -257,7 +257,7 @@ export default function AgendaPage() {
             {!isGridView && (
               <aside className="hidden xl:flex flex-col w-64 shrink-0 sticky top-6 gap-10">
                 <div className="flex flex-col w-full">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-1">Turnos:</h4>
+                  <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 px-1">Turnos:</h4>
                   <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 shadow-sm p-1.5 rounded-2xl items-stretch justify-start">
                     <TabsTrigger 
                       value="pendientes" 
@@ -292,7 +292,7 @@ export default function AgendaPage() {
 
                 {/* FILTROS RÁPIDOS - FORMATO MOSAICO PREMIUM */}
                 <div className="w-full">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-4 px-1 border-t border-slate-100 pt-6">Vista Rápida:</h4>
+                  <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 px-1 border-t border-slate-100 pt-6">Vista Rápida:</h4>
                   <div className="flex flex-col gap-3">
                     <button 
                       onClick={() => setQuickView({ isOpen: true, filterType: 'hoy' })} 
