@@ -44,11 +44,11 @@ export default function AgendaPage() {
     blockedDates,
     fetchBlockedDates,
     refresh
-  } = useAppointments()
+  } = useAppointments(new Date('2026-04-20T00:00:00'))
 
 
   // Fetch blocked dates for the calendar whenever the visible month changes
-  const [currentMonth, setCurrentMonth] = React.useState(new Date())
+  const [currentMonth, setCurrentMonth] = React.useState(new Date('2026-04-20T00:00:00'))
 
   React.useEffect(() => {
     fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)

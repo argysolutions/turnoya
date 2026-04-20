@@ -1,7 +1,7 @@
 import React from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, User, Scissors, info as InfoIcon } from 'lucide-react'
+import { Clock, User, Scissors, info as InfoIcon, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const statusStyles = {
@@ -23,7 +23,7 @@ const statusLabels = {
 }
 
 export const AppointmentCard = ({ appointment, onClick }) => {
-  const { start_at, client_name, service_name, status, phone } = appointment
+  const { start_at, client_name, service_name, status, phone, is_frequent } = appointment
   const startTime = format(new Date(start_at), 'HH:mm')
 
   return (
@@ -47,6 +47,9 @@ export const AppointmentCard = ({ appointment, onClick }) => {
             <span className="text-sm font-bold text-slate-800 truncate max-w-[140px]">
               {client_name || 'Sin nombre'}
             </span>
+            {is_frequent && (
+              <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+            )}
             {/* Quick status badge mini */}
             <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/50 border border-current/10">
               {statusLabels[status]?.split(' ')[0] || status}

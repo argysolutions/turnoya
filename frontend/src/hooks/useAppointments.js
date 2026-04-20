@@ -13,10 +13,29 @@ export const useAppointments = (initialDate = new Date()) => {
   const fetchAppointments = useCallback(async () => {
     setLoading(true)
     setError(null)
+    
+    // MOCK DATA PARA TESTING DE LAYOUT
+    const mockAppointments = [
+      { id: 1, start_at: '2026-04-20T09:00:00', client_name: 'Martina Ruiz', phone: '3472-551122', service_name: 'Coloración', status: 'pending', is_frequent: true },
+      { id: 2, start_at: '2026-04-20T09:30:00', client_name: 'Lucas Vega', phone: '3472-553344', service_name: 'Corte Clásico', status: 'pending', is_frequent: false },
+      { id: 3, start_at: '2026-04-20T10:00:00', client_name: 'Prueba', phone: '1233122455', service_name: 'Test', status: 'confirmed', is_frequent: true },
+      { id: 4, start_at: '2026-04-20T11:00:00', client_name: 'Sofía Castro', phone: '3472-558899', service_name: 'Manicura', status: 'confirmed', is_frequent: false },
+      { id: 5, start_at: '2026-04-20T12:00:00', client_name: 'Diego Torres', phone: '3472-557766', service_name: 'Barbería', status: 'confirmed', is_frequent: true },
+      { id: 6, start_at: '2026-04-20T14:00:00', client_name: 'Valeria Luna', phone: '3472-551234', service_name: 'Corte Mujer', status: 'confirmed', is_frequent: false },
+      { id: 7, start_at: '2026-04-20T08:00:00', client_name: 'Carlos Díaz', phone: '3472-559900', service_name: 'Corte Clásico', status: 'completed', is_frequent: true },
+      { id: 8, start_at: '2026-04-20T15:30:00', client_name: 'Ana Gómez', phone: '3472-554455', service_name: 'Peinado', status: 'cancelled', is_frequent: false },
+      { id: 9, start_at: '2026-04-21T10:00:00', client_name: 'Julieta Paz', phone: '3472-441122', service_name: 'Coloración', status: 'confirmed', is_frequent: true },
+      { id: 10, start_at: '2026-04-21T11:30:00', client_name: 'Marcos Silva', phone: '3472-443344', service_name: 'Barbería', status: 'pending', is_frequent: false },
+      { id: 11, start_at: '2026-04-21T16:00:00', client_name: 'Laura Sosa', phone: '3472-445566', service_name: 'Manicura', status: 'confirmed', is_frequent: true },
+      { id: 12, start_at: '2026-04-23T09:00:00', client_name: 'Pedro Arce', phone: '3472-661122', service_name: 'Corte Clásico', status: 'confirmed', is_frequent: false },
+      { id: 13, start_at: '2026-04-24T17:00:00', client_name: 'Camila Ríos', phone: '3472-663344', service_name: 'Alisado', status: 'pending', is_frequent: true },
+      { id: 14, start_at: '2026-04-25T10:30:00', client_name: 'Emilio Rey', phone: '3472-665566', service_name: 'Corte Niño', status: 'confirmed', is_frequent: true },
+    ];
+
     try {
-      const formattedDate = format(date, 'yyyy-MM-dd')
-      const { data } = await getAppointments(formattedDate)
-      setAppointments(data)
+      // Simulamos latencia de red
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setAppointments(mockAppointments)
     } catch (err) {
       const msg = err.response?.data?.error || 'Error al cargar la agenda'
       setError(msg)
