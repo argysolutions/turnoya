@@ -8,7 +8,7 @@ export default function AgendaGridColumn({ title, count, dotColor, items, onCard
       <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${dotColor}`}></div>
-          <span className="!font-sans !text-sm !font-bold !text-slate-800 uppercase !tracking-wide m-0">
+          <span className="!font-sans !text-base !font-bold !text-slate-800 !tracking-tight m-0">
             {title}
           </span>
         </div>

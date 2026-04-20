@@ -50,7 +50,7 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
           <span className={cn("font-bold text-slate-900 tracking-tighter", isCompact ? "text-[13px]" : "text-base")}>
             {startTime}
           </span>
-          <span className={cn("font-bold text-slate-400 uppercase tracking-widest", isCompact ? "text-[8px] -mt-0.5" : "text-[9px] mt-0.5")}>
+          <span className={cn("font-bold text-slate-400 !tracking-tight", isCompact ? "text-[9px] -mt-0.5" : "text-[10px] mt-0.5")}>
             Inicio
           </span>
         </div>
@@ -62,7 +62,7 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
               {client_name}
             </span>
             {appointment.client_history_count > 1 && !isCompact && (
-              <span className="bg-emerald-50 text-emerald-600 text-[8px] font-bold px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter">
+              <span className="bg-emerald-50 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-100 !tracking-tight">
                 Frecuente 🔥
               </span>
             )}
@@ -89,7 +89,7 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
           isCompact ? "px-2 py-1" : "px-3 py-1.5"
         )}>
           <div className={cn("rounded-full", isCompact ? "w-1.5 h-1.5" : "w-2 h-2", statusColors[status] || 'bg-slate-300')} />
-          <span className={cn("font-bold uppercase tracking-wider text-slate-600", isCompact ? "text-[9px]" : "text-[9px]")}>
+          <span className={cn("font-bold !tracking-tight text-slate-600", isCompact ? "text-[10px]" : "text-[10px]")}>
             {statusLabels[status] || status}
           </span>
         </div>
