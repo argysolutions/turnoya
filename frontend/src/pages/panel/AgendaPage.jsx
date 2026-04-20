@@ -201,9 +201,11 @@ export default function AgendaPage() {
   const checkScroll = () => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      // Mostramos el icono si hay contenido abajo (con un margen de 10px)
-      const hasMoreDown = scrollHeight > clientHeight + scrollTop + 10;
-      setShowScrollIndicator(hasMoreDown);
+      // El icono solo se muestra si el usuario está arriba Y hay contenido oculto abajo
+      // Se desaparece en cuanto baja más de 20px
+      const isAtTop = scrollTop < 20;
+      const hasMoreDown = scrollHeight > clientHeight + 10;
+      setShowScrollIndicator(isAtTop && hasMoreDown);
     }
   };
 
