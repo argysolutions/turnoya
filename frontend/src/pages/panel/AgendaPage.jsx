@@ -385,9 +385,9 @@ export default function AgendaPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                          <div className="w-full flex-1 flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
                             <Filter className="w-10 h-10 text-slate-300 mb-4 mx-auto" />
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No hay turnos pendientes</p>
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
                           </div>
                         )}
                       </TabsContent>
@@ -406,9 +406,9 @@ export default function AgendaPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                          <div className="w-full flex-1 flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
                             <Filter className="w-10 h-10 text-slate-300 mb-4 mx-auto" />
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No hay turnos confirmados</p>
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
                           </div>
                         )}
                       </TabsContent>
@@ -427,9 +427,9 @@ export default function AgendaPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                          <div className="w-full flex-1 flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
                             <Filter className="w-10 h-10 text-slate-300 mb-4 mx-auto" />
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos finalizados</p>
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
                           </div>
                         )}
                       </TabsContent>
@@ -450,9 +450,9 @@ export default function AgendaPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                          <div className="w-full flex-1 flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 text-center">
                             <Filter className="w-10 h-10 text-slate-300 mb-4 mx-auto" />
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos cancelados</p>
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin turnos</p>
                           </div>
                         )}
                       </TabsContent>
