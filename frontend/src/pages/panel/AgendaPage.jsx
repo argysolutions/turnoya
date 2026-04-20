@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ChevronDown,
   LayoutGrid as Grid3X3,
-  Rows3
+  Rows3,
+  CheckCircle
 } from 'lucide-react'
 import { useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -139,6 +140,17 @@ export default function AgendaPage() {
       setHasInitializedTab(true)
     }
   }, [loading, appointments, hasInitializedTab])
+
+  const handleAcceptAll = async () => {
+    if (pendientes.length === 0) return
+    const toastId = toast.loading('Confirmando todos los turnos...')
+    try {
+      await Promise.all(pendientes.map(app => updateStatus(app.id, 'confirmed')))
+      toast.success(`${pendientes.length} turnos confirmados con éxito`, { id: toastId })
+    } catch (err) {
+      toast.error('Error al confirmar algunos turnos', { id: toastId })
+    }
+  }
 
   // Parse block reason safely
   const blockReason = useMemo(() => {
@@ -434,26 +446,37 @@ export default function AgendaPage() {
                   {/* BANDEJA DE ACCIÓN PRIORITARIA: Agrupada por fechas y colapsable */}
                   {groupedPendientes.length > 0 && (
                     <div className="w-full mb-8 mt-6">
-                      <div 
-                        onClick={() => setIsPriorityExpanded(!isPriorityExpanded)}
-                        className="flex items-center justify-between group cursor-pointer select-none mb-4"
-                      >
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between mb-4">
+                        {/* Lado Izquierdo: Título y Ping (Clickable to Toggle) */}
+                        <div 
+                          onClick={() => setIsPriorityExpanded(!isPriorityExpanded)}
+                          className="flex items-center gap-2 cursor-pointer select-none group"
+                        >
                           <span className="relative flex h-3 w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                           </span>
-                          <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
                             {activeTab === 'pendientes' ? 'Turnos Pendientes' : 'Requieren Acción Inmediata'} ({pendientes.length})
                           </h3>
+                          <motion.div
+                            animate={{ rotate: isPriorityExpanded ? 180 : 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            className="w-5 h-5 flex items-center justify-center text-slate-400 group-hover:text-blue-600 transition-colors ml-1"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </motion.div>
                         </div>
-                        <motion.div
-                          animate={{ rotate: isPriorityExpanded ? 180 : 0 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                          className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-600 transition-colors"
+                        
+                        {/* Lado Derecho: Botón de Acción Masiva */}
+                        <button 
+                          type="button"
+                          onClick={handleAcceptAll}
+                          className="flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95"
                         >
-                          <ChevronDown className="w-5 h-5" />
-                        </motion.div>
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          Aceptar Todos
+                        </button>
                       </div>
                       
                       <AnimatePresence initial={false}>
