@@ -119,25 +119,6 @@ export default function AgendaPage() {
     }
   }
 
-  // Lógica de Indicador de Scroll para el Modal
-  const checkScroll = () => {
-    if (scrollRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      // Mostramos el icono si hay contenido abajo (con un margen de 10px)
-      const hasMoreDown = scrollHeight > clientHeight + scrollTop + 10;
-      setShowScrollIndicator(hasMoreDown);
-    }
-  };
-
-  useEffect(() => {
-    if (quickView.isOpen) {
-      // Check immediately and also after a small delay for rendering
-      checkScroll();
-      const timer = setTimeout(checkScroll, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [quickView.isOpen, quickViewFilteredAppointments]);
-
   // Auto-selección de pestaña por prioridad al cargar
   React.useEffect(() => {
     // Esperamos a que loading sea false y que tengamos turnos para decidir la pestaña principal
@@ -215,6 +196,25 @@ export default function AgendaPage() {
       return false
     }).sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
   }, [appointments, quickView.isOpen, quickView.filterType, quickViewStatusFilter])
+
+  // Lógica de Indicador de Scroll para el Modal
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      // Mostramos el icono si hay contenido abajo (con un margen de 10px)
+      const hasMoreDown = scrollHeight > clientHeight + scrollTop + 10;
+      setShowScrollIndicator(hasMoreDown);
+    }
+  };
+
+  useEffect(() => {
+    if (quickView.isOpen) {
+      // Check inmediatamente y después de un breve delay por renderizado
+      checkScroll();
+      const timer = setTimeout(checkScroll, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [quickView.isOpen, quickViewFilteredAppointments]);
 
   // Helper para estilos del QuickView basados en el filtro
   const quickViewTheme = useMemo(() => {
