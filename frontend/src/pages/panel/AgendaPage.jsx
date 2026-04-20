@@ -162,7 +162,7 @@ export default function AgendaPage() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hidden md:block text-slate-500 font-bold bg-slate-100/50 px-3 py-1.5 rounded-xl border border-slate-200/50 text-sm capitalize">
+            <span className="hidden md:block text-blue-600 font-bold bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100 text-sm capitalize">
               {format(date, "EEEE, d 'de' MMMM", { locale: es })}
             </span>
             <Button 
@@ -180,7 +180,7 @@ export default function AgendaPage() {
           <Button variant="ghost" size="icon" onClick={() => setDate(new Date(date.setDate(date.getDate() - 1)))}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <span className="text-sm font-bold text-slate-900 capitalize">
+          <span className="text-sm font-bold text-blue-600 capitalize">
             {format(date, "EEEE d 'de' MMM", { locale: es })}
           </span>
           <Button variant="ghost" size="icon" onClick={() => setDate(new Date(date.setDate(date.getDate() + 1)))}>
