@@ -116,6 +116,7 @@ export default function AgendaPage() {
 
   // Auto-selección de pestaña por prioridad al cargar
   React.useEffect(() => {
+    // Esperamos a que loading sea false y que tengamos turnos para decidir la pestaña principal
     if (!loading && appointments && appointments.length > 0 && !hasInitializedTab) {
       const sections = {
         pendiente: appointments.filter(a => a.status === 'pending' || a.status === 'pending_block'),
@@ -129,9 +130,6 @@ export default function AgendaPage() {
       else if (sections.finalizado.length > 0) setActiveTab('finalizados')
       else if (sections.canceladoAusente.length > 0) setActiveTab('cancelados')
       
-      setHasInitializedTab(true)
-    } else if (!loading && appointments && appointments.length === 0 && !hasInitializedTab) {
-      // Si no hay ningún turno, dejamos en pendientes por defecto
       setHasInitializedTab(true)
     }
   }, [loading, appointments, hasInitializedTab])
