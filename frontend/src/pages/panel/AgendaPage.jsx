@@ -444,7 +444,7 @@ export default function AgendaPage() {
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                           </span>
                           <h3 className="text-xl font-bold text-slate-800 tracking-tight">
-                            Requieren Acción Inmediata ({pendientes.length})
+                            {activeTab === 'pendientes' ? 'Turnos Pendientes' : 'Requieren Acción Inmediata'} ({pendientes.length})
                           </h3>
                         </div>
                         <motion.div
@@ -492,24 +492,40 @@ export default function AgendaPage() {
                   {/* 2. AREA DE CONTENIDO (LISTA O TABLERO KANBAN) */}
                   {isGridView ? (
                     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 w-full mt-4 items-start">
-                      <AgendaGridColumn title="Pendientes" count={pendientes.length} dotColor="bg-amber-400" items={pendientes} onCardClick={setSelectedAppointment} />
+                      {isPriorityExpanded ? (
+                        <AgendaGridColumn title="Pendientes" count={pendientes.length} dotColor="bg-amber-400" items={pendientes} onCardClick={setSelectedAppointment} />
+                      ) : (
+                        <div className="flex flex-col gap-3 p-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 items-center justify-center h-[200px]">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Columna de Pendientes Oculta</p>
+                          <Button variant="ghost" size="sm" onClick={() => setIsPriorityExpanded(true)} className="text-blue-600 text-[10px] font-black h-7">Expandir para gestionar</Button>
+                        </div>
+                      )}
                       <AgendaGridColumn title="Confirmados" count={confirmados.length} dotColor="bg-emerald-500" items={confirmados} onCardClick={setSelectedAppointment} />
                       <AgendaGridColumn title="Finalizados" count={finalizados.length} dotColor="bg-blue-500" items={finalizados} onCardClick={setSelectedAppointment} />
                       <AgendaGridColumn title="Cancelados" count={canceladosAusentes.length} dotColor="bg-rose-500" items={canceladosAusentes} onCardClick={setSelectedAppointment} />
                     </div>
                   ) : (
                     <div className="flex-1 w-full flex flex-col gap-4">
-                      
-                      <TabsContent value="pendientes" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
-                        {pendientes.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-4">
-                            {pendientes.map(appointment => (
-                              <div key={appointment.id} className="w-full">
-                                <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
-                              </div>
-                            ))}
+                       <TabsContent value="pendientes" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
+                        {!isPriorityExpanded && pendientes.length > 0 && (
+                          <div className="w-full py-12 flex flex-col items-center justify-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200 text-center mb-4 px-6 animate-in fade-in zoom-in-95 duration-500">
+                             <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-3">
+                               <Inbox className="w-6 h-6 text-amber-500 opacity-60" />
+                             </div>
+                            <h4 className="text-base font-bold text-slate-800">Sección colapsada</h4>
+                            <p className="text-xs font-medium text-slate-400 mt-1 max-w-[240px]">
+                              Actualmente tienes {pendientes.length} turnos por gestionar en la bandeja superior.
+                            </p>
+                            <Button 
+                              onClick={() => setIsPriorityExpanded(true)}
+                              className="mt-4 rounded-xl font-bold bg-slate-900"
+                              size="sm"
+                            >
+                              Expandir Pendientes
+                            </Button>
                           </div>
-                        ) : (
+                        )}
+                        {pendientes.length === 0 && (
                           <div className="w-full h-48 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center">
                             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos pendientes</h3>
                           </div>
