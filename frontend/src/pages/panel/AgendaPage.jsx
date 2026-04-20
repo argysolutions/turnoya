@@ -232,6 +232,19 @@ export default function AgendaPage() {
   const finalizados = filteredSections.finalizado;
   const canceladosAusentes = [...filteredSections.cancelado, ...filteredSections.ausente];
 
+  // Filtrado específico para la Bandeja Prioritaria (solo el día seleccionado)
+  const pendientesPrioritarios = useMemo(() => {
+    return pendientes.filter(app => isSameDay(new Date(app.start_at), date))
+  }, [pendientes, date])
+
+  const dateContextLabel = useMemo(() => {
+    const today = startOfToday()
+    const tomorrow = addDays(today, 1)
+    if (isSameDay(date, today)) return "Hoy"
+    if (isSameDay(date, tomorrow)) return "Mañana"
+    return format(date, "d 'de' MMMM", { locale: es })
+  }, [date])
+
   return (
     <Layout maxWidth="max-w-screen-2xl">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -396,22 +409,25 @@ export default function AgendaPage() {
                       </button>
                     </div>
                   </div>
-                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo se muestra si hay pendientes */}
-                  {pendientes.length > 0 && (
-                    <div className="w-full mb-8 mt-6">
-                      <div className="flex items-center gap-2 mb-3">
+                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo se muestra si hay pendientes para el día seleccionado */}
+                  {pendientesPrioritarios.length > 0 && (
+                    <div className="w-full mb-10 mt-6">
+                      <div className="flex items-center gap-2 mb-1">
                         <span className="relative flex h-3 w-3">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                         </span>
-                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
-                          Requieren Acción Inmediata ({pendientes.length})
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.1em]">
+                          Requieren Acción Inmediata ({pendientesPrioritarios.length})
                         </h3>
                       </div>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 ml-5">
+                        Pendientes de {dateContextLabel}
+                      </p>
                       
-                      {/* Grilla compacta de 3 columnas para los pendientes */}
+                      {/* Grilla compacta de 3 columnas para los pendientes priorizados */}
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full">
-                        {pendientes.map(turno => (
+                        {pendientesPrioritarios.map(turno => (
                           <div key={`priority-pending-${turno.id}`} className="w-full">
                             <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
                           </div>
