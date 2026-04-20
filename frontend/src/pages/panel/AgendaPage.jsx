@@ -232,18 +232,30 @@ export default function AgendaPage() {
   const finalizados = filteredSections.finalizado;
   const canceladosAusentes = [...filteredSections.cancelado, ...filteredSections.ausente];
 
-  // Filtrado específico para la Bandeja Prioritaria (solo el día seleccionado)
-  const pendientesPrioritarios = useMemo(() => {
-    return pendientes.filter(app => isSameDay(new Date(app.start_at), date))
-  }, [pendientes, date])
+  // Agrupación de pendientes por fecha para la bandeja prioritaria
+  const groupedPendientes = useMemo(() => {
+    const today = startOfToday();
+    const tomorrow = addDays(today, 1);
+    
+    const groups = {};
+    pendientes.forEach(app => {
+      const dateKey = format(new Date(app.start_at), 'yyyy-MM-dd');
+      if (!groups[dateKey]) groups[dateKey] = { items: [], label: '' };
+      groups[dateKey].items.push(app);
+      
+      const appDate = new Date(app.start_at);
+      if (isSameDay(appDate, today)) groups[dateKey].label = "Hoy";
+      else if (isSameDay(appDate, tomorrow)) groups[dateKey].label = "Mañana";
+      else groups[dateKey].label = format(appDate, "EEEE d 'de' MMMM", { locale: es });
+    });
 
-  const dateContextLabel = useMemo(() => {
-    const today = startOfToday()
-    const tomorrow = addDays(today, 1)
-    if (isSameDay(date, today)) return "Hoy"
-    if (isSameDay(date, tomorrow)) return "Mañana"
-    return format(date, "d 'de' MMMM", { locale: es })
-  }, [date])
+    return Object.keys(groups)
+      .sort()
+      .map(key => ({
+        key,
+        ...groups[key]
+      }));
+  }, [pendientes])
 
   return (
     <Layout maxWidth="max-w-screen-2xl">
@@ -409,27 +421,36 @@ export default function AgendaPage() {
                       </button>
                     </div>
                   </div>
-                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo se muestra si hay pendientes para el día seleccionado */}
-                  {pendientesPrioritarios.length > 0 && (
-                    <div className="w-full mb-10 mt-6">
-                      <div className="flex items-center gap-2 mb-1">
+                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Agrupada por fechas */}
+                  {groupedPendientes.length > 0 && (
+                    <div className="w-full mb-12 mt-6">
+                      <div className="flex items-center gap-2 mb-6">
                         <span className="relative flex h-3 w-3">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                         </span>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.1em]">
-                          Requieren Acción Inmediata ({pendientesPrioritarios.length})
+                        <h3 className="text-[13px] font-bold text-slate-800 uppercase tracking-[0.15em]">
+                          Requieren Acción Inmediata ({pendientes.length})
                         </h3>
                       </div>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 ml-5">
-                        Pendientes de {dateContextLabel}
-                      </p>
                       
-                      {/* Grilla compacta de 3 columnas para los pendientes priorizados */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full">
-                        {pendientesPrioritarios.map(turno => (
-                          <div key={`priority-pending-${turno.id}`} className="w-full">
-                            <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
+                      <div className="space-y-10">
+                        {groupedPendientes.map(group => (
+                          <div key={`group-${group.key}`} className="space-y-4">
+                            <div className="flex items-center gap-4">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                                Pendientes de {group.label}
+                              </span>
+                              <div className="h-[1px] w-full bg-slate-100" />
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full">
+                              {group.items.map(turno => (
+                                <div key={`priority-pending-${turno.id}`} className="w-full">
+                                  <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>
