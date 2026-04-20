@@ -61,6 +61,7 @@ export default function AgendaPage() {
   const [isGridView, setIsGridView] = useState(false)
   const [activeTab, setActiveTab] = useState('pendientes')
   const [quickView, setQuickView] = useState({ isOpen: false, filterType: null })
+  const [hasInitializedTab, setHasInitializedTab] = useState(false)
 
   const handleConfirmAdd = async (data) => {
     await addAppointment(data)
@@ -112,6 +113,28 @@ export default function AgendaPage() {
       console.error('Error al deshacer bloqueo:', err)
     }
   }
+
+  // Auto-selección de pestaña por prioridad al cargar
+  React.useEffect(() => {
+    if (!loading && appointments && appointments.length > 0 && !hasInitializedTab) {
+      const sections = {
+        pendiente: appointments.filter(a => a.status === 'pending' || a.status === 'pending_block'),
+        confirmado: appointments.filter(a => a.status === 'confirmed'),
+        finalizado: appointments.filter(a => a.status === 'completed'),
+        canceladoAusente: appointments.filter(a => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(a.status)),
+      }
+
+      if (sections.pendiente.length > 0) setActiveTab('pendientes')
+      else if (sections.confirmado.length > 0) setActiveTab('confirmados')
+      else if (sections.finalizado.length > 0) setActiveTab('finalizados')
+      else if (sections.canceladoAusente.length > 0) setActiveTab('cancelados')
+      
+      setHasInitializedTab(true)
+    } else if (!loading && appointments && appointments.length === 0 && !hasInitializedTab) {
+      // Si no hay ningún turno, dejamos en pendientes por defecto
+      setHasInitializedTab(true)
+    }
+  }, [loading, appointments, hasInitializedTab])
 
   // Parse block reason safely
   const blockReason = useMemo(() => {
