@@ -320,7 +320,7 @@ export default function AgendaPage() {
                     </button>
                     <button 
                       onClick={() => setQuickView({ isOpen: true, filterType: 'semana' })} 
-                      className="w-full h-[60px] px-5 text-sm font-black rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+                      className="w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
                       <div className="flex flex-col">
                         <span className="leading-tight">Esta Semana</span>
