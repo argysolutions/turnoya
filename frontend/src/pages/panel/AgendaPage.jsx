@@ -283,13 +283,13 @@ export default function AgendaPage() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <button type="button" className="flex items-center justify-center p-2.5 h-11 w-11 rounded-full bg-slate-900 text-white hover:bg-white hover:text-blue-600 hover:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-md active:scale-95 shrink-0 border border-transparent">
+                    <button type="button" className="flex items-center justify-center p-2.5 h-11 w-11 rounded-full bg-slate-50/80 text-slate-400 border border-slate-200 hover:bg-white hover:text-blue-600 hover:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm active:scale-95 shrink-0">
                       <Filter className="w-5 h-5" />
                     </button>
                     
                     <button 
                       onClick={() => setIsGridView(!isGridView)}
-                      className="flex items-center justify-center p-2.5 h-11 w-11 rounded-full bg-slate-900 text-white hover:bg-white hover:text-blue-600 hover:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shrink-0 shadow-md active:scale-95 border border-transparent"
+                      className="flex items-center justify-center p-2.5 h-11 w-11 rounded-full bg-slate-50/80 text-slate-400 border border-slate-200 hover:bg-white hover:text-blue-600 hover:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shrink-0 shadow-sm active:scale-95"
                       title={isGridView ? "Vista Lista" : "Vista Tablero"}
                     >
                       {isGridView ? <Rows3 className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
