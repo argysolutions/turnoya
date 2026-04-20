@@ -210,16 +210,6 @@ export default function AgendaPage() {
                     } 
                   }}
                 />
-                <div className="mt-3 pt-3 border-t border-slate-50">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full text-sm font-medium text-slate-500 hover:text-slate-900 rounded-xl"
-                    onClick={() => setDate(new Date())}
-                  >
-                    Hoy: {format(new Date(), "d 'de' MMM")}
-                  </Button>
-                </div>
               </div>
             </Card>
 
