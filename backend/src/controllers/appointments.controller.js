@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { AppointmentService } from '../services/appointment.service.js'
-import { getAppointmentsByBusiness, getAppointmentById, getBlockedDates, deleteAppointment as deleteAppointmentQuery } from '../db/appointments.queries.js'
+import { getAppointmentsByBusiness, getAppointmentById, getBlockedDates, deleteAppointment as deleteAppointmentQuery, getPendingBlocks } from '../db/appointments.queries.js'
 
 /**
  * Appointments Controller (Refactored Phase 1)
@@ -85,7 +85,9 @@ export const bookAppointment = async (req, reply) => {
  */
 export const getAppointment = async (req, reply) => {
   const { id } = req.params
-  const appointment = await getAppointmentById(id)
+  const businessId = req.user?.business_id // req.user exists if the route is protected
+  
+  const appointment = await getAppointmentById(id, businessId)
   if (!appointment) return reply.status(404).send({ error: 'Turno no encontrado' })
   reply.send(appointment)
 }
@@ -113,6 +115,7 @@ export const updateStatus = async (req, reply) => {
       paymentInfo,
       staffContext: {
         staff_id: req.user.id,
+        role: req.user.role,
         professional_name: paymentInfo?.professional_name || null
       }
     })
@@ -194,6 +197,19 @@ export const listBlockedDates = async (req, reply) => {
   } catch (err) {
     req.log.error(err)
     reply.status(500).send({ error: 'Error fetching blocked dates' })
+  }
+}
+
+/**
+ * Lista bloqueos pendientes de aprobación (Solo Owner)
+ */
+export const listPendingBlocks = async (req, reply) => {
+  try {
+    const blocks = await getPendingBlocks(req.user.business_id)
+    reply.send(blocks)
+  } catch (err) {
+    req.log.error(err)
+    reply.status(500).send({ error: 'Error al obtener bloqueos pendientes' })
   }
 }
 

@@ -71,7 +71,7 @@ export class AppointmentService {
       notes
     })
 
-    const full = await getAppointmentById(appointment.id)
+    const full = await getAppointmentById(appointment.id, bId)
 
     // 4. Side Effects (Async)
     ensureContactExists(bId, clientData).catch(() => {})
@@ -89,6 +89,17 @@ export class AppointmentService {
    * Actualiza el estado de un turno con lógica de negocio específica (Caja/Sales)
    */
   static async updateStatus(id, businessId, { status, paymentInfo, staffContext }) {
+    const appointment = await getAppointmentById(id, businessId)
+    if (!appointment) throw new Error('Turno no encontrado')
+
+    const isEmployee = staffContext?.role === 'employee'
+    const isOwner = staffContext?.role === 'owner'
+
+    // Restricción: Un empleado no puede aprobar un bloqueo pendiente (moverlo a blocked o confirmed)
+    if (appointment.status === 'pending_block' && isEmployee && (status === 'blocked' || status === 'confirmed')) {
+      throw new Error('No tienes permisos para aprobar este bloqueo. Debe ser aprobado por el dueño.')
+    }
+
     if (status === 'liberate') {
       const liberatesAt = new Date(Date.now() + 600000)
       await dbUpdateStatus(id, businessId, 'cancelled_occupied')
@@ -102,9 +113,9 @@ export class AppointmentService {
     }
 
     const updated = await dbUpdateStatus(id, businessId, status, paymentInfo, staffContext)
-    if (!updated) throw new Error('Turno no encontrado')
+    if (!updated) throw new Error('Error al actualizar el turno')
 
-    // Agendar expiración si es un bloqueo temporal
+    // Agendar expiración si es un bloqueo temporal o sigue pendiente
     if (status === 'pending_block' || status === 'cancelled_occupied') {
       await bookingQueue.add('expire-lock', { appointmentId: id }, { delay: 600000 })
     }

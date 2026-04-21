@@ -55,7 +55,7 @@ export const checkOverlap = async (businessId, startAt, endAt, excludeId = null)
   return result.rows.length > 0
 }
 
-export const getAppointmentById = async (id) => {
+export const getAppointmentById = async (id, businessId) => {
   const result = await pool.query(
     `SELECT a.*, 
             b.name as business_name, b.address as business_address, b.phone as business_phone,
@@ -65,8 +65,8 @@ export const getAppointmentById = async (id) => {
      JOIN businesses b ON a.business_id = b.id
      JOIN services s ON a.service_id = s.id
      JOIN clientes c ON a.client_id = c.id
-     WHERE a.id = $1`,
-    [id]
+     WHERE a.id = $1 AND a.business_id = $2`,
+    [id, businessId]
   )
   return result.rows[0]
 }
@@ -87,9 +87,20 @@ export const getAppointmentsByBusiness = async (businessId, date) => {
     params.push(date)
   }
 
-  query += ` ORDER BY a.start_at ASC`
-
   const result = await pool.query(query, params)
+  return result.rows
+}
+
+export const getPendingBlocks = async (businessId) => {
+  const result = await pool.query(
+    `SELECT a.*, s.name as service_name, c.nombre as client_name
+     FROM appointments a
+     LEFT JOIN services s ON a.service_id = s.id
+     LEFT JOIN clientes c ON a.client_id = c.id
+     WHERE a.business_id = $1 AND a.status = 'pending_block'
+     ORDER BY a.start_at ASC`,
+    [businessId]
+  )
   return result.rows
 }
 

@@ -23,7 +23,7 @@ export const financesRoutes = async (app) => {
   // ── Resumen financiero ────────────────────────────────────────────────────
 
   // Empleados y dueños pueden ver el resumen (el frontend filtra por rol)
-  app.get('/finances/summary', { preHandler: verifyToken }, financesSummary)
+  app.get('/finances/summary', { preHandler: [verifyToken, requireRole('owner')] }, financesSummary)
 
   // ── Sesión de Caja ────────────────────────────────────────────────────────
 
