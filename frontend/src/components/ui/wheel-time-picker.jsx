@@ -30,13 +30,18 @@ export default function WheelTimePicker({ value, onChange }) {
   };
 
   return (
-    <div className="picker-container">
-      <Picker value={pickerValue} onChange={handlePickerChange} wheelMode="natural">
+    <div className="picker-container flex justify-center w-full max-w-[280px] mx-auto">
+      <Picker value={pickerValue} onChange={handlePickerChange} wheelMode="natural" className="w-full">
         <Picker.Column name="hour">
           {hours.map((h) => (
             <Picker.Item key={h} value={h}>
               {({ selected }) => (
-                <div className={`text-lg transition-all duration-200 ${selected ? 'text-slate-900 font-bold scale-110' : 'text-slate-400 font-medium scale-90'}`}>
+                <div className={cn(
+                  "transition-all duration-200",
+                  selected 
+                    ? "text-3xl font-black text-slate-900 scale-110" 
+                    : "text-lg font-bold text-slate-300 opacity-40"
+                )}>
                   {h}
                 </div>
               )}
@@ -47,7 +52,12 @@ export default function WheelTimePicker({ value, onChange }) {
           {minutes.map((m) => (
             <Picker.Item key={m} value={m}>
               {({ selected }) => (
-                <div className={`text-lg transition-all duration-200 ${selected ? 'text-slate-900 font-bold scale-110' : 'text-slate-400 font-medium scale-90'}`}>
+                <div className={cn(
+                  "transition-all duration-200",
+                  selected 
+                    ? "text-3xl font-black text-slate-900 scale-110" 
+                    : "text-lg font-bold text-slate-300 opacity-40"
+                )}>
                   {m}
                 </div>
               )}

@@ -24,8 +24,17 @@ const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [endTime, setEndTime] = useState('18:00')
   const [notes, setNotes] = useState('')
   
+  const [isMobile, setIsMobile] = useState(false)
+  
   // Picker states
   const [activePicker, setActivePicker] = useState(null) // 'start' | 'end'
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const handleSubmit = async () => {
     if (loading) return
@@ -64,15 +73,10 @@ const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
       <div className="md:hidden w-12 h-1.5 bg-slate-200 rounded-full mx-auto my-4 shrink-0" />
       
       <div className="flex flex-col p-6 md:p-8 pt-2 md:pt-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Bloquear Horario</h2>
-            <p className="text-sm text-slate-500 font-medium mt-1">Reserva un espacio en la agenda para evitar citas.</p>
-          </div>
-          <button onClick={onClose} className="hidden md:flex p-2 hover:bg-slate-100 rounded-full text-slate-400 font-bold">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        <DialogHeader className="mb-6 pr-8">
+          <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">Bloquear Horario</DialogTitle>
+          <DialogDescription className="text-slate-500 font-medium mt-1">Reserva un espacio en la agenda para evitar citas.</DialogDescription>
+        </DialogHeader>
 
         <div className="mt-8 space-y-6">
           <div className="space-y-4">
@@ -106,24 +110,42 @@ const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
             {/* Horas (Condicional) */}
             {!isAllDay && (
-              <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+              <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Desde</label>
-                  <PickerButton
-                    placeholder="Inicio..."
-                    value={startTime}
-                    onClick={() => setActivePicker('start')}
-                    className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
-                  />
+                  {!isMobile ? (
+                    <Input 
+                      type="time"
+                      className="h-11 rounded-xl border-slate-200"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                    />
+                  ) : (
+                    <PickerButton
+                      placeholder="Inicio..."
+                      value={startTime}
+                      onClick={() => setActivePicker('start')}
+                      className="h-16 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Hasta</label>
-                  <PickerButton
-                    placeholder="Fin..."
-                    value={endTime}
-                    onClick={() => setActivePicker('end')}
-                    className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
-                  />
+                  {!isMobile ? (
+                    <Input 
+                      type="time"
+                      className="h-11 rounded-xl border-slate-200"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                    />
+                  ) : (
+                    <PickerButton
+                      placeholder="Fin..."
+                      value={endTime}
+                      onClick={() => setActivePicker('end')}
+                      className="h-16 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -164,17 +186,17 @@ const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
   return (
     <>
-      <div className="hidden md:block">
+      {!isMobile && (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-          <DialogContent className="max-w-xl p-0 overflow-hidden bg-white border-none shadow-2xl rounded-[2rem]">
+          <DialogContent className="max-w-lg p-0 overflow-hidden bg-white border-none shadow-2xl rounded-[2.5rem]">
             {renderContent()}
           </DialogContent>
         </Dialog>
-      </div>
+      )}
 
       <AnimatePresence>
-        {isOpen && (
-          <div className="md:hidden fixed inset-0 z-[100] flex items-end justify-center">
+        {isOpen && isMobile && (
+          <div className="fixed inset-0 z-[100] flex items-end justify-center">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

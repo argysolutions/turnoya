@@ -88,6 +88,7 @@ export default function AgendaPage() {
     cliente: [], // 'frecuente', 'nuevo'
     staff: [] // array de IDs o nombres
   })
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   // Derivado para saber si hay filtros activos y cambiar el color del botón
   const hasActiveFilters = Object.values(activeSearchFilters).some(arr => arr.length > 0)
@@ -390,36 +391,57 @@ export default function AgendaPage() {
         </header>
 
         {/* HEADER ESTILO iOS (Solo móvil) */}
-        <div className="lg:hidden px-5 pt-8 pb-4 bg-white/80 backdrop-blur-md">
-          <div className="flex justify-between items-end mb-4">
+        <div className="lg:hidden px-5 pt-8 bg-white/80 backdrop-blur-md">
+          <div className="flex justify-between items-end mb-2">
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lunes, 20 Abr</p>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Agenda</h1>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lunes, 20 Apr</p>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight transition-all">Agenda</h1>
             </div>
-            <button 
-              onClick={() => setIsMobileCalendarOpen(true)}
-              className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-95 transition-all"
-            >
-              <CalendarDays className="w-6 h-6" />
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95",
+                  isSearchOpen ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"
+                )}
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => setIsMobileCalendarOpen(true)}
+                className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-95 transition-all"
+              >
+                <CalendarDays className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="flex gap-3">
-            <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-3 shadow-inner">
-              <Search className="text-slate-400 w-5 h-5 focus-within:text-blue-500 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Buscar cliente..." 
-                className="bg-transparent border-none focus:ring-0 outline-none text-base ml-3 w-full text-slate-800 placeholder:text-slate-400" 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
+          <AnimatePresence>
+            {isSearchOpen && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+                animate={{ height: 'auto', opacity: 1, marginBottom: 16 }}
+                exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-3 shadow-inner">
+                  <Search className="text-slate-400 w-5 h-5 focus-within:text-blue-500 transition-colors" />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar cliente..." 
+                    autoFocus
+                    className="bg-transparent border-none focus:ring-0 outline-none text-base ml-3 w-full text-slate-800 placeholder:text-slate-400" 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* NAVEGACIÓN DE ESTADOS MÓVIL (Píldoras) - Única y Sticky */}
-        <div className="lg:hidden flex overflow-x-auto hide-scrollbar gap-3 px-5 py-3 bg-white sticky top-0 z-[60] border-b border-slate-100 shadow-sm animate-in fade-in transition-all">
+        <div className="lg:hidden flex overflow-x-auto hide-scrollbar gap-3 px-5 py-2.5 bg-white sticky top-0 z-[60] border-b border-slate-100 shadow-sm animate-in fade-in transition-all">
           {[
             { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length, activeBg: 'bg-amber-400', activeText: 'text-amber-950' },
             { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length, activeBg: 'bg-emerald-500', activeText: 'text-white' },
@@ -779,7 +801,7 @@ export default function AgendaPage() {
                       <TabsContent value="pendientes" className="w-full mt-2 lg:mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {pendientes.length > 0 ? (
                           <>
-                            <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                            <div className="hidden md:flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
                               <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
                                 Gestión de Pendientes
                               </h3>
@@ -787,6 +809,15 @@ export default function AgendaPage() {
                                 onClick={handleAcceptAllPending}
                                 className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-colors shadow-sm"
                               >
+                                Aceptar Todos
+                              </button>
+                            </div>
+                            <div className="md:hidden flex items-center justify-end mb-2">
+                               <button 
+                                onClick={handleAcceptAllPending}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-colors shadow-sm"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" />
                                 Aceptar Todos
                               </button>
                             </div>
