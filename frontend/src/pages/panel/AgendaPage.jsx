@@ -15,7 +15,12 @@ import {
   ChevronDown,
   LayoutGrid as Grid3X3,
   Rows3,
-  CheckCircle
+  CheckCircle,
+  CalendarX2,
+  Sun,
+  Sunrise,
+  CalendarRange,
+  CalendarDays
 } from 'lucide-react'
 import { useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -314,9 +319,17 @@ export default function AgendaPage() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hidden md:block text-blue-600 font-bold bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100 text-sm capitalize">
-              {format(date, "EEEE, d 'de' MMMM", { locale: es })}
-            </span>
+            <button 
+              onClick={() => {
+                const today = new Date('2026-04-20T00:00:00');
+                setDate(today);
+                setCurrentMonth(today);
+              }}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors shadow-sm"
+            >
+              <CalendarDays className="w-4 h-4 text-slate-400" />
+              Volver a hoy
+            </button>
             <Button 
               onClick={() => setShowDialog(true)}
               className="rounded-xl font-bold gap-2"
@@ -351,7 +364,7 @@ export default function AgendaPage() {
             {/* Sidebar IZQUIERDA - Filtros y Estados (Sticky) */}
             {!isGridView && (
               <aside className="hidden xl:flex flex-col w-64 shrink-0 sticky top-6 gap-10">
-                <div className="flex flex-col w-full">
+                <div className="flex flex-col w-full mt-2">
                   <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 px-1">Turnos:</h4>
                   <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 shadow-sm p-1.5 rounded-2xl items-stretch justify-start">
                     <TabsTrigger 
@@ -393,9 +406,14 @@ export default function AgendaPage() {
                       onClick={() => setQuickView({ isOpen: true, filterType: 'hoy' })} 
                       className="w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
-                      <div className="flex flex-col">
-                        <span className="leading-tight">Hoy</span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-blue-400 transition-colors">Ver ahora</span>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                          <Sun className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col items-start leading-tight">
+                          <span className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Hoy</span>
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Ver ahora</span>
+                        </div>
                       </div>
                       <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
                         <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors" />
@@ -405,9 +423,14 @@ export default function AgendaPage() {
                       onClick={() => setQuickView({ isOpen: true, filterType: 'manana' })} 
                       className="w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
-                      <div className="flex flex-col">
-                        <span className="leading-tight">Mañana</span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-blue-400 transition-colors">Día siguiente</span>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                          <Sunrise className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col items-start leading-tight">
+                          <span className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Mañana</span>
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Día siguiente</span>
+                        </div>
                       </div>
                       <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
                         <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors" />
@@ -417,9 +440,14 @@ export default function AgendaPage() {
                       onClick={() => setQuickView({ isOpen: true, filterType: 'semana' })} 
                       className="w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
                     >
-                      <div className="flex flex-col">
-                        <span className="leading-tight">Esta Semana</span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-blue-400 transition-colors">Lun a Dom</span>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                          <CalendarRange className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col items-start leading-tight">
+                          <span className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Esta Semana</span>
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Lun a Dom</span>
+                        </div>
                       </div>
                       <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
                         <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors" />
@@ -431,7 +459,7 @@ export default function AgendaPage() {
             )}
 
             {/* Columna CENTRAL - Contenido (Buscador y Turnos) */}
-            <div className="flex-1 w-full flex flex-col gap-6 items-start justify-start pt-0 min-w-0">
+            <div className="flex-1 w-full flex flex-col gap-6 items-start justify-start pt-2 min-w-0">
               {loading ? (
                 <AgendaSkeleton />
               ) : (
@@ -659,8 +687,18 @@ export default function AgendaPage() {
                           </div>
                         )}
                         {pendientes.length === 0 && (
-                          <div className="w-full h-48 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center">
-                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos pendientes</h3>
+                          <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
+                            <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
+                              <CalendarX2 className="w-6 h-6 text-slate-400" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Sin turnos en esta vista</p>
+                            <button 
+                              onClick={() => setShowDialog(true)}
+                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Crear nuevo turno
+                            </button>
                           </div>
                         )}
                       </TabsContent>
@@ -675,8 +713,18 @@ export default function AgendaPage() {
                             ))}
                           </div>
                         ) : (
-                          <div className="w-full h-48 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center">
-                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos confirmados</h3>
+                          <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
+                            <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
+                              <CalendarX2 className="w-6 h-6 text-slate-400" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Sin turnos en esta vista</p>
+                            <button 
+                              onClick={() => setShowDialog(true)}
+                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Crear nuevo turno
+                            </button>
                           </div>
                         )}
                       </TabsContent>
@@ -691,8 +739,18 @@ export default function AgendaPage() {
                             ))}
                           </div>
                         ) : (
-                          <div className="w-full h-48 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center">
-                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos finalizados</h3>
+                          <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
+                            <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
+                              <CalendarX2 className="w-6 h-6 text-slate-400" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Sin turnos en esta vista</p>
+                            <button 
+                              onClick={() => setShowDialog(true)}
+                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Crear nuevo turno
+                            </button>
                           </div>
                         )}
                       </TabsContent>
@@ -707,8 +765,18 @@ export default function AgendaPage() {
                             ))}
                           </div>
                         ) : (
-                          <div className="w-full h-48 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center">
-                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos cancelados</h3>
+                          <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
+                            <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
+                              <CalendarX2 className="w-6 h-6 text-slate-400" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Sin turnos en esta vista</p>
+                            <button 
+                              onClick={() => setShowDialog(true)}
+                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Crear nuevo turno
+                            </button>
                           </div>
                         )}
                       </TabsContent>
@@ -719,7 +787,7 @@ export default function AgendaPage() {
             </div>
 
             {/* Sidebar DERECHA - Calendario y Acciones (Sticky) */}
-            <aside className="hidden lg:flex flex-col w-full lg:w-[320px] shrink-0 space-y-4 sticky top-6">
+            <aside className="hidden lg:flex flex-col w-full lg:w-[320px] shrink-0 space-y-4 sticky top-6 pt-2">
               <Card className="border-slate-100 rounded-2xl overflow-hidden shadow-sm">
                 <div className="p-3">
                   <Calendar
