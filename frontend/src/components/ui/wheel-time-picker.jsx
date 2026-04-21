@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Picker from 'react-mobile-picker';
+import { cn } from '@/lib/utils';
 
 /**
  * WheelTimePicker
