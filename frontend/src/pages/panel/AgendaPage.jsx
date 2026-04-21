@@ -97,19 +97,20 @@ export default function AgendaPage() {
   const handleDragEnd = (event, info) => {
     if (window.innerWidth >= 1024) return // Desactivar swipe en desktop
     
-    const swipeThreshold = 80 // Umbral aumentado para evitar falsos positivos
+    const swipeThreshold = 60 // Umbral más sensible para reducir fricción
     const currentIndex = tabs.indexOf(activeTab)
     const velocity = info.velocity.x
     
     // Solo cambiar si el desplazamiento es significativo o la velocidad es alta (flick)
-    if (info.offset.x < -swipeThreshold || velocity < -500) {
+    // Se añade un peso mayor a la velocidad para que el "flick" sea el protagonista
+    if (info.offset.x < -swipeThreshold || velocity < -400) {
       // Swipe hacia la IZQUIERDA -> Ir a la siguiente pestaña
       const nextIndex = Math.min(currentIndex + 1, tabs.length - 1)
       if (nextIndex !== currentIndex) {
         setActiveTab(tabs[nextIndex])
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
-    } else if (info.offset.x > swipeThreshold || velocity > 500) {
+    } else if (info.offset.x > swipeThreshold || velocity > 400) {
       // Swipe hacia la DERECHA -> Ir a la pestaña anterior
       const prevIndex = Math.max(currentIndex - 1, 0)
       if (prevIndex !== currentIndex) {
@@ -846,9 +847,9 @@ export default function AgendaPage() {
                         drag="x"
                         dragDirectionLock={true}
                         dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={0.4}
+                        dragElastic={0.7}
                         onDragEnd={handleDragEnd}
-                        className="w-full flex-1"
+                        className="w-full flex-1 min-h-[70vh]"
                       >
                         <TabsContent value="pendientes" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
                         {pendientes.length > 0 ? (
