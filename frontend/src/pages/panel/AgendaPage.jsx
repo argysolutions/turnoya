@@ -508,6 +508,17 @@ export default function AgendaPage() {
                                   </label>
                                 </div>
                               </div>
+
+                              {/* Bloque: Profesional / Staff */}
+                              <div className="mt-5">
+                                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Profesional</span>
+                                <select className="w-full p-2.5 text-sm text-slate-700 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer">
+                                  <option value="todos">Todos los profesionales</option>
+                                  <option value="prof1">Martín (Barbero)</option>
+                                  <option value="prof2">Sofía (Colorista)</option>
+                                  {/* TODO: Mapear profesionales reales de la base de datos */}
+                                </select>
+                              </div>
                             </div>
 
                             {/* Footer / Acciones */}
