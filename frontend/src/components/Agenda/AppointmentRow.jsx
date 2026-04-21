@@ -14,14 +14,32 @@ const statusColors = {
   no_show: 'bg-red-600'
 }
 
+const getCardColors = (status) => {
+  switch (status) {
+    case 'pending':
+    case 'pending_block': 
+      return 'bg-amber-50/60 border-amber-200/50';
+    case 'confirmed': 
+      return 'bg-emerald-50/60 border-emerald-200/50';
+    case 'completed': 
+      return 'bg-blue-50/60 border-blue-200/50';
+    case 'cancelled':
+    case 'cancelled_occupied':
+    case 'cancelled_timeout':
+    case 'no_show': 
+      return 'bg-rose-50/60 border-rose-200/50';
+    default: 
+      return 'bg-white border-slate-200 text-slate-900';
+  }
+};
+
 const statusLabels = {
   pending: 'Pendiente',
-  pending_block: 'Bloqueo Pendiente',
   confirmed: 'Confirmado',
-  completed: 'Finalizado',
+  completed: 'Completado',
   cancelled: 'Cancelado',
-  cancelled_occupied: 'Ocupado',
-  cancelled_timeout: 'Expirado',
+  cancelled_occupied: 'Bloqueo/Receso',
+  pending_block: 'Esperando Aprobación',
   no_show: 'Ausente'
 }
 
@@ -40,8 +58,9 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
     <div 
       onClick={() => onClick?.(appointment)}
       className={cn(
-        "group flex items-center justify-between bg-white hover:bg-slate-50 transition-all cursor-pointer border-b border-slate-50 last:border-0",
-        isCompact ? "px-4 py-3 gap-4" : "p-5 gap-5 sm:gap-8"
+        "group flex items-center justify-between transition-all cursor-pointer border-b border-slate-50 last:border-0",
+        isCompact ? "px-4 py-3 gap-4 rounded-xl border border-transparent mb-1" : "p-5 gap-5 sm:gap-8",
+        isCompact && getCardColors(status)
       )}
     >
       <div className="flex items-center flex-1 min-w-0 gap-3 sm:gap-6">

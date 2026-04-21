@@ -22,6 +22,25 @@ const statusLabels = {
   pending_block: 'Esperando Aprobación'
 }
 
+const getCardColors = (status) => {
+  switch (status) {
+    case 'pending':
+    case 'pending_block': 
+      return 'bg-amber-50/70 border-amber-200/60 text-amber-900';
+    case 'confirmed': 
+      return 'bg-emerald-50/70 border-emerald-200/60 text-emerald-900';
+    case 'completed': 
+      return 'bg-blue-50/70 border-blue-200/60 text-blue-900';
+    case 'cancelled':
+    case 'cancelled_occupied':
+    case 'cancelled_timeout':
+    case 'no_show': 
+      return 'bg-rose-50/70 border-rose-200/60 text-rose-900';
+    default: 
+      return 'bg-white border-slate-200 text-slate-900';
+  }
+};
+
 export const AppointmentCard = ({ appointment, onClick }) => {
   const { start_at, client_name, service_name, status, phone, is_frequent } = appointment
   const startTime = format(new Date(start_at), 'HH:mm')
@@ -30,8 +49,8 @@ export const AppointmentCard = ({ appointment, onClick }) => {
     <div 
       onClick={() => onClick?.(appointment)}
       className={cn(
-        "group relative flex items-center p-3 border rounded-2xl transition-all cursor-pointer hover:shadow-lg active:scale-[0.98] bg-white",
-        statusStyles[status] || 'border-slate-100 shadow-sm'
+        "group relative flex items-center p-3 border rounded-2xl transition-all cursor-pointer hover:shadow-md active:scale-[0.98] shadow-sm",
+        getCardColors(status)
       )}
     >
       <div className="flex items-center gap-3 w-full">

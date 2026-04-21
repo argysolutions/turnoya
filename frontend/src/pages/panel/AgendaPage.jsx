@@ -521,11 +521,11 @@ export default function AgendaPage() {
                           {hasActiveFilters && <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white -mt-1 -mr-1"></span>}
                         </button>
 
-                        {/* MENÚ FLOTANTE DE FILTROS (Popover) */}
+                        {/* MENÚ FLOTANTE DE FILTROS (Popover) - Compacted */}
                         {showSearchFilters && (
-                          <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 z-[60] p-5 animate-in fade-in slide-in-from-top-2">
+                          <div className="absolute top-full right-0 mt-3 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 z-[60] p-4 animate-in fade-in slide-in-from-top-2">
                             {/* Header del Popover */}
-                            <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                            <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
                               <h4 className="font-bold text-slate-700 text-sm">Filtros Avanzados</h4>
                               <button onClick={() => setShowSearchFilters(false)} className="text-slate-400 hover:text-slate-600">
                                 <Plus className="w-5 h-5 rotate-45" />
@@ -533,65 +533,64 @@ export default function AgendaPage() {
                             </div>
 
                             {/* Contenido de Filtros */}
-                            <div className="flex flex-col gap-5">
+                            <div className="flex flex-col gap-3">
                               {/* Bloque: Jornada */}
                               <div>
-                                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Jornada</span>
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Jornada</span>
                                 <div className="flex gap-2">
-                                  <label className="flex-1 flex items-center justify-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                                  <label className="flex-1 flex items-center justify-center gap-2 p-1.5 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                                     <input type="checkbox" className="accent-blue-600" />
-                                    <span className="text-sm text-slate-600 font-medium">Mañana</span>
+                                    <span className="text-xs text-slate-600 font-medium">Mañana</span>
                                   </label>
-                                  <label className="flex-1 flex items-center justify-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                                  <label className="flex-1 flex items-center justify-center gap-2 p-1.5 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                                     <input type="checkbox" className="accent-blue-600" />
-                                    <span className="text-sm text-slate-600 font-medium">Tarde</span>
+                                    <span className="text-xs text-slate-600 font-medium">Tarde</span>
                                   </label>
                                 </div>
                               </div>
 
                               {/* Bloque: Tipo de Cliente */}
                               <div>
-                                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tipo de Cliente</span>
-                                <div className="flex flex-col gap-2">
-                                  <label className="flex items-center gap-3 p-1 cursor-pointer group">
-                                    <input type="checkbox" className="w-4 h-4 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" />
-                                    <span className="text-sm text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Cliente Frecuente (VIP)</span>
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Tipo de Cliente</span>
+                                <div className="flex flex-col gap-1.5">
+                                  <label className="flex items-center gap-3 p-0.5 cursor-pointer group">
+                                    <input type="checkbox" className="w-3.5 h-3.5 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" />
+                                    <span className="text-[13px] text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Frecuente (VIP)</span>
                                   </label>
-                                  <label className="flex items-center gap-3 p-1 cursor-pointer group">
-                                    <input type="checkbox" className="w-4 h-4 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" />
-                                    <span className="text-sm text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Primera Vez</span>
+                                  <label className="flex items-center gap-3 p-0.5 cursor-pointer group">
+                                    <input type="checkbox" className="w-3.5 h-3.5 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" />
+                                    <span className="text-[13px] text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Primera Vez</span>
                                   </label>
                                 </div>
                               </div>
 
                               {/* Bloque: Profesional / Staff */}
-                              <div className="mt-5">
-                                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Profesional</span>
-                                <select className="w-full p-2.5 text-sm text-slate-700 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer">
+                              <div className="mt-1">
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Profesional</span>
+                                <select className="w-full py-1.5 px-2.5 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
                                   <option value="todos">Todos los profesionales</option>
                                   <option value="prof1">Martín (Barbero)</option>
                                   <option value="prof2">Sofía (Colorista)</option>
-                                  {/* TODO: Mapear profesionales reales de la base de datos */}
                                 </select>
                               </div>
                             </div>
 
                             {/* Footer / Acciones */}
-                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                            <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
                               <button 
                                 onClick={() => {
                                   setActiveSearchFilters({ jornada: [], cliente: [], staff: [] });
                                   setShowSearchFilters(false);
                                 }}
-                                className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+                                className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
                               >
                                 Limpiar
                               </button>
                               <button 
                                 onClick={() => setShowSearchFilters(false)}
-                                className="px-4 py-2 bg-slate-900 hover:bg-blue-600 text-white text-sm font-bold rounded-xl transition-colors shadow-sm"
+                                className="px-4 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
                               >
-                                Aplicar Filtros
+                                Aplicar
                               </button>
                             </div>
                           </div>
