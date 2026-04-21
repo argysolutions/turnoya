@@ -49,7 +49,7 @@ export const AppointmentCard = ({ appointment, onClick }) => {
     <div 
       onClick={() => onClick?.(appointment)}
       className={cn(
-        "group relative flex items-center p-5 md:p-3 border rounded-[2rem] md:rounded-2xl transition-all cursor-pointer hover:shadow-xl active:scale-[0.98] shadow-sm",
+        "group relative flex items-center p-5 md:p-3 border rounded-[2rem] md:rounded-2xl transition-all cursor-pointer hover:shadow-xl active:scale-[0.98] shadow-sm w-full h-auto min-h-[100px] md:min-h-0",
         getCardColors(status)
       )}
     >
@@ -80,10 +80,10 @@ export const AppointmentCard = ({ appointment, onClick }) => {
             )} />
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 md:mt-1 text-[13px] md:text-[11px] text-slate-500 font-bold truncate">
-            <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 md:mt-1 text-[13px] md:text-[11px] text-slate-500 font-bold overflow-hidden">
+            <div className="flex items-center gap-1.5 min-w-0 max-w-full">
               <Scissors className="w-3.5 h-3.5 md:w-3 md:h-3 text-slate-400 shrink-0" /> 
-              <span className="truncate">{service_name || 'Servicio'}</span>
+              <span className="truncate whitespace-nowrap">{service_name || 'Servicio'}</span>
             </div>
             {phone && (
               <div className="flex items-center gap-1.5 text-slate-400 font-medium">

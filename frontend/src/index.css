@@ -54,7 +54,36 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Ergonomía Móvil: Escala de fuente mejorada */
+    @media (max-width: 768px) {
+      font-size: 105%;
+    }
   }
+
+  /* Forzar paddings táctiles globales en móvil */
+  @media (max-width: 768px) {
+    button:not(.px-0), 
+    input:not([type="checkbox"]):not([type="radio"]), 
+    select, 
+    textarea {
+      @apply py-3.5 !important;
+    }
+    
+    .text-sm {
+      @apply text-base;
+    }
+    .text-xs {
+      @apply text-sm;
+    }
+  }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

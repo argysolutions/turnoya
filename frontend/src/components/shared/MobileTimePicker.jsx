@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
  * MobileTimePicker: A "Scroll Wheel" style time selector.
  * Professional wheel navigation with CSS scroll snap.
  */
-export const MobileTimePicker = ({ isOpen, onClose, value, onChange, title = "Seleccionar Hora" }) => {
+export const MobileTimePicker = ({ isOpen, onClose, value, onChange, title = "Seleccionar Hora", children }) => {
   // Parse current value
   const initialHour = value ? value.split(':')[0] : '09'
   const initialMin = value ? value.split(':')[1] : '00'
@@ -99,9 +99,15 @@ export const MobileTimePicker = ({ isOpen, onClose, value, onChange, title = "Se
             </div>
 
             <div className="p-8 flex items-center justify-center gap-4">
-              <Wheel items={hours} selected={selHour} onSelect={setSelHour} label="Hora" />
-              <div className="text-2xl font-black text-slate-200 pt-6">:</div>
-              <Wheel items={minutes} selected={selMin} onSelect={setSelMin} label="Minutos" />
+              {children ? (
+                children
+              ) : (
+                <>
+                  <Wheel items={hours} selected={selHour} onSelect={setSelHour} label="Hora" />
+                  <div className="text-2xl font-black text-slate-200 pt-6">:</div>
+                  <Wheel items={minutes} selected={selMin} onSelect={setSelMin} label="Minutos" />
+                </>
+              )}
             </div>
 
             <div className="px-6 pb-10">

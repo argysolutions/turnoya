@@ -17,6 +17,8 @@ import { format } from 'date-fns'
 import { User, Briefcase, Calendar as DateIcon, X } from 'lucide-react'
 import { MobilePicker, PickerButton } from '@/components/shared/MobilePicker'
 import { MobileTimePicker } from '@/components/shared/MobileTimePicker'
+import { MobileCalendarPicker } from '@/components/shared/MobileCalendarPicker'
+import WheelTimePicker from '@/components/ui/wheel-time-picker'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -34,7 +36,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   })
 
   // Picker internal state
-  const [activePicker, setActivePicker] = useState(null) // 'cliente' | 'servicio' | 'hora'
+  const [activePicker, setActivePicker] = useState(null) // 'cliente' | 'servicio' | 'hora' | 'fecha'
 
   useEffect(() => {
     if (isOpen) {
@@ -137,15 +139,13 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
               {/* Fecha */}
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Fecha</label>
-                <div className="relative group">
-                  <DateIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-blue-500 transition-colors" />
-                  <Input 
-                    type="date"
-                    className="pl-12 h-16 md:h-14 rounded-2xl border-transparent bg-slate-50/80 text-base font-bold text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  />
-                </div>
+                <PickerButton 
+                  icon={DateIcon}
+                  placeholder="Seleccionar..."
+                  value={formData.date ? format(new Date(formData.date + 'T12:00:00'), 'dd/MM/yyyy') : ''}
+                  onClick={() => setActivePicker('fecha')}
+                  className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                />
               </div>
 
               {/* Hora */}
@@ -258,13 +258,28 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
         onSelect={(opt) => setFormData({ ...formData, service_id: opt.id.toString() })}
       />
 
+      <MobileCalendarPicker
+        isOpen={activePicker === 'fecha'}
+        onClose={() => setActivePicker(null)}
+        value={formData.date}
+        onSelect={(val) => setFormData({ ...formData, date: val })}
+        title="Fecha del Turno"
+      />
+
       <MobileTimePicker
         isOpen={activePicker === 'hora'}
         onClose={() => setActivePicker(null)}
         value={formData.start_time}
         onChange={(val) => setFormData({ ...formData, start_time: val })}
         title="Hora de Inicio"
-      />
+      >
+        <div className="p-4 bg-slate-50 rounded-2xl mt-4">
+          <WheelTimePicker 
+            value={formData.start_time}
+            onChange={(val) => setFormData({ ...formData, start_time: val })}
+          />
+        </div>
+      </MobileTimePicker>
     </>
   )
 }
