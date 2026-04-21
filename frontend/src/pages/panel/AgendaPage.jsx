@@ -422,9 +422,9 @@ export default function AgendaPage() {
         </header>
 
         {/* 2. MASTER HEADER MÓVIL (Compacto + Search) */}
-        <div className="lg:hidden px-5 pt-3 bg-white sticky top-0 z-[70] border-b border-slate-100 shadow-sm">
-          <div className="flex justify-between items-center mb-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">
+        <div className="lg:hidden px-5 pt-1.5 bg-white sticky top-0 z-[70] border-b border-slate-100 shadow-sm">
+          <div className="flex justify-between items-center -mb-1">
+            <p className="text-[13px] font-black text-slate-400 uppercase tracking-[0.2em]">
               {format(date, "EEEE, d MMM", { locale: es })}
             </p>
             <div className="flex items-center gap-1">
@@ -439,13 +439,13 @@ export default function AgendaPage() {
               </button>
             </div>
           </div>
-          <div className="mb-2">
+          <div className="mb-1 -mt-1">
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Agenda</h1>
           </div>
           <AnimatePresence>
             {isSearchOpen && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0 }} className="overflow-hidden pb-3">
-                <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-2.5 shadow-inner">
+                <div className="flex-1 bg-slate-100 rounded-full flex items-center px-5 py-2.5 shadow-inner">
                   <Search className="text-slate-400 w-4 h-4" />
                   <input 
                     type="text" placeholder="Buscar cliente..." autoFocus 
@@ -814,7 +814,7 @@ export default function AgendaPage() {
                         dragConstraints={{ left: 0, right: 0 }}
                         dragElastic={0.25}
                         onDragEnd={handleDragEnd}
-                        animate={{ x: `-${currentIndex * 100}%` }}
+                        animate={{ x: `-${currentIndex * 100}vw` }}
                         transition={{ type: "spring", stiffness: 300, damping: 32 }}
                         className="flex w-[400%] h-full mt-2"
                       >
