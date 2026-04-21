@@ -90,6 +90,31 @@ export default function AgendaPage() {
   })
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
+  // Lógica de Swipe para Móvil
+  const tabs = ['pendientes', 'confirmados', 'finalizados', 'cancelados']
+  const handleDragEnd = (event, info) => {
+    if (window.innerWidth >= 1024) return // Desactivar swipe en desktop
+    
+    const swipeThreshold = 50
+    const currentIndex = tabs.indexOf(activeTab)
+    
+    if (info.offset.x < -swipeThreshold) {
+      // Swipe hacia la IZQUIERDA -> Ir a la siguiente pestaña
+      const nextIndex = Math.min(currentIndex + 1, tabs.length - 1)
+      if (nextIndex !== currentIndex) {
+        setActiveTab(tabs[nextIndex])
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    } else if (info.offset.x > swipeThreshold) {
+      // Swipe hacia la DERECHA -> Ir a la pestaña anterior
+      const prevIndex = Math.max(currentIndex - 1, 0)
+      if (prevIndex !== currentIndex) {
+        setActiveTab(tabs[prevIndex])
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+  }
+
   // Derivado para saber si hay filtros activos y cambiar el color del botón
   const hasActiveFilters = Object.values(activeSearchFilters).some(arr => arr.length > 0)
 
@@ -391,8 +416,8 @@ export default function AgendaPage() {
         </header>
 
         {/* HEADER ESTILO iOS (Solo móvil) */}
-        <div className="lg:hidden px-5 pt-8 bg-white/80 backdrop-blur-md">
-          <div className="flex justify-between items-end mb-2">
+        <div className="lg:hidden px-5 pt-6 bg-white/80 backdrop-blur-md">
+          <div className="flex justify-between items-end mb-1">
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lunes, 20 Apr</p>
               <h1 className="text-4xl font-black text-slate-900 tracking-tight transition-all">Agenda</h1>
@@ -794,11 +819,14 @@ export default function AgendaPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="lg:hidden flex flex-col gap-0 mb-4 bg-white">
-                        {/* Se eliminó la navegación móvil vieja para evitar duplicidad */}
-                      </div>
-
-                      <TabsContent value="pendientes" className="w-full mt-2 lg:mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
+                      <motion.div
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.2}
+                        onDragEnd={handleDragEnd}
+                        className="w-full flex-1"
+                      >
+                        <TabsContent value="pendientes" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
                         {pendientes.length > 0 ? (
                           <>
                             <div className="hidden md:flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
@@ -812,21 +840,23 @@ export default function AgendaPage() {
                                 Aceptar Todos
                               </button>
                             </div>
-                            <div className="md:hidden flex items-center justify-end mb-2">
-                               <button 
-                                onClick={handleAcceptAllPending}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-colors shadow-sm"
-                              >
-                                <CheckCircle className="w-3.5 h-3.5" />
-                                Aceptar Todos
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full mt-2 pb-32">
                               {pendientes.map(turno => (
                                 <div key={turno.id} className="w-full">
                                   <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
                                 </div>
                               ))}
+                            </div>
+
+                            {/* BOTÓN ACEPTAR TODOS MÓVIL - Sticky en la parte inferior sobre el FAB */}
+                            <div className="lg:hidden fixed bottom-24 left-5 right-5 z-[80] pointer-events-none">
+                              <button 
+                                onClick={handleAcceptAllPending}
+                                className="w-full pointer-events-auto flex items-center justify-center gap-2 py-4 bg-amber-400 text-amber-950 font-black rounded-2xl shadow-[0_8px_30px_rgb(251,191,36,0.3)] active:scale-95 transition-all text-sm uppercase tracking-tighter"
+                              >
+                                <CheckCircle className="w-5 h-5" />
+                                Aceptar Todos los Pendientes ({pendientes.length})
+                              </button>
                             </div>
                           </>
                         ) : (
@@ -846,7 +876,7 @@ export default function AgendaPage() {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="confirmados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
+                        <TabsContent value="confirmados" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
                         {confirmados.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
                             {confirmados.map(appointment => (
@@ -872,7 +902,7 @@ export default function AgendaPage() {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="finalizados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
+                        <TabsContent value="finalizados" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
                         {finalizados.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
                             {finalizados.map(appointment => (
@@ -898,7 +928,7 @@ export default function AgendaPage() {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="cancelados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
+                        <TabsContent value="cancelados" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
                         {canceladosAusentes.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
                             {canceladosAusentes.sort((a, b) => a.time?.localeCompare(b.time || '')).map(appointment => (
@@ -923,6 +953,7 @@ export default function AgendaPage() {
                           </div>
                         )}
                       </TabsContent>
+                      </motion.div>
                     </>
                   )}
                 </>
