@@ -6,20 +6,19 @@ export default function AgendaGridColumn({ title, count, dotColor, items, onCard
     <div className="flex flex-col w-full">
       {/* HEADER: Texto estrictamente GRIS OSCURO (text-slate-800) y fuente normal (font-sans) */}
       <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
+        {/* Grupo Izquierdo: Punto, Título y Badge numérico juntos */}
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${dotColor}`}></div>
-          <span className="!font-sans !text-base !font-bold !text-slate-800 !tracking-tight m-0">
-            {title}
-          </span>
-          {headerAction && (
-            <div className="ml-2">
-              {headerAction}
-            </div>
-          )}
+          <span className="font-sans text-sm font-bold text-slate-800 uppercase tracking-wide m-0">{title}</span>
+          <span className="font-sans text-xs font-bold bg-slate-100 text-slate-600 py-0.5 px-2 rounded-full">{count}</span>
         </div>
-        <span className="!font-sans !text-xs !font-bold bg-slate-100 !text-slate-600 py-1.5 px-3 rounded-full">
-          {count}
-        </span>
+        
+        {/* Grupo Derecho: Botón (si existe) */}
+        {headerAction && (
+          <div className="ml-auto">
+            {headerAction}
+          </div>
+        )}
       </div>
 
       {/* CONTENEDOR DE TARJETAS: Usamos flex-col y un gap reducido para mayor densidad. */}

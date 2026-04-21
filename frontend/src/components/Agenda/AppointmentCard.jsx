@@ -35,10 +35,8 @@ export const AppointmentCard = ({ appointment, onClick }) => {
       )}
     >
       <div className="flex items-center gap-3 w-full">
-        {/* TIME BLOCK */}
-        <div className="flex flex-col items-center justify-center min-w-[3.5rem]">
-          <span className="text-base font-bold text-slate-900 leading-none">{startTime}</span>
-          <span className="text-[10px] text-slate-400 font-bold uppercase mt-1">Inicio</span>
+        <div className="flex flex-col items-center justify-center min-w-[3.5rem] bg-slate-50/50 rounded-xl py-1">
+          <span className="text-lg font-black text-slate-900 leading-none">{startTime}</span>
         </div>
 
         {/* CONTENT BLOCK with vertical separator */}

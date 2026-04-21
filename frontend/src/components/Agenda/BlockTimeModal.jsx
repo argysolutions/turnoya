@@ -13,7 +13,7 @@ import { VisualTimePicker } from '@/components/shared/VisualTimePicker'
 
 export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
-  const [isAllDay, setIsAllDay] = useState(true)
+  const [isAllDay, setIsAllDay] = useState(false)
   const [date, setDate] = useState(initialDate ? format(initialDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'))
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('18:00')
