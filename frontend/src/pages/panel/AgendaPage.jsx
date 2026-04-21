@@ -233,6 +233,33 @@ export default function AgendaPage() {
       return false
     }).sort((a, b) => new Date(a.start_at) - new Date(b.start_at))
   }, [appointments, quickView.isOpen, quickView.filterType, quickViewStatusFilter])
+  
+  // Contadores dinámicos para el modal de vista rápida
+  const quickViewCounts = useMemo(() => {
+    if (!quickView.isOpen || !quickView.filterType) return { all: 0, pendientes: 0, confirmados: 0, finalizados: 0, cancelados: 0 }
+    
+    const today = startOfToday()
+    const tomorrow = addDays(today, 1)
+    const todayForWeek = startOfToday()
+    const weekStartAt = startOfWeek(todayForWeek, { weekStartsOn: 1 })
+    const weekEndAt = endOfWeek(todayForWeek, { weekStartsOn: 1 })
+
+    const baseList = (appointments || []).filter(app => {
+      const appDate = new Date(app.start_at)
+      if (quickView.filterType === 'hoy') return isSameDay(appDate, today)
+      if (quickView.filterType === 'manana') return isSameDay(appDate, tomorrow)
+      if (quickView.filterType === 'semana') return isWithinInterval(appDate, { start: weekStartAt, end: weekEndAt })
+      return false
+    })
+
+    return {
+      all: baseList.length,
+      pendientes: baseList.filter(app => ['pending', 'pending_block'].includes(app.status)).length,
+      confirmados: baseList.filter(app => app.status === 'confirmed').length,
+      finalizados: baseList.filter(app => app.status === 'completed').length,
+      cancelados: baseList.filter(app => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(app.status)).length,
+    }
+  }, [appointments, quickView.isOpen, quickView.filterType])
 
   // Lógica de Indicador de Scroll para el Modal
   const checkScroll = () => {
@@ -905,16 +932,33 @@ export default function AgendaPage() {
                   </Button>
                 </div>
 
-                {/* MODAL INTERNAL FILTERS */}
-                <Tabs value={quickViewStatusFilter} onValueChange={setQuickViewStatusFilter} className="w-full">
-                  <TabsList className="bg-white border border-slate-200 shadow-sm p-1 rounded-2xl h-auto flex flex-wrap gap-1 mb-4 justify-start">
-                    <TabsTrigger value="all" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all">Todos</TabsTrigger>
-                    <TabsTrigger value="pendientes" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 data-[state=active]:shadow-inner transition-all">Pendientes</TabsTrigger>
-                    <TabsTrigger value="confirmados" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-900 data-[state=active]:shadow-inner transition-all">Confirmados</TabsTrigger>
-                    <TabsTrigger value="finalizados" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900 data-[state=active]:shadow-inner transition-all">Finalizados</TabsTrigger>
-                    <TabsTrigger value="cancelados" className="text-[13px] font-bold rounded-xl px-5 h-9 text-slate-950 data-[state=active]:bg-rose-100 data-[state=active]:text-rose-900 data-[state=active]:shadow-inner transition-all">Cancelados</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                {/* MODAL INTERNAL FILTERS - Centered with underline */}
+                <div className="flex items-center justify-center gap-6 border-b border-slate-100 mb-6 shrink-0">
+                  {[
+                    { id: 'all', name: 'Todos', count: quickViewCounts.all },
+                    { id: 'pendientes', name: 'Pendientes', count: quickViewCounts.pendientes },
+                    { id: 'confirmados', name: 'Confirmados', count: quickViewCounts.confirmados },
+                    { id: 'finalizados', name: 'Finalizados', count: quickViewCounts.finalizados },
+                    { id: 'cancelados', name: 'Cancelados', count: quickViewCounts.cancelados }
+                  ].map(tab => (
+                    <button 
+                      key={tab.id}
+                      onClick={() => setQuickViewStatusFilter(tab.id)}
+                      className={`flex items-center gap-2 px-1 py-3 text-sm font-bold transition-all border-b-2 ${
+                        quickViewStatusFilter === tab.id 
+                          ? 'border-blue-600 text-slate-900 translate-y-[1px]' 
+                          : 'border-transparent text-slate-400 hover:text-slate-600'
+                      }`}
+                    >
+                      <span>{tab.name}</span>
+                      <span className={`text-[10px] font-black py-0.5 px-2 rounded-full transition-colors ${
+                        quickViewStatusFilter === tab.id ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
                 <div 
