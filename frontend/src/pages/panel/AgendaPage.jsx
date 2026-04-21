@@ -67,6 +67,7 @@ export default function AgendaPage() {
   const [showDialog, setShowDialog] = useState(false)
   const [showBlockModal, setShowBlockModal] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
+  const [isMobileCalendarOpen, setIsMobileCalendarOpen] = useState(false)
   const [isGridView, setIsGridView] = useState(false)
   const [activeTab, setActiveTab] = useState('pendientes')
   const [quickView, setQuickView] = useState({ isOpen: false, filterType: null })
@@ -351,8 +352,8 @@ export default function AgendaPage() {
     <Layout maxWidth="max-w-screen-2xl">
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        {/* Header - Consolidated following ClientesPage pattern */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-0">
+        {/* Header - Consolidated following ClientesPage pattern (Desktop) */}
+        <header className="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-0">
           <div>
             <div className="flex items-center gap-2">
               <CalendarIcon className="w-6 h-6 text-slate-900" />
@@ -365,7 +366,7 @@ export default function AgendaPage() {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => {
-                const today = new Date('2026-04-20T00:00:00');
+                const today = new Date(); // Use actual current date
                 setDate(today);
                 setCurrentMonth(today);
               }}
@@ -384,17 +385,23 @@ export default function AgendaPage() {
           </div>
         </header>
 
-        {/* Date Selector Banner (Mobile friendly) */}
-        <div className="mx-4 lg:mx-0 flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-100 shadow-sm sm:hidden mb-2">
-          <Button variant="ghost" size="icon" onClick={() => setDate(new Date(date.setDate(date.getDate() - 1)))}>
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <span className="text-sm font-bold text-blue-600 capitalize">
-            {format(date, "EEEE d 'de' MMM", { locale: es })}
-          </span>
-          <Button variant="ghost" size="icon" onClick={() => setDate(new Date(date.setDate(date.getDate() + 1)))}>
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+        {/* HEADER MÓVIL COMPACTO (Solo visible en Mobile) */}
+        <div className="flex flex-col gap-3 w-full lg:hidden px-4 mb-4 mt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <h2 className="text-xl font-black text-slate-900 leading-tight">Mi Agenda</h2>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                {format(date, "EEEE d 'de' MMMM", { locale: es })}
+              </span>
+            </div>
+            <button 
+              onClick={() => setIsMobileCalendarOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all"
+            >
+              <CalendarDays className="w-4 h-4" />
+              {isSameDay(date, new Date()) ? 'Hoy' : format(date, "d MMM", { locale: es })}
+            </button>
+          </div>
         </div>
 
         {/* TRIPLE COLUMN LAYOUT */}
@@ -405,38 +412,38 @@ export default function AgendaPage() {
         >
           <div className="flex flex-col lg:flex-row gap-8 w-full items-start pb-8">
             
-            {/* Sidebar IZQUIERDA - Filtros y Estados (Sticky) */}
+            {/* Sidebar IZQUIERDA - Filtros y Estados (Sticky) - Oculto en Mobile */}
             {!isGridView && (
-              <aside className="hidden xl:flex flex-col w-64 shrink-0 sticky top-6 gap-10">
+              <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-6 gap-10">
                 <div className="flex flex-col w-full mt-2">
                   <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 px-1">Turnos:</h4>
                   <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 shadow-sm p-1.5 rounded-2xl items-stretch justify-start">
                     <TabsTrigger 
                       value="pendientes" 
-                      className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-900 transition-all"
+                      className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 transition-all"
                     >
-                      <span>Pendientes</span>
+                      <span className="text-sm font-bold text-slate-900">Pendientes</span>
                       <span className="bg-amber-200 text-amber-800 py-0.5 px-2.5 rounded-full text-[10px] font-bold">{pendientes.length}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="confirmados" 
-                      className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-900 transition-all"
+                      className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 transition-all"
                     >
-                      <span>Confirmados</span>
+                      <span className="text-sm font-bold text-slate-900">Confirmados</span>
                       <span className="bg-emerald-200 text-emerald-800 py-0.5 px-2.5 rounded-full text-[10px] font-black">{confirmados.length}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="finalizados" 
-                      className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-900 transition-all"
+                      className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 transition-all"
                     >
-                      <span>Finalizados</span>
+                      <span className="text-sm font-bold text-slate-900">Finalizados</span>
                       <span className="bg-blue-200 text-blue-800 py-0.5 px-2.5 rounded-full text-[10px] font-black">{finalizados.length}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="cancelados" 
-                      className="flex items-center justify-between px-4 py-3 text-sm font-bold rounded-xl text-black border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 data-[state=active]:text-rose-900 transition-all"
+                      className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 transition-all"
                     >
-                      <span>Cancelados</span>
+                      <span className="text-sm font-bold text-slate-900">Cancelados</span>
                       <span className="bg-rose-200 text-rose-800 py-0.5 px-2.5 rounded-full text-[10px] font-black">{canceladosAusentes.length}</span>
                     </TabsTrigger>
                   </TabsList>
@@ -719,7 +726,34 @@ export default function AgendaPage() {
                     </div>
                   ) : (
                     <div className="flex-1 w-full flex flex-col gap-4">
-                      <TabsContent value="pendientes" className="w-full mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
+                      {/* NAVEGACIÓN MÓVIL DE ESTADOS (Scroll Horizontal) */}
+                      <div className="flex lg:hidden overflow-x-auto hide-scrollbar gap-2 mb-2 pb-3 px-4 -mx-4 border-b border-slate-100">
+                        {[
+                          { id: 'pendientes', name: 'Pendientes', count: pendientes.length, color: 'amber' },
+                          { id: 'confirmados', name: 'Confirmados', count: confirmados.length, color: 'emerald' },
+                          { id: 'finalizados', name: 'Finalizados', count: finalizados.length, color: 'blue' },
+                          { id: 'cancelados', name: 'Cancelados', count: canceladosAusentes.length, color: 'rose' }
+                        ].map(tab => (
+                          <button 
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`whitespace-nowrap px-4 py-2.5 rounded-2xl text-[13px] font-bold transition-all shadow-sm flex items-center gap-2 ${
+                              activeTab === tab.id 
+                                ? `bg-${tab.color}-100 text-${tab.color}-900 ring-1 ring-${tab.color}-200` 
+                                : 'bg-white text-slate-500 border border-slate-100'
+                            }`}
+                          >
+                            <span>{tab.name}</span>
+                            <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-black ${
+                              activeTab === tab.id ? `bg-${tab.color}-200/50` : 'bg-slate-50'
+                            }`}>
+                              {tab.count}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <TabsContent value="pendientes" className="w-full mt-2 lg:mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {pendientes.length > 0 ? (
                           <>
                             <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
@@ -841,8 +875,8 @@ export default function AgendaPage() {
               )}
             </div>
 
-            {/* Sidebar DERECHA - Calendario y Acciones (Sticky) */}
-            <aside className="hidden lg:flex flex-col w-full lg:w-[320px] shrink-0 space-y-4 sticky top-6 pt-2">
+            {/* Sidebar DERECHA - Calendario y Acciones (Sticky) - Oculto en Mobile */}
+            <aside className="hidden xl:flex flex-col w-full lg:w-[320px] shrink-0 space-y-4 sticky top-6 pt-2">
               <Card className="border-slate-100 rounded-2xl overflow-hidden shadow-sm">
                 <div className="p-3">
                   <Calendar
@@ -889,6 +923,83 @@ export default function AgendaPage() {
           </div>
         </Tabs>
       </div>
+
+      <AnimatePresence>
+        {isMobileCalendarOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileCalendarOpen(false)}
+              className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm lg:hidden"
+            />
+            {/* Bottom Sheet - Calendar */}
+            <motion.div 
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-x-0 bottom-0 z-[120] bg-white rounded-t-[32px] p-6 pb-10 lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)]"
+            >
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6" />
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-slate-900">Seleccionar Fecha</h3>
+                <button 
+                  onClick={() => setIsMobileCalendarOpen(false)}
+                  className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"
+                >
+                  <Plus className="w-6 h-6 rotate-45" />
+                </button>
+              </div>
+              <div className="bg-slate-50 rounded-2xl p-4">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => {
+                    if (d) {
+                      setDate(d);
+                      setCurrentMonth(d);
+                      setIsMobileCalendarOpen(false);
+                    }
+                  }}
+                  onMonthChange={setCurrentMonth}
+                  className="w-full"
+                  modifiers={{ blocked: blockedDates }}
+                  modifiersStyles={{ 
+                    blocked: { 
+                      backgroundColor: '#fee2e2', 
+                      color: '#dc2626', 
+                      fontWeight: 'bold',
+                      borderRadius: '0.5rem'
+                    } 
+                  }}
+                />
+              </div>
+              <button 
+                onClick={() => {
+                  const today = new Date();
+                  setDate(today);
+                  setCurrentMonth(today);
+                  setIsMobileCalendarOpen(false);
+                }}
+                className="w-full mt-6 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 active:scale-95 transition-all"
+              >
+                Volver a Hoy
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* FAB (Floating Action Button) - Mobile Only */}
+      <button 
+        onClick={() => setShowDialog(true)}
+        className="lg:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-blue-600 transition-all active:scale-90"
+      >
+        <Plus className="w-7 h-7" />
+      </button>
 
       <AppointmentDialog 
         isOpen={showDialog}
