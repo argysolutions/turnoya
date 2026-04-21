@@ -184,15 +184,13 @@ export default function Layout({ children, maxWidth = "max-w-5xl" }) {
       </header>
 
       {/* Renderizar ESTO solo en móvil dentro del Layout principal */}
-      <div className="flex lg:hidden items-center justify-between px-5 py-4 bg-white border-b border-slate-100 sticky top-0 z-50">
-        <div className="text-2xl font-black text-slate-900 tracking-tighter">
-          Turno<span className="text-blue-600">Ya</span>
-        </div>
+      {/* HEADER MÓVIL OPTIMIZADO: Sin logo para liberar espacio vertical */}
+      <div className="flex lg:hidden items-center justify-end px-5 py-1.5 bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
           className="text-slate-900 p-1 active:scale-95 transition-transform"
         >
-          <Menu className="w-8 h-8" />
+          <Menu className="w-7 h-7" />
         </button>
       </div>
 
@@ -280,7 +278,7 @@ export default function Layout({ children, maxWidth = "max-w-5xl" }) {
         )}
       </AnimatePresence>
 
-      <main className={cn(maxWidth, "mx-auto px-4 pt-6 pb-24 lg:pb-12")}>
+      <main className={cn(maxWidth, "mx-auto px-4 pt-1 lg:pt-6 pb-24 lg:pb-12")}>
         {children}
       </main>
     </div>

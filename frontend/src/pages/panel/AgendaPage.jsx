@@ -418,7 +418,7 @@ export default function AgendaPage() {
         </header>
 
         {/* HEADER ESTILO iOS (Solo móvil) */}
-        <div className="lg:hidden px-5 pt-6 bg-white/80 backdrop-blur-md">
+        <div className="lg:hidden px-5 pt-2 bg-white/80 backdrop-blur-md">
           <div className="flex justify-between items-end mb-1">
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lunes, 20 Apr</p>
