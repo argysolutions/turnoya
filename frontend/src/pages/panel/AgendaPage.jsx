@@ -61,11 +61,11 @@ export default function AgendaPage() {
     blockedDates, 
     fetchBlockedDates, 
     refresh
-  } = useAppointments(new Date('2026-04-20'))
+  } = useAppointments(new Date())
 
 
   // Fetch blocked dates for the calendar whenever the visible month changes
-  const [currentMonth, setCurrentMonth] = React.useState(new Date('2026-04-20T00:00:00'))
+  const [currentMonth, setCurrentMonth] = React.useState(new Date())
 
   React.useEffect(() => {
     fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
@@ -128,7 +128,8 @@ export default function AgendaPage() {
   // Mapeamos el progreso del carrusel a la posición física de la píldora [0% a 75%]
   const pillX = useTransform(carouselX, 
     [-(tabs.length - 1) * window.innerWidth, 0], 
-    ['75%', '0%']
+    ['75%', '0%'],
+    { clamp: true }
   )
 
   const handleDragEnd = (event, info) => {
@@ -483,8 +484,8 @@ export default function AgendaPage() {
         </div>
 
         {/* 3. NAVEGACIÓN FULL-BLEED (iPhone 6/SE Optimized) */}
-        <div className="lg:hidden flex overflow-x-auto hide-scrollbar snap-x p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner w-screen -ml-5 px-5 py-1 animate-in fade-in transition-all">
-          <div className="relative flex w-full">
+        <div className="lg:hidden flex overflow-x-auto hide-scrollbar snap-x p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner w-screen -ml-5 px-5 py-1 animate-in fade-in transition-all overflow-hidden">
+          <div className="relative flex w-full overflow-hidden">
             <motion.div
               style={{ x: pillX, width: '25%' }}
               className="absolute inset-y-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-xl z-0"
@@ -743,7 +744,7 @@ export default function AgendaPage() {
                         {/* Lado Izquierdo: Título y Ping (Clickable to Toggle) */}
                         <div 
                           onClick={() => setIsPriorityExpanded(!isPriorityExpanded)}
-                          className="flex items-center gap-2 cursor-pointer select-none group"
+                          className="hidden md:flex items-center gap-2 cursor-pointer select-none group"
                         >
                           <span className="relative flex h-3 w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -761,11 +762,11 @@ export default function AgendaPage() {
                           </motion.div>
                         </div>
                         
-                        {/* Lado Derecho: Botón de Acción Masiva */}
+                        {/* Lado Derecho: Botón de Acción Masiva (Solo Desktop) */}
                         <button 
                           type="button"
                           onClick={handleAcceptAllPending}
-                          className="flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95"
+                          className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95"
                         >
                           <CheckCircle className="w-3.5 h-3.5" />
                           Aceptar Todos
@@ -1152,10 +1153,40 @@ export default function AgendaPage() {
         )}
       </AnimatePresence>
 
+      {/* BOTÓN DE ACCIÓN MASIVA "FIXED BOTTOM" - Mobile Only (iPhone Pattern) */}
+      <AnimatePresence>
+        {activeTab === 'pendientes' && pendientes.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="lg:hidden fixed bottom-6 inset-x-5 z-40"
+          >
+            <button
+              onClick={handleAcceptAllPending}
+              className="w-full h-14 bg-amber-400 text-amber-950 font-black rounded-2xl shadow-[0_8px_30px_rgb(251,191,36,0.3)] flex items-center justify-between px-6 active:scale-[0.98] transition-all border border-amber-300/50 backdrop-blur-md"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-amber-950/10 rounded-xl flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+                <span className="text-base uppercase tracking-tighter">Aceptar Todos</span>
+              </div>
+              <span className="bg-amber-950/10 px-3 py-1 rounded-lg text-sm font-black">
+                {pendientes.length}
+              </span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* BOTÓN FLOTANTE (FAB) iOs Style con Safe Area */}
       <button
         onClick={() => setShowDialog(true)}
-        className="md:hidden fixed bottom-6 right-5 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl shadow-slate-900/40 active:scale-90 transition-all z-50 mb-[env(safe-area-inset-bottom)]"
+        className={cn(
+          "md:hidden fixed right-5 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl shadow-slate-900/40 active:scale-90 transition-all z-50 mb-[env(safe-area-inset-bottom)]",
+          (activeTab === 'pendientes' && pendientes.length > 0) ? "bottom-[92px]" : "bottom-6"
+        )}
       >
         <Plus className="w-7 h-7" />
       </button>
