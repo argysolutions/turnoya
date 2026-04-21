@@ -24,6 +24,8 @@ import {
   MoreVertical,
   Check,
   X,
+  XCircle,
+  CalendarCheck,
   User,
   MapPin,
   MessageSquare
@@ -388,7 +390,7 @@ export default function AgendaPage() {
         </header>
 
         {/* HEADER ESTILO iOS (Solo móvil) */}
-        <div className="lg:hidden px-5 pt-6 pb-2 bg-white sticky top-0 z-40">
+        <div className="lg:hidden px-5 pt-8 pb-4 bg-white/80 backdrop-blur-md">
           <div className="flex justify-between items-end mb-4">
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lunes, 20 Abr</p>
@@ -396,20 +398,19 @@ export default function AgendaPage() {
             </div>
             <button 
               onClick={() => setIsMobileCalendarOpen(true)}
-              className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-95"
+              className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-95 transition-all"
             >
               <CalendarDays className="w-6 h-6" />
             </button>
           </div>
 
-          {/* Buscador Nativo iOS */}
-          <div className="flex gap-3 mt-4">
-            <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-3">
-              <Search className="text-slate-400 w-5 h-5" />
+          <div className="flex gap-3">
+            <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-3 shadow-inner">
+              <Search className="text-slate-400 w-5 h-5 focus-within:text-blue-500 transition-colors" />
               <input 
                 type="text" 
                 placeholder="Buscar cliente..." 
-                className="bg-transparent border-none focus:ring-0 outline-none text-base ml-3 w-full text-slate-800" 
+                className="bg-transparent border-none focus:ring-0 outline-none text-base ml-3 w-full text-slate-800 placeholder:text-slate-400" 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -417,33 +418,37 @@ export default function AgendaPage() {
           </div>
         </div>
 
-        {/* NAVEGACIÓN DE ESTADOS MÓVIL (Píldoras) */}
-        <div className="lg:hidden flex overflow-x-auto hide-scrollbar gap-3 px-5 py-2 mb-2 sticky top-[164px] z-30">
+        {/* NAVEGACIÓN DE ESTADOS MÓVIL (Píldoras) - Única y Sticky */}
+        <div className="lg:hidden flex overflow-x-auto hide-scrollbar gap-3 px-5 py-3 bg-white sticky top-0 z-[60] border-b border-slate-100 shadow-sm animate-in fade-in transition-all">
           {[
-            { id: 'pendientes', label: 'Pendientes', count: pendientes.length, activeBg: 'bg-amber-400', activeText: 'text-amber-950', dot: 'bg-amber-600' },
-            { id: 'confirmados', label: 'Confirmados', count: confirmados.length, activeBg: 'bg-emerald-500', activeText: 'text-white', dot: 'bg-emerald-200' },
-            { id: 'finalizados', label: 'Finalizados', count: finalizados.length, activeBg: 'bg-blue-600', activeText: 'text-white', dot: 'bg-blue-200' },
-            { id: 'cancelados', label: 'Cancelados', count: canceladosAusentes.length, activeBg: 'bg-slate-900', activeText: 'text-white', dot: 'bg-slate-400' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "whitespace-nowrap flex items-center gap-2.5 px-6 py-3.5 rounded-full text-[15px] font-black transition-all active:scale-95",
-                activeTab === tab.id 
-                  ? `${tab.activeBg} ${tab.activeText} shadow-lg shadow-current/10` 
-                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-              )}
-            >
-              {tab.label}
-              <span className={cn(
-                "py-0.5 px-2.5 rounded-full text-[10px] font-black",
-                activeTab === tab.id ? "bg-white/20" : "bg-slate-200/60"
-              )}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
+            { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length, activeBg: 'bg-amber-400', activeText: 'text-amber-950' },
+            { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length, activeBg: 'bg-emerald-500', activeText: 'text-white' },
+            { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, count: finalizados.length, activeBg: 'bg-blue-600', activeText: 'text-white' },
+            { id: 'cancelados', label: 'Cancelados', icon: XCircle, count: canceladosAusentes.length, activeBg: 'bg-slate-900', activeText: 'text-white' }
+          ].map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "whitespace-nowrap flex items-center gap-2 px-5 py-3 rounded-full text-[14px] font-black transition-all active:scale-95 shadow-sm",
+                  activeTab === tab.id 
+                    ? `${tab.activeBg} ${tab.activeText} shadow-lg shadow-current/20` 
+                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                )}
+              >
+                <Icon className={cn("w-4 h-4", activeTab === tab.id ? "opacity-100" : "opacity-60")} />
+                {tab.label}
+                <span className={cn(
+                  "py-0.5 px-2.5 rounded-full text-[10px] font-black",
+                  activeTab === tab.id ? "bg-white/20" : "bg-slate-200/60"
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         {/* TRIPLE COLUMN LAYOUT */}
@@ -766,67 +771,9 @@ export default function AgendaPage() {
                       <AgendaGridColumn title="Cancelados" count={canceladosAusentes.length} dotColor="bg-rose-500" items={canceladosAusentes} onCardClick={setSelectedAppointment} />
                     </div>
                   ) : (
-                    <div className="flex-1 w-full flex flex-col gap-4">
-                      {/* DOBLE NAVEGACIÓN MÓVIL (Scroll Horizontal) */}
-                      <div className="flex lg:hidden flex-col gap-3 mb-4 -mx-4 px-4 pb-2">
-                        {/* 1. ESTADOS (Kanban) */}
-                        <div className="flex overflow-x-auto hide-scrollbar gap-2">
-                          {[
-                            { id: 'pendientes', name: 'Pendientes', count: pendientes.length, color: 'amber' },
-                            { id: 'confirmados', name: 'Confirmados', count: confirmados.length, color: 'emerald' },
-                            { id: 'finalizados', name: 'Finalizados', count: finalizados.length, color: 'blue' },
-                            { id: 'cancelados', name: 'Cancelados', count: canceladosAusentes.length, color: 'rose' }
-                          ].map(tab => {
-                            const colorMap = {
-                              amber: { bg: 'bg-amber-100', text: 'text-amber-900', ring: 'ring-amber-200', dot: 'bg-amber-400' },
-                              emerald: { bg: 'bg-emerald-100', text: 'text-emerald-900', ring: 'ring-emerald-200', dot: 'bg-emerald-400' },
-                              blue: { bg: 'bg-blue-100', text: 'text-blue-900', ring: 'ring-blue-200', dot: 'bg-blue-400' },
-                              rose: { bg: 'bg-rose-100', text: 'text-rose-900', ring: 'ring-rose-200', dot: 'bg-rose-400' }
-                            };
-                            const colors = colorMap[tab.color] || colorMap.blue;
-                            
-                            return (
-                              <button 
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`whitespace-nowrap px-4 py-2.5 rounded-full text-[13px] font-bold transition-all shadow-sm flex items-center gap-2 ${
-                                  activeTab === tab.id 
-                                    ? `${colors.bg} ${colors.text} ring-1 ${colors.ring}` 
-                                    : 'bg-white text-slate-500 border border-slate-100'
-                                }`}
-                              >
-                                <div className={`w-2 h-2 rounded-full ${colors.dot}`} />
-                                <span>{tab.name}</span>
-                                <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-black ${
-                                  activeTab === tab.id ? `bg-white/70` : 'bg-slate-50'
-                                }`}>
-                                  {tab.count}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        {/* 2. FILTROS DE TIEMPO (QuickView Mobile) */}
-                        <div className="flex overflow-x-auto hide-scrollbar gap-2 border-t border-slate-50 pt-3">
-                          {[
-                            { type: 'hoy', name: 'Hoy', icon: Sun, color: 'blue' },
-                            { type: 'manana', name: 'Mañana', icon: Sunrise, color: 'emerald' },
-                            { type: 'semana', name: 'Semana', icon: CalendarRange, color: 'violet' }
-                          ].map(filter => {
-                            const Icon = filter.icon;
-                            return (
-                              <button 
-                                key={filter.type}
-                                onClick={() => setQuickView({ isOpen: true, filterType: filter.type })}
-                                className="whitespace-nowrap px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 flex items-center gap-2 text-[12px] font-bold hover:bg-slate-100 active:scale-95 transition-all"
-                              >
-                                <Icon className="w-3.5 h-3.5" />
-                                {filter.name}
-                              </button>
-                            );
-                          })}
-                        </div>
+                    <>
+                      <div className="lg:hidden flex flex-col gap-0 mb-4 bg-white">
+                        {/* Se eliminó la navegación móvil vieja para evitar duplicidad */}
                       </div>
 
                       <TabsContent value="pendientes" className="w-full mt-2 lg:mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
@@ -945,7 +892,7 @@ export default function AgendaPage() {
                           </div>
                         )}
                       </TabsContent>
-                    </div>
+                    </>
                   )}
                 </>
               )}
