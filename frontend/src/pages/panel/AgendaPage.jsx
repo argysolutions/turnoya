@@ -736,23 +736,35 @@ export default function AgendaPage() {
                             { id: 'finalizados', name: 'Finalizados', count: finalizados.length, color: 'blue' },
                             { id: 'cancelados', name: 'Cancelados', count: canceladosAusentes.length, color: 'rose' }
                           ].map(tab => (
-                            <button 
-                              key={tab.id}
-                              onClick={() => setActiveTab(tab.id)}
-                              className={`whitespace-nowrap px-4 py-2.5 rounded-full text-[13px] font-bold transition-all shadow-sm flex items-center gap-2 ${
-                                activeTab === tab.id 
-                                  ? `bg-${tab.color}-100 text-${tab.color}-900 ring-1 ring-${tab.color}-200` 
-                                  : 'bg-white text-slate-500 border border-slate-100'
-                              }`}
-                            >
-                              <div className={`w-2 h-2 rounded-full bg-${tab.color}-400`} />
-                              <span>{tab.name}</span>
-                              <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-black ${
-                                activeTab === tab.id ? `bg-white/70` : 'bg-slate-50'
-                              }`}>
-                                {tab.count}
-                              </span>
-                            </button>
+                            {
+                              const colorMap = {
+                                amber: { bg: 'bg-amber-100', text: 'text-amber-900', ring: 'ring-amber-200', dot: 'bg-amber-400' },
+                                emerald: { bg: 'bg-emerald-100', text: 'text-emerald-900', ring: 'ring-emerald-200', dot: 'bg-emerald-400' },
+                                blue: { bg: 'bg-blue-100', text: 'text-blue-900', ring: 'ring-blue-200', dot: 'bg-blue-400' },
+                                rose: { bg: 'bg-rose-100', text: 'text-rose-900', ring: 'ring-rose-200', dot: 'bg-rose-400' }
+                              };
+                              const colors = colorMap[tab.color] || colorMap.blue;
+                              
+                              return (
+                                <button 
+                                  key={tab.id}
+                                  onClick={() => setActiveTab(tab.id)}
+                                  className={`whitespace-nowrap px-4 py-2.5 rounded-full text-[13px] font-bold transition-all shadow-sm flex items-center gap-2 ${
+                                    activeTab === tab.id 
+                                      ? `${colors.bg} ${colors.text} ring-1 ${colors.ring}` 
+                                      : 'bg-white text-slate-500 border border-slate-100'
+                                  }`}
+                                >
+                                  <div className={`w-2 h-2 rounded-full ${colors.dot}`} />
+                                  <span>{tab.name}</span>
+                                  <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-black ${
+                                    activeTab === tab.id ? `bg-white/70` : 'bg-slate-50'
+                                  }`}>
+                                    {tab.count}
+                                  </span>
+                                </button>
+                              );
+                            }
                           ))}
                         </div>
 
@@ -763,14 +775,19 @@ export default function AgendaPage() {
                             { type: 'manana', name: 'Mañana', icon: Sunrise, color: 'emerald' },
                             { type: 'semana', name: 'Semana', icon: CalendarRange, color: 'violet' }
                           ].map(filter => (
-                            <button 
-                              key={filter.type}
-                              onClick={() => setQuickView({ isOpen: true, filterType: filter.type })}
-                              className="whitespace-nowrap px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 flex items-center gap-2 text-[12px] font-bold hover:bg-slate-100 active:scale-95 transition-all"
-                            >
-                              <filter.icon className="w-3.5 h-3.5" />
-                              {filter.name}
-                            </button>
+                            {
+                              const Icon = filter.icon;
+                              return (
+                                <button 
+                                  key={filter.type}
+                                  onClick={() => setQuickView({ isOpen: true, filterType: filter.type })}
+                                  className="whitespace-nowrap px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 flex items-center gap-2 text-[12px] font-bold hover:bg-slate-100 active:scale-95 transition-all"
+                                >
+                                  <Icon className="w-3.5 h-3.5" />
+                                  {filter.name}
+                                </button>
+                              );
+                            }
                           ))}
                         </div>
                       </div>
@@ -1197,6 +1214,27 @@ export default function AgendaPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <AppointmentDialog 
+        isOpen={showDialog} 
+        onClose={() => setShowDialog(false)} 
+        onConfirm={handleConfirmAdd} 
+        initialDate={date}
+      />
+
+      <BlockTimeModal 
+        isOpen={showBlockModal} 
+        onClose={() => setShowBlockModal(false)} 
+        onConfirm={handleConfirmBlock}
+        initialDate={date}
+      />
+
+      <AppointmentDetailDialog
+        appointment={selectedAppointment}
+        isOpen={!!selectedAppointment}
+        onClose={() => setSelectedAppointment(null)}
+        onUpdateStatus={handleUpdateStatus}
+        onDelete={handleDelete}
+      />
     </Layout>
   )
 }
