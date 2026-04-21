@@ -581,8 +581,8 @@ export default function AgendaPage() {
                     </div>
                   </div>
 
-                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Agrupada por fechas y colapsable */}
-                  {groupedPendientes.length > 0 && (
+                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo visible en Vista Lista */}
+                  {!isGridView && groupedPendientes.length > 0 && (
                     <div className="w-full mb-8 mt-6">
                       <div className="flex items-center justify-between mb-4">
                         {/* Lado Izquierdo: Título y Ping (Clickable to Toggle) */}
@@ -652,15 +652,24 @@ export default function AgendaPage() {
 
                   {/* 2. AREA DE CONTENIDO (LISTA O TABLERO KANBAN) */}
                   {isGridView ? (
-                    <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 w-full mt-4 items-start">
-                      {isPriorityExpanded ? (
-                        <AgendaGridColumn title="Pendientes" count={pendientes.length} dotColor="bg-amber-400" items={pendientes} onCardClick={setSelectedAppointment} />
-                      ) : (
-                        <div className="flex flex-col gap-3 p-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 items-center justify-center h-[200px]">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Columna de Pendientes Oculta</p>
-                          <Button variant="ghost" size="sm" onClick={() => setIsPriorityExpanded(true)} className="text-blue-600 text-[10px] font-black h-7">Expandir para gestionar</Button>
-                        </div>
-                      )}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-6 w-full mt-4 items-start">
+                      <AgendaGridColumn 
+                        title="Pendientes" 
+                        count={pendientes.length} 
+                        dotColor="bg-amber-400" 
+                        items={pendientes} 
+                        onCardClick={setSelectedAppointment} 
+                        headerAction={
+                          pendientes.length > 0 && (
+                            <button 
+                              onClick={handleAcceptAllPending}
+                              className="ml-auto text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200 transition-colors"
+                            >
+                              Aceptar Todos
+                            </button>
+                          )
+                        }
+                      />
                       <AgendaGridColumn title="Confirmados" count={confirmados.length} dotColor="bg-emerald-500" items={confirmados} onCardClick={setSelectedAppointment} />
                       <AgendaGridColumn title="Finalizados" count={finalizados.length} dotColor="bg-blue-500" items={finalizados} onCardClick={setSelectedAppointment} />
                       <AgendaGridColumn title="Cancelados" count={canceladosAusentes.length} dotColor="bg-rose-500" items={canceladosAusentes} onCardClick={setSelectedAppointment} />

@@ -1,7 +1,7 @@
 import React from 'react';
 import AppointmentRow from '../Agenda/AppointmentRow';
 
-export default function AgendaGridColumn({ title, count, dotColor, items, onCardClick }) {
+export default function AgendaGridColumn({ title, count, dotColor, items, onCardClick, headerAction }) {
   return (
     <div className="flex flex-col w-full">
       {/* HEADER: Texto estrictamente GRIS OSCURO (text-slate-800) y fuente normal (font-sans) */}
@@ -11,6 +11,11 @@ export default function AgendaGridColumn({ title, count, dotColor, items, onCard
           <span className="!font-sans !text-base !font-bold !text-slate-800 !tracking-tight m-0">
             {title}
           </span>
+          {headerAction && (
+            <div className="ml-2">
+              {headerAction}
+            </div>
+          )}
         </div>
         <span className="!font-sans !text-xs !font-bold bg-slate-100 !text-slate-600 py-1.5 px-3 rounded-full">
           {count}
