@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { 
   Dialog, 
   DialogContent, 
@@ -14,13 +14,18 @@ import { getClientes } from '@/api/clientes'
 import { getServices } from '@/api/services'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { VisualTimePicker } from '@/components/shared/VisualTimePicker'
+import { User, Briefcase, Calendar as DateIcon } from 'lucide-react'
+import { MobilePicker, PickerButton } from '@/components/shared/MobilePicker'
+import { MobileTimePicker } from '@/components/shared/MobileTimePicker'
 
 export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
   const [clientes, setClientes] = useState([])
   const [services, setServices] = useState([])
   
+  // Picker states
+  const [activePicker, setActivePicker] = useState(null) // 'cliente' | 'servicio' | 'hora'
+
   const [formData, setFormData] = useState({
     client_id: '',
     service_id: '',
@@ -41,16 +46,15 @@ export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) =
   }, [isOpen])
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     if (!formData.client_id || !formData.service_id || !formData.date || !formData.start_time) {
       return toast.error('Por favor completa los campos obligatorios')
     }
 
     setLoading(true)
     try {
-      // Calculamos el end_time basado en la duración del servicio seleccionado
       const service = services.find(s => s.id === parseInt(formData.service_id))
-      const startTimeParts = formData.start_at ? new Date(formData.start_at) : new Date(`${formData.date}T${formData.start_time}:00`)
+      const startTimeParts = new Date(`${formData.date}T${formData.start_time}:00`)
       
       const startAt = startTimeParts.toISOString()
       const endAt = new Date(startTimeParts.getTime() + (service.duration * 60000)).toISOString()
@@ -64,96 +68,145 @@ export const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) =
       })
       onClose()
     } catch (err) {
-      // El error ya lo maneja el hook useAppointments
+      // handled elsewhere
     } finally {
       setLoading(false)
     }
   }
 
+  // Memoized options for pickers
+  const clientOptions = useMemo(() => 
+    clientes.map(c => ({ id: c.id, label: c.nombre, subtext: c.telefono })), 
+  [clientes])
+
+  const serviceOptions = useMemo(() => 
+    services.map(s => ({ id: s.id, label: s.name, subtext: `${s.duration} min` })), 
+  [services])
+
+  const clientName = clientOptions.find(c => c.id === parseInt(formData.client_id))?.label
+  const serviceName = serviceOptions.find(s => s.id === parseInt(formData.service_id))?.label
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Agendar Nuevo Turno</DialogTitle>
-          <DialogDescription>
-            Completá los datos para reservar un espacio en la agenda.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden bg-white border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">Nuevo Turno</DialogTitle>
+            <DialogDescription className="text-sm text-slate-500 font-medium">
+              Completá los datos para agendar la cita.
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="client_id">Cliente *</Label>
-            <select 
-              id="client_id"
-              className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950"
-              value={formData.client_id}
-              onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
-            >
-              <option value="">Seleccionar cliente...</option>
-              {clientes.map(c => (
-                <option key={c.id} value={c.id}>{c.nombre} ({c.telefono})</option>
-              ))}
-            </select>
-          </div>
+          <div className="p-6 space-y-6">
+            <div className="space-y-4">
+              {/* Selector de Cliente */}
+              <div className="space-y-2">
+                <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Cliente *</Label>
+                <PickerButton
+                  icon={User}
+                  placeholder="Seleccionar cliente..."
+                  value={clientName}
+                  onClick={() => setActivePicker('cliente')}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="service_id">Servicio *</Label>
-            <select 
-              id="service_id"
-              className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950"
-              value={formData.service_id}
-              onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
-            >
-              <option value="">Seleccionar servicio...</option>
-              {services.map(s => (
-                <option key={s.id} value={s.id}>{s.name} ({s.duration} min)</option>
-              ))}
-            </select>
-          </div>
+              {/* Selector de Servicio */}
+              <div className="space-y-2">
+                <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Servicio *</Label>
+                <PickerButton
+                  icon={Briefcase}
+                  placeholder="Seleccionar servicio..."
+                  value={serviceName}
+                  onClick={() => setActivePicker('servicio')}
+                />
+              </div>
 
-          <div className="flex w-full gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha</label>
-              <Input 
-                id="date" 
-                type="date" 
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="h-11 rounded-xl border-slate-200 focus-visible:ring-slate-950 font-medium"
-              />
+              {/* Fecha y Hora */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Fecha</Label>
+                  <div className="relative">
+                    <DateIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                    <Input 
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      className="pl-12 h-14 rounded-2xl border-slate-200 text-base font-bold text-slate-900 bg-slate-50/50 focus:bg-white transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Hora inicio</Label>
+                  <PickerButton
+                    placeholder="Hora..."
+                    value={formData.start_time}
+                    onClick={() => setActivePicker('hora')}
+                    className="h-14 font-bold text-slate-900 bg-slate-50/50"
+                  />
+                </div>
+              </div>
+
+              {/* Notas */}
+              <div className="space-y-2">
+                <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notas (Opcional)</Label>
+                <textarea
+                  className="w-full min-h-[100px] p-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-base focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
+                  placeholder="Instrucciones especiales para el turno..."
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                />
+              </div>
             </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Hora Inicio</label>
-              <VisualTimePicker
-                label="Hora Inicio"
-                value={formData.start_time}
-                onChange={(val) => setFormData({ ...formData, start_time: val })}
-              />
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notas (Opcional)</Label>
-            <textarea
-              id="notes"
-              className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950"
-              placeholder="Notas internas..."
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            />
+            <DialogFooter className="flex-col sm:flex-row gap-3 pt-4 border-t border-slate-50">
+              <Button 
+                variant="outline" 
+                onClick={onClose} 
+                disabled={loading}
+                className="w-full sm:flex-1 h-14 rounded-2xl font-bold text-slate-500 border-slate-100 hover:bg-slate-50"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full sm:flex-1 h-14 rounded-2xl bg-slate-900 hover:bg-blue-600 text-white font-black text-lg transition-all shadow-xl shadow-slate-200 active:scale-95"
+              >
+                {loading ? 'Agendando...' : 'Confirmar'}
+              </Button>
+            </DialogFooter>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancelar
-            </Button>
-            <Button type="submit" className="bg-slate-900 text-white" disabled={loading}>
-              {loading ? 'Agendando...' : 'Confirmar Turno'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      {/* MOBILE PICKERS */}
+      <MobilePicker
+        isOpen={activePicker === 'cliente'}
+        onClose={() => setActivePicker(null)}
+        title="Seleccionar Cliente"
+        options={clientOptions}
+        value={parseInt(formData.client_id)}
+        onSelect={(opt) => setFormData({ ...formData, client_id: opt.id.toString() })}
+        searchPlaceholder="Buscar por nombre o celular..."
+      />
+
+      <MobilePicker
+        isOpen={activePicker === 'servicio'}
+        onClose={() => setActivePicker(null)}
+        title="Seleccionar Servicio"
+        options={serviceOptions}
+        value={parseInt(formData.service_id)}
+        onSelect={(opt) => setFormData({ ...formData, service_id: opt.id.toString() })}
+      />
+
+      <MobileTimePicker
+        isOpen={activePicker === 'hora'}
+        onClose={() => setActivePicker(null)}
+        value={formData.start_time}
+        onChange={(val) => setFormData({ ...formData, start_time: val })}
+        title="Hora de Inicio"
+      />
+    </>
   )
 }
 

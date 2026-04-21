@@ -385,20 +385,20 @@ export default function AgendaPage() {
           </div>
         </header>
 
-        {/* HEADER MÓVIL COMPACTO (Solo visible en Mobile) */}
-        <div className="flex flex-col gap-3 w-full lg:hidden px-4 mb-4 mt-2">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <h2 className="text-xl font-black text-slate-900 leading-tight">Mi Agenda</h2>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                {format(date, "EEEE d 'de' MMMM", { locale: es })}
-              </span>
-            </div>
+        {/* HEADER MÓVIL ULTRA-COMPACTO */}
+        <div className="flex items-center justify-between lg:hidden px-5 mb-4 mt-2">
+          <div className="flex flex-col">
+            <h2 className="text-xl font-black text-slate-900 leading-none">Agenda</h2>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+              {format(date, "EEEE d", { locale: es })}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsMobileCalendarOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all"
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-[12px] font-bold shadow-sm active:scale-95 transition-all"
             >
-              <CalendarDays className="w-4 h-4" />
+              <CalendarDays className="w-4 h-4 text-slate-400" />
               {isSameDay(date, new Date()) ? 'Hoy' : format(date, "d MMM", { locale: es })}
             </button>
           </div>
@@ -726,31 +726,53 @@ export default function AgendaPage() {
                     </div>
                   ) : (
                     <div className="flex-1 w-full flex flex-col gap-4">
-                      {/* NAVEGACIÓN MÓVIL DE ESTADOS (Scroll Horizontal) */}
-                      <div className="flex lg:hidden overflow-x-auto hide-scrollbar gap-2 mb-2 pb-3 px-4 -mx-4 border-b border-slate-100">
-                        {[
-                          { id: 'pendientes', name: 'Pendientes', count: pendientes.length, color: 'amber' },
-                          { id: 'confirmados', name: 'Confirmados', count: confirmados.length, color: 'emerald' },
-                          { id: 'finalizados', name: 'Finalizados', count: finalizados.length, color: 'blue' },
-                          { id: 'cancelados', name: 'Cancelados', count: canceladosAusentes.length, color: 'rose' }
-                        ].map(tab => (
-                          <button 
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`whitespace-nowrap px-4 py-2.5 rounded-2xl text-[13px] font-bold transition-all shadow-sm flex items-center gap-2 ${
-                              activeTab === tab.id 
-                                ? `bg-${tab.color}-100 text-${tab.color}-900 ring-1 ring-${tab.color}-200` 
-                                : 'bg-white text-slate-500 border border-slate-100'
-                            }`}
-                          >
-                            <span>{tab.name}</span>
-                            <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-black ${
-                              activeTab === tab.id ? `bg-${tab.color}-200/50` : 'bg-slate-50'
-                            }`}>
-                              {tab.count}
-                            </span>
-                          </button>
-                        ))}
+                      {/* DOBLE NAVEGACIÓN MÓVIL (Scroll Horizontal) */}
+                      <div className="flex lg:hidden flex-col gap-3 mb-4 -mx-4 px-4 pb-2">
+                        {/* 1. ESTADOS (Kanban) */}
+                        <div className="flex overflow-x-auto hide-scrollbar gap-2">
+                          {[
+                            { id: 'pendientes', name: 'Pendientes', count: pendientes.length, color: 'amber' },
+                            { id: 'confirmados', name: 'Confirmados', count: confirmados.length, color: 'emerald' },
+                            { id: 'finalizados', name: 'Finalizados', count: finalizados.length, color: 'blue' },
+                            { id: 'cancelados', name: 'Cancelados', count: canceladosAusentes.length, color: 'rose' }
+                          ].map(tab => (
+                            <button 
+                              key={tab.id}
+                              onClick={() => setActiveTab(tab.id)}
+                              className={`whitespace-nowrap px-4 py-2.5 rounded-full text-[13px] font-bold transition-all shadow-sm flex items-center gap-2 ${
+                                activeTab === tab.id 
+                                  ? `bg-${tab.color}-100 text-${tab.color}-900 ring-1 ring-${tab.color}-200` 
+                                  : 'bg-white text-slate-500 border border-slate-100'
+                              }`}
+                            >
+                              <div className={`w-2 h-2 rounded-full bg-${tab.color}-400`} />
+                              <span>{tab.name}</span>
+                              <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-black ${
+                                activeTab === tab.id ? `bg-white/70` : 'bg-slate-50'
+                              }`}>
+                                {tab.count}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* 2. FILTROS DE TIEMPO (QuickView Mobile) */}
+                        <div className="flex overflow-x-auto hide-scrollbar gap-2 border-t border-slate-50 pt-3">
+                          {[
+                            { type: 'hoy', name: 'Hoy', icon: Sun, color: 'blue' },
+                            { type: 'manana', name: 'Mañana', icon: Sunrise, color: 'emerald' },
+                            { type: 'semana', name: 'Semana', icon: CalendarRange, color: 'violet' }
+                          ].map(filter => (
+                            <button 
+                              key={filter.type}
+                              onClick={() => setQuickView({ isOpen: true, filterType: filter.type })}
+                              className="whitespace-nowrap px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 flex items-center gap-2 text-[12px] font-bold hover:bg-slate-100 active:scale-95 transition-all"
+                            >
+                              <filter.icon className="w-3.5 h-3.5" />
+                              {filter.name}
+                            </button>
+                          ))}
+                        </div>
                       </div>
 
                       <TabsContent value="pendientes" className="w-full mt-2 lg:mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
@@ -767,7 +789,7 @@ export default function AgendaPage() {
                                 Aceptar Todos
                               </button>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
                               {pendientes.map(turno => (
                                 <div key={turno.id} className="w-full">
                                   <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
@@ -794,7 +816,7 @@ export default function AgendaPage() {
 
                       <TabsContent value="confirmados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {confirmados.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
                             {confirmados.map(appointment => (
                               <div key={appointment.id} className="w-full">
                                 <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
@@ -820,7 +842,7 @@ export default function AgendaPage() {
 
                       <TabsContent value="finalizados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {finalizados.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
                             {finalizados.map(appointment => (
                               <div key={appointment.id} className="w-full">
                                 <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
@@ -846,7 +868,7 @@ export default function AgendaPage() {
 
                       <TabsContent value="cancelados" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {canceladosAusentes.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
                             {canceladosAusentes.sort((a, b) => a.time?.localeCompare(b.time || '')).map(appointment => (
                               <div key={appointment.id} className="w-full">
                                 <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
@@ -941,19 +963,19 @@ export default function AgendaPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-x-0 bottom-0 z-[120] bg-white rounded-t-[32px] p-6 pb-10 lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)]"
+              className="fixed inset-x-0 bottom-0 z-[120] bg-white rounded-t-[32px] p-8 pb-10 lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)]"
             >
               <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6" />
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-slate-900">Seleccionar Fecha</h3>
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-2xl font-black text-slate-900">Seleccionar Fecha</h3>
                 <button 
                   onClick={() => setIsMobileCalendarOpen(false)}
-                  className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"
+                  className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"
                 >
-                  <Plus className="w-6 h-6 rotate-45" />
+                  <Plus className="w-7 h-7 rotate-45" />
                 </button>
               </div>
-              <div className="bg-slate-50 rounded-2xl p-4">
+              <div className="bg-slate-50 rounded-3xl p-6 mb-2">
                 <Calendar
                   mode="single"
                   selected={date}
@@ -984,7 +1006,7 @@ export default function AgendaPage() {
                   setCurrentMonth(today);
                   setIsMobileCalendarOpen(false);
                 }}
-                className="w-full mt-6 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 active:scale-95 transition-all"
+                className="w-full mt-6 py-4.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 active:scale-95 transition-all text-lg"
               >
                 Volver a Hoy
               </button>
@@ -1062,7 +1084,7 @@ export default function AgendaPage() {
                 </div>
 
                 {/* MODAL INTERNAL FILTERS - Centered with underline */}
-                <div className="flex items-center justify-center gap-6 border-b border-slate-100 mb-6 shrink-0">
+                <div className="flex items-center justify-center gap-4 md:gap-6 border-b border-slate-100 mb-6 shrink-0 overflow-x-auto hide-scrollbar px-4">
                   {[
                     { id: 'all', name: 'Todos', count: quickViewCounts.all, color: 'bg-slate-100' },
                     { id: 'pendientes', name: 'Pendientes', count: quickViewCounts.pendientes, color: 'bg-amber-300' },
@@ -1073,7 +1095,7 @@ export default function AgendaPage() {
                     <button 
                       key={tab.id}
                       onClick={() => setQuickViewStatusFilter(tab.id)}
-                      className={`flex items-center gap-2 px-1 py-3 text-sm font-bold transition-all border-b-2 ${
+                      className={`flex items-center gap-2 px-1 py-4 text-[13px] md:text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
                         quickViewStatusFilter === tab.id 
                           ? 'border-blue-600 text-slate-900 translate-y-[1px]' 
                           : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -1096,7 +1118,7 @@ export default function AgendaPage() {
                   className="flex-1 overflow-auto custom-scrollbar p-6 relative"
                 >
                   {quickViewFilteredAppointments.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-32">
                       
                       {(() => {
                         let lastDateLabel = null;
