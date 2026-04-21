@@ -28,7 +28,8 @@ import {
   CalendarCheck,
   User,
   MapPin,
-  MessageSquare
+  MessageSquare,
+  Menu
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -89,6 +90,7 @@ export default function AgendaPage() {
     staff: [] // array de IDs o nombres
   })
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   // Lógica de Swipe para Móvil
   const tabs = ['pendientes', 'confirmados', 'finalizados', 'cancelados']
@@ -381,7 +383,7 @@ export default function AgendaPage() {
   }, [activeTab]);
 
   return (
-    <Layout maxWidth="max-w-screen-2xl">
+    <Layout maxWidth="max-w-screen-2xl" hideMobileHeader={true} mobileMenuState={[isMenuOpen, setIsMenuOpen]}>
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* Header - Consolidated following ClientesPage pattern (Desktop) */}
@@ -417,47 +419,58 @@ export default function AgendaPage() {
           </div>
         </header>
 
-        {/* HEADER ESTILO iOS (Solo móvil) */}
-        <div className="lg:hidden px-5 pt-2 bg-white/80 backdrop-blur-md">
-          <div className="flex justify-between items-end mb-1">
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lunes, 20 Apr</p>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tight transition-all">Agenda</h1>
-            </div>
-            <div className="flex gap-2">
+        {/* MASTER HEADER MÓVIL (Ultra Compacto) */}
+        <div className="lg:hidden px-5 pt-3 bg-white sticky top-0 z-[70] border-b border-slate-100 shadow-sm">
+          {/* Fila 1: Fecha e Iconos */}
+          <div className="flex justify-between items-center mb-1">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">
+              {format(date, "EEEE, d MMM", { locale: es })}
+            </p>
+            <div className="flex items-center gap-1">
               <button 
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95",
-                  isSearchOpen ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"
+                  "w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95",
+                  isSearchOpen ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100"
                 )}
               >
                 <Search className="w-5 h-5" />
               </button>
               <button 
                 onClick={() => setIsMobileCalendarOpen(true)}
-                className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-95 transition-all"
+                className="w-9 h-9 text-slate-500 rounded-full flex items-center justify-center active:scale-95 transition-all"
               >
                 <CalendarDays className="w-5 h-5" />
               </button>
+              <button 
+                onClick={() => setIsMenuOpen(true)}
+                className="w-9 h-9 text-slate-900 rounded-full flex items-center justify-center active:scale-95 transition-all"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
             </div>
+          </div>
+
+          {/* Fila 2: Título */}
+          <div className="mb-2">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Agenda</h1>
           </div>
 
           <AnimatePresence>
             {isSearchOpen && (
               <motion.div 
                 initial={{ height: 0, opacity: 0, marginBottom: 0 }}
-                animate={{ height: 'auto', opacity: 1, marginBottom: 16 }}
+                animate={{ height: 'auto', opacity: 1, marginBottom: 12 }}
                 exit={{ height: 0, opacity: 0, marginBottom: 0 }}
                 className="overflow-hidden"
               >
-                <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-3 shadow-inner">
-                  <Search className="text-slate-400 w-5 h-5 focus-within:text-blue-500 transition-colors" />
+                <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-2.5 shadow-inner">
+                  <Search className="text-slate-400 w-4 h-4 focus-within:text-blue-500 transition-colors" />
                   <input 
                     type="text" 
                     placeholder="Buscar cliente..." 
                     autoFocus
-                    className="bg-transparent border-none focus:ring-0 outline-none text-base ml-3 w-full text-slate-800 placeholder:text-slate-400" 
+                    className="bg-transparent border-none focus:ring-0 outline-none text-sm ml-3 w-full text-slate-800 placeholder:text-slate-400" 
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />

@@ -126,7 +126,12 @@ function NavScrollable() {
   )
 }
 
-export default function Layout({ children, maxWidth = "max-w-5xl" }) {
+export default function Layout({ 
+  children, 
+  maxWidth = "max-w-5xl", 
+  hideMobileHeader = false, 
+  mobileMenuState // [isOpen, setIsOpen]
+}) {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -152,7 +157,10 @@ export default function Layout({ children, maxWidth = "max-w-5xl" }) {
   }
 
   const [business] = useState(() => JSON.parse(localStorage.getItem('business') || '{}'))
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  
+  const [internalMenuOpen, setInternalMenuOpen] = useState(false)
+  const isMobileMenuOpen = mobileMenuState ? mobileMenuState[0] : internalMenuOpen
+  const setIsMobileMenuOpen = mobileMenuState ? mobileMenuState[1] : setInternalMenuOpen
 
   // Filtrar links para el menú móvil (misma lógica que NavScrollable)
   const visibleNavItems = navItems.filter(item => {
@@ -183,16 +191,17 @@ export default function Layout({ children, maxWidth = "max-w-5xl" }) {
         </div>
       </header>
 
-      {/* Renderizar ESTO solo en móvil dentro del Layout principal */}
       {/* HEADER MÓVIL OPTIMIZADO: Sin logo para liberar espacio vertical */}
-      <div className="flex lg:hidden items-center justify-end px-5 py-1.5 bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
-        <button 
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="text-slate-900 p-1 active:scale-95 transition-transform"
-        >
-          <Menu className="w-7 h-7" />
-        </button>
-      </div>
+      {!hideMobileHeader && (
+        <div className="flex lg:hidden items-center justify-end px-5 py-1.5 bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
+          <button 
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="text-slate-900 p-1 active:scale-95 transition-transform"
+          >
+            <Menu className="w-7 h-7" />
+          </button>
+        </div>
+      )}
 
       {/* MOBILE DRAWER */}
       <AnimatePresence>
@@ -278,7 +287,7 @@ export default function Layout({ children, maxWidth = "max-w-5xl" }) {
         )}
       </AnimatePresence>
 
-      <main className={cn(maxWidth, "mx-auto px-4 pt-1 lg:pt-6 pb-24 lg:pb-12")}>
+      <main className={cn(maxWidth, "mx-auto px-4 lg:pt-6 pb-24 lg:pb-12", !hideMobileHeader ? "pt-1" : "pt-0")}>
         {children}
       </main>
     </div>
