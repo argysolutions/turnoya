@@ -57,7 +57,6 @@ export const AppointmentCard = ({ appointment, onClick }) => {
         {/* TIME PILL */}
         <div className="flex flex-col items-center justify-center min-w-[4rem] md:min-w-[3.5rem] bg-white/50 backdrop-blur-sm rounded-2xl md:rounded-xl py-2 md:py-1 border border-current/5 shadow-inner">
           <span className="text-xl md:text-lg font-black text-slate-900 leading-none">{startTime}</span>
-          <span className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tighter hidden md:block">Inicio</span>
         </div>
 
         {/* CONTENT BLOCK */}

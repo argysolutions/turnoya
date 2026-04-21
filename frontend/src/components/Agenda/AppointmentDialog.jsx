@@ -35,8 +35,18 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
     notes: ''
   })
 
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(false)
+  
   // Picker internal state
   const [activePicker, setActivePicker] = useState(null) // 'cliente' | 'servicio' | 'hora' | 'fecha'
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     if (isOpen) {
@@ -94,7 +104,94 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
     }
   }
 
-  const renderContent = () => (
+  const renderDesktopContent = () => (
+    <div className="p-8">
+      <DialogHeader className="mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <DialogTitle className="text-2xl font-black text-slate-900">Nuevo Turno</DialogTitle>
+            <DialogDescription className="text-slate-500 font-medium mt-1">Completa los datos para agendar la cita.</DialogDescription>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </DialogHeader>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Cliente</Label>
+            <select 
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+              value={formData.client_id}
+              onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
+            >
+              <option value="">Seleccionar cliente...</option>
+              {clientes.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.phone})</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Servicio</Label>
+            <select 
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+              value={formData.service_id}
+              onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
+            >
+              <option value="">Seleccionar servicio...</option>
+              {servicios.map(s => (
+                <option key={s.id} value={s.id}>{s.name} - ${s.price}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Fecha</Label>
+            <Input 
+              type="date"
+              className="h-11 rounded-xl border-slate-200"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Hora Inicio</Label>
+            <Input 
+              type="time"
+              className="h-11 rounded-xl border-slate-200"
+              value={formData.start_time}
+              onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Notas (Opcional)</Label>
+          <textarea
+            className="w-full min-h-[100px] p-4 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
+            placeholder="Instrucciones especiales..."
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          />
+        </div>
+
+        <DialogFooter className="pt-4 gap-3 bg-slate-50 -mx-8 px-8 py-6 mt-6">
+          <Button type="button" variant="ghost" onClick={onClose} disabled={loading} className="h-11 rounded-xl font-bold text-slate-500">
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={loading} className="h-11 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold px-8">
+            {loading ? 'Agendando...' : 'Agendar Turno'}
+          </Button>
+        </DialogFooter>
+      </form>
+    </div>
+  )
+
+  const renderMobileContent = () => (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="md:hidden w-12 h-1.5 bg-slate-200 rounded-full mx-auto my-4 shrink-0" />
       
@@ -197,18 +294,18 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   return (
     <>
       {/* DESKTOP DIALOG */}
-      <div className="hidden md:block">
+      {!isMobile && (
         <Dialog open={isOpen} onOpenChange={(open) => !loading && !open && onClose()}>
-          <DialogContent className="max-w-xl p-0 overflow-hidden bg-white border-none shadow-2xl rounded-[2rem]">
-            {renderContent()}
+          <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white border-none shadow-2xl rounded-3xl">
+            {renderDesktopContent()}
           </DialogContent>
         </Dialog>
-      </div>
+      )}
 
       {/* MOBILE BOTTOM SHEET */}
       <AnimatePresence>
-        {isOpen && (
-          <div className="md:hidden fixed inset-0 z-[100] flex items-end justify-center">
+        {isOpen && isMobile && (
+          <div className="fixed inset-0 z-[100] flex items-end justify-center md:hidden">
             {/* Backdrop con Blur */}
             <motion.div 
               initial={{ opacity: 0 }}
@@ -232,7 +329,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
               }}
               className="relative w-full bg-white rounded-t-[2.5rem] shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto hide-scrollbar"
             >
-              {renderContent()}
+              {renderMobileContent()}
             </motion.div>
           </div>
         )}
