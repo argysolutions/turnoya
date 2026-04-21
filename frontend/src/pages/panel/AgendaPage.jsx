@@ -552,14 +552,14 @@ export default function AgendaPage() {
                               {/* Bloque: Tipo de Cliente */}
                               <div>
                                 <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Tipo de Cliente</span>
-                                <div className="flex flex-col gap-1.5">
-                                  <label className="flex items-center gap-3 p-0.5 cursor-pointer group">
+                                <div className="flex items-center gap-4">
+                                  <label className="flex items-center gap-2 cursor-pointer group">
                                     <input type="checkbox" className="w-3.5 h-3.5 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" />
-                                    <span className="text-[13px] text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Frecuente (VIP)</span>
+                                    <span className="text-xs text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Frecuente</span>
                                   </label>
-                                  <label className="flex items-center gap-3 p-0.5 cursor-pointer group">
+                                  <label className="flex items-center gap-2 cursor-pointer group">
                                     <input type="checkbox" className="w-3.5 h-3.5 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" />
-                                    <span className="text-[13px] text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Primera Vez</span>
+                                    <span className="text-xs text-slate-700 font-medium group-hover:text-blue-600 transition-colors">Primera Vez</span>
                                   </label>
                                 </div>
                               </div>
