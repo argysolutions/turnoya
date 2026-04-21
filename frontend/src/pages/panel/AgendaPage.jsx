@@ -722,12 +722,14 @@ export default function AgendaPage() {
                       <TabsContent value="pendientes" className="w-full mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
                         {pendientes.length > 0 ? (
                           <>
-                            <div className="flex justify-end mb-4">
+                            <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                                Gestión de Pendientes
+                              </h3>
                               <button 
                                 onClick={handleAcceptAllPending}
-                                className="flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95"
+                                className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-colors shadow-sm"
                               >
-                                <CheckCircle className="w-3.5 h-3.5" />
                                 Aceptar Todos
                               </button>
                             </div>

@@ -1,6 +1,6 @@
 import React from 'react'
 import { format } from 'date-fns'
-import { Scissors, Phone, ChevronRight, User } from 'lucide-react'
+import { Scissors, Phone, ChevronRight, User, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const statusColors = {
@@ -82,6 +82,9 @@ const AppointmentRow = ({ appointment, onClick, isCompact = false }) => {
             <span className={cn("font-bold text-slate-900 tracking-tight truncate", isCompact ? "text-sm" : "text-sm")}>
               {client_name}
             </span>
+            {appointment.is_frequent && (
+              <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
+            )}
             {appointment.client_history_count > 1 && !isCompact && (
               <span className="bg-emerald-50 text-emerald-600 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-100 !tracking-tight">
                 Frecuente 🔥
