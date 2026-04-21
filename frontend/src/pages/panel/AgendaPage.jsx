@@ -951,11 +951,11 @@ export default function AgendaPage() {
                 {/* MODAL INTERNAL FILTERS - Centered with underline */}
                 <div className="flex items-center justify-center gap-6 border-b border-slate-100 mb-6 shrink-0">
                   {[
-                    { id: 'all', name: 'Todos', count: quickViewCounts.all },
-                    { id: 'pendientes', name: 'Pendientes', count: quickViewCounts.pendientes },
-                    { id: 'confirmados', name: 'Confirmados', count: quickViewCounts.confirmados },
-                    { id: 'finalizados', name: 'Finalizados', count: quickViewCounts.finalizados },
-                    { id: 'cancelados', name: 'Cancelados', count: quickViewCounts.cancelados }
+                    { id: 'all', name: 'Todos', count: quickViewCounts.all, color: 'bg-slate-100' },
+                    { id: 'pendientes', name: 'Pendientes', count: quickViewCounts.pendientes, color: 'bg-amber-300' },
+                    { id: 'confirmados', name: 'Confirmados', count: quickViewCounts.confirmados, color: 'bg-emerald-300' },
+                    { id: 'finalizados', name: 'Finalizados', count: quickViewCounts.finalizados, color: 'bg-blue-300' },
+                    { id: 'cancelados', name: 'Cancelados', count: quickViewCounts.cancelados, color: 'bg-rose-300' }
                   ].map(tab => (
                     <button 
                       key={tab.id}
@@ -963,12 +963,12 @@ export default function AgendaPage() {
                       className={`flex items-center gap-2 px-1 py-3 text-sm font-bold transition-all border-b-2 ${
                         quickViewStatusFilter === tab.id 
                           ? 'border-blue-600 text-slate-900 translate-y-[1px]' 
-                          : 'border-transparent text-slate-400 hover:text-slate-600'
+                          : 'border-transparent text-slate-500 hover:text-slate-700'
                       }`}
                     >
-                      <span>{tab.name}</span>
-                      <span className={`text-[10px] font-black py-0.5 px-2 rounded-full transition-colors ${
-                        quickViewStatusFilter === tab.id ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'
+                      <span className={quickViewStatusFilter === tab.id ? 'text-black' : 'text-slate-500'}>{tab.name}</span>
+                      <span className={`text-[10px] font-black py-0.5 px-2 rounded-full transition-all text-black ${
+                        quickViewStatusFilter === tab.id ? tab.color : 'bg-slate-100 opacity-60'
                       }`}>
                         {tab.count}
                       </span>
