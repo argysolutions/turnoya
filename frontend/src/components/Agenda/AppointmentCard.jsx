@@ -1,7 +1,7 @@
 import React from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, User, Scissors, info as InfoIcon, Star } from 'lucide-react'
+import { Clock, User, Scissors, Info as InfoIcon, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const statusStyles = {
@@ -49,41 +49,59 @@ export const AppointmentCard = ({ appointment, onClick }) => {
     <div 
       onClick={() => onClick?.(appointment)}
       className={cn(
-        "group relative flex items-center p-3 border rounded-2xl transition-all cursor-pointer hover:shadow-md active:scale-[0.98] shadow-sm",
+        "group relative flex items-center p-5 md:p-3 border rounded-[2rem] md:rounded-2xl transition-all cursor-pointer hover:shadow-xl active:scale-[0.98] shadow-sm",
         getCardColors(status)
       )}
     >
-      <div className="flex items-center gap-3 w-full">
-        <div className="flex flex-col items-center justify-center min-w-[3.5rem] bg-slate-50/50 rounded-xl py-1">
-          <span className="text-lg font-black text-slate-900 leading-none">{startTime}</span>
+      <div className="flex items-center gap-4 md:gap-3 w-full">
+        {/* TIME PILL */}
+        <div className="flex flex-col items-center justify-center min-w-[4rem] md:min-w-[3.5rem] bg-white/50 backdrop-blur-sm rounded-2xl md:rounded-xl py-2 md:py-1 border border-current/5 shadow-inner">
+          <span className="text-xl md:text-lg font-black text-slate-900 leading-none">{startTime}</span>
+          <span className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tighter hidden md:block">Inicio</span>
         </div>
 
-        {/* CONTENT BLOCK with vertical separator */}
-        <div className="flex flex-col border-l border-slate-200 pl-3 flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-800 truncate max-w-[140px]">
-              {client_name || 'Sin nombre'}
-            </span>
-            {is_frequent && (
-              <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
-            )}
-            {/* Quick status badge mini */}
-            <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/50 border border-current/10">
-              {statusLabels[status]?.split(' ')[0] || status}
-            </span>
+        {/* CONTENT BLOCK */}
+        <div className="flex flex-col border-l-2 md:border-l border-slate-200/50 pl-4 md:pl-3 flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base md:text-sm font-black text-slate-900 truncate">
+                {client_name || 'Sin nombre'}
+              </span>
+              {is_frequent && (
+                <div className="bg-amber-100 p-1 rounded-full shrink-0">
+                  <Star className="w-2.5 h-2.5 text-amber-600 fill-amber-600" />
+                </div>
+              )}
+            </div>
+            {/* Status Indicator Dot (Mobile) */}
+            <div className={cn(
+              "md:hidden w-2.5 h-2.5 rounded-full",
+              statusStyles[status]?.split(' ')[0] || 'bg-slate-400'
+            )} />
           </div>
-          <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 font-medium truncate">
-            <Scissors className="w-3 h-3 shrink-0" /> 
-            <span className="truncate">{service_name || 'Servicio'}</span>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 md:mt-1 text-[13px] md:text-[11px] text-slate-500 font-bold truncate">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Scissors className="w-3.5 h-3.5 md:w-3 md:h-3 text-slate-400 shrink-0" /> 
+              <span className="truncate">{service_name || 'Servicio'}</span>
+            </div>
             {phone && (
-              <>
-                <span className="opacity-30">•</span>
+              <div className="flex items-center gap-1.5 text-slate-400 font-medium">
+                <span className="hidden md:inline opacity-30">•</span>
                 <span className="truncate">{phone}</span>
-              </>
+              </div>
             )}
           </div>
         </div>
+
+        {/* Action Indicator (Desktop Only) */}
+        <div className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity">
+          <ChevronRight className="w-5 h-5 text-slate-300" />
+        </div>
       </div>
+      
+      {/* Visual background texture/gradient for Wallet feel */}
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/10 to-transparent pointer-events-none rounded-b-[2rem]" />
     </div>
   )
 }

@@ -1,0 +1,791 @@
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { cn } from "@/lib/utils";
+import { format, isSameDay, startOfToday, addDays, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+import { es } from "date-fns/locale";
+import {
+  Plus,
+  Search,
+  Lock,
+  Clock,
+  Filter,
+  Inbox,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  LayoutGrid as Grid3X3,
+  Rows3,
+  CheckCircle,
+  CalendarX2,
+  Sun,
+  Sunrise,
+  CalendarRange,
+  CalendarDays,
+  MoreVertical,
+  Check,
+  X,
+  User,
+  MapPin,
+  MessageSquare
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { useAppointments } from "@/hooks/useAppointments";
+import AppointmentCard from "@/components/Agenda/AppointmentCard";
+import AgendaSkeleton from "@/components/Agenda/AgendaSkeleton";
+import AppointmentDialog from "@/components/Agenda/AppointmentDialog";
+import AppointmentDetailDialog from "@/components/Agenda/AppointmentDetailDialog";
+import BlockTimeModal from "@/components/Agenda/BlockTimeModal";
+import Layout from "@/components/shared/Layout";
+import { motion, AnimatePresence } from "framer-motion";
+import AgendaGridColumn from "@/components/panel/AgendaGridColumn";
+import { toast } from "sonner";
+function AgendaPage() {
+  const {
+    date,
+    setDate,
+    appointments,
+    setAppointments,
+    loading,
+    addAppointment,
+    updateStatus,
+    removeAppointment,
+    addBlock,
+    blockedDates,
+    fetchBlockedDates,
+    refresh
+  } = useAppointments(/* @__PURE__ */ new Date("2026-04-20T00:00:00"));
+  const [currentMonth, setCurrentMonth] = React.useState(/* @__PURE__ */ new Date("2026-04-20T00:00:00"));
+  React.useEffect(() => {
+    fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
+  }, [currentMonth, fetchBlockedDates]);
+  const [search, setSearch] = useState("");
+  const [showDialog, setShowDialog] = useState(false);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [isMobileCalendarOpen, setIsMobileCalendarOpen] = useState(false);
+  const [isGridView, setIsGridView] = useState(false);
+  const [activeTab, setActiveTab] = useState("pendientes");
+  const [quickView, setQuickView] = useState({ isOpen: false, filterType: null });
+  const [quickViewStatusFilter, setQuickViewStatusFilter] = useState("all");
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [hasInitializedTab, setHasInitializedTab] = useState(false);
+  const [isPriorityExpanded, setIsPriorityExpanded] = useState(true);
+  const [showSearchFilters, setShowSearchFilters] = useState(false);
+  const [activeSearchFilters, setActiveSearchFilters] = useState({
+    jornada: [],
+    // 'manana', 'tarde'
+    cliente: [],
+    // 'frecuente', 'nuevo'
+    staff: []
+    // array de IDs o nombres
+  });
+  const hasActiveFilters = Object.values(activeSearchFilters).some((arr) => arr.length > 0);
+  const scrollRef = useRef(null);
+  const searchFiltersRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchFiltersRef.current && !searchFiltersRef.current.contains(event.target)) {
+        setShowSearchFilters(false);
+      }
+    };
+    if (showSearchFilters) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSearchFilters]);
+  const handleConfirmAdd = async (data) => {
+    await addAppointment(data);
+    setShowDialog(false);
+  };
+  const handleUpdateStatus = async (id, status) => {
+    await updateStatus(id, status);
+  };
+  const handleDelete = async (id) => {
+    if (confirm("\xBFEst\xE1s seguro de que deseas eliminar este turno?")) {
+      await removeAppointment(id);
+    }
+  };
+  const handleConfirmBlock = async (data) => {
+    try {
+      await addBlock(data);
+      setShowBlockModal(false);
+      fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
+    } catch (err) {
+    }
+  };
+  const activeBlock = useMemo(() => {
+    return (appointments || []).find((app) => app.status === "blocked");
+  }, [appointments]);
+  const handleUndoBlock = async (e) => {
+    if (e) e.preventDefault();
+    if (!activeBlock || !activeBlock.id) {
+      toast.error("No se encontr\xF3 el ID del bloqueo");
+      return;
+    }
+    try {
+      const success = await removeAppointment(activeBlock.id);
+      if (success) {
+        refresh();
+        fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
+        toast.success("Bloqueo eliminado correctamente");
+      }
+    } catch (err) {
+      console.error("Error al deshacer bloqueo:", err);
+    }
+  };
+  React.useEffect(() => {
+    if (!loading && appointments && appointments.length > 0 && !hasInitializedTab) {
+      const sections = {
+        pendiente: appointments.filter((a) => a.status === "pending" || a.status === "pending_block"),
+        confirmado: appointments.filter((a) => a.status === "confirmed"),
+        finalizado: appointments.filter((a) => a.status === "completed"),
+        canceladoAusente: appointments.filter((a) => ["cancelled", "cancelled_timeout", "cancelled_occupied", "no_show"].includes(a.status))
+      };
+      if (sections.pendiente.length > 0) setActiveTab("pendientes");
+      else if (sections.confirmado.length > 0) setActiveTab("confirmados");
+      else if (sections.finalizado.length > 0) setActiveTab("finalizados");
+      else if (sections.canceladoAusente.length > 0) setActiveTab("cancelados");
+      setHasInitializedTab(true);
+    }
+  }, [loading, appointments, hasInitializedTab]);
+  const handleAcceptAllPending = async () => {
+    try {
+      setAppointments(
+        (prevAppointments) => prevAppointments.map(
+          (turno) => turno.status === "pending" || turno.status === "pending_block" ? { ...turno, status: "confirmed" } : turno
+        )
+      );
+      toast.success("Turnos confirmados exitosamente");
+    } catch (error) {
+      console.error("Error confirmando turnos:", error);
+      toast.error("Hubo un error al confirmar los turnos");
+    }
+  };
+  const blockReason = useMemo(() => {
+    if (!activeBlock?.notes) return "Bloqueo de agenda";
+    try {
+      const parsed = JSON.parse(activeBlock.notes);
+      return parsed.text || "Bloqueo de agenda";
+    } catch (e) {
+      return activeBlock.notes;
+    }
+  }, [activeBlock]);
+  const filteredSections = useMemo(() => {
+    const list = (appointments || []).filter(
+      (app) => app.client_name?.toLowerCase().includes(search.toLowerCase()) || app.service_name?.toLowerCase().includes(search.toLowerCase())
+    );
+    return {
+      pendiente: list.filter((a) => a.status === "pending" || a.status === "pending_block"),
+      confirmado: list.filter((a) => a.status === "confirmed"),
+      finalizado: list.filter((a) => a.status === "completed"),
+      cancelado: list.filter((a) => ["cancelled", "cancelled_timeout", "cancelled_occupied"].includes(a.status)),
+      ausente: list.filter((a) => a.status === "no_show")
+    };
+  }, [appointments, search]);
+  const quickViewFilteredAppointments = useMemo(() => {
+    if (!quickView.isOpen || !quickView.filterType) return [];
+    const today = startOfToday();
+    const tomorrow = addDays(today, 1);
+    const todayForWeek = startOfToday();
+    const weekStartAt = startOfWeek(todayForWeek, { weekStartsOn: 1 });
+    const weekEndAt = endOfWeek(todayForWeek, { weekStartsOn: 1 });
+    return (appointments || []).filter((app) => {
+      const appDate = new Date(app.start_at);
+      let matchesDate = false;
+      if (quickView.filterType === "hoy") matchesDate = isSameDay(appDate, today);
+      else if (quickView.filterType === "manana") matchesDate = isSameDay(appDate, tomorrow);
+      else if (quickView.filterType === "semana") {
+        matchesDate = isWithinInterval(appDate, { start: weekStartAt, end: weekEndAt });
+      }
+      if (!matchesDate) return false;
+      if (quickViewStatusFilter === "all") return true;
+      if (quickViewStatusFilter === "pendientes") return ["pending", "pending_block"].includes(app.status);
+      if (quickViewStatusFilter === "confirmados") return app.status === "confirmed";
+      if (quickViewStatusFilter === "finalizados") return app.status === "completed";
+      if (quickViewStatusFilter === "cancelados") return ["cancelled", "cancelled_timeout", "cancelled_occupied", "no_show"].includes(app.status);
+      return false;
+    }).sort((a, b) => new Date(a.start_at) - new Date(b.start_at));
+  }, [appointments, quickView.isOpen, quickView.filterType, quickViewStatusFilter]);
+  const quickViewCounts = useMemo(() => {
+    if (!quickView.isOpen || !quickView.filterType) return { all: 0, pendientes: 0, confirmados: 0, finalizados: 0, cancelados: 0 };
+    const today = startOfToday();
+    const tomorrow = addDays(today, 1);
+    const todayForWeek = startOfToday();
+    const weekStartAt = startOfWeek(todayForWeek, { weekStartsOn: 1 });
+    const weekEndAt = endOfWeek(todayForWeek, { weekStartsOn: 1 });
+    const baseList = (appointments || []).filter((app) => {
+      const appDate = new Date(app.start_at);
+      if (quickView.filterType === "hoy") return isSameDay(appDate, today);
+      if (quickView.filterType === "manana") return isSameDay(appDate, tomorrow);
+      if (quickView.filterType === "semana") return isWithinInterval(appDate, { start: weekStartAt, end: weekEndAt });
+      return false;
+    });
+    return {
+      all: baseList.length,
+      pendientes: baseList.filter((app) => ["pending", "pending_block"].includes(app.status)).length,
+      confirmados: baseList.filter((app) => app.status === "confirmed").length,
+      finalizados: baseList.filter((app) => app.status === "completed").length,
+      cancelados: baseList.filter((app) => ["cancelled", "cancelled_timeout", "cancelled_occupied", "no_show"].includes(app.status)).length
+    };
+  }, [appointments, quickView.isOpen, quickView.filterType]);
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const isAtTop = scrollTop < 20;
+      const hasMoreDown = scrollHeight > clientHeight + 10;
+      setShowScrollIndicator(isAtTop && hasMoreDown);
+    }
+  };
+  useEffect(() => {
+    if (quickView.isOpen) {
+      checkScroll();
+      const timer = setTimeout(checkScroll, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [quickView.isOpen, quickViewFilteredAppointments]);
+  const quickViewTheme = useMemo(() => {
+    if (quickView.filterType === "hoy") return { color: "blue", label: "Hoy", bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-900", secondary: "text-blue-400", dot: "bg-blue-600", shadow: "shadow-blue-100", icon: Sun };
+    if (quickView.filterType === "manana") return { color: "emerald", label: "Ma\xF1ana", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-900", secondary: "text-emerald-400", dot: "bg-emerald-600", shadow: "shadow-emerald-100", icon: Sunrise };
+    return { color: "violet", label: "Semana", bg: "bg-violet-50", border: "border-violet-200", text: "text-violet-900", secondary: "text-violet-400", dot: "bg-violet-600", shadow: "shadow-violet-100", icon: CalendarRange };
+  }, [quickView.filterType]);
+  const pendientes = filteredSections.pendiente;
+  const confirmados = filteredSections.confirmado;
+  const finalizados = filteredSections.finalizado;
+  const canceladosAusentes = [...filteredSections.cancelado, ...filteredSections.ausente];
+  const groupedPendientes = useMemo(() => {
+    const today = startOfToday();
+    const tomorrow = addDays(today, 1);
+    const groups = {};
+    pendientes.forEach((app) => {
+      const dateKey = format(new Date(app.start_at), "yyyy-MM-dd");
+      if (!groups[dateKey]) groups[dateKey] = { items: [], label: "" };
+      groups[dateKey].items.push(app);
+      const appDate = new Date(app.start_at);
+      if (isSameDay(appDate, today)) groups[dateKey].label = "Hoy";
+      else if (isSameDay(appDate, tomorrow)) groups[dateKey].label = "Ma\xF1ana";
+      else groups[dateKey].label = format(appDate, "EEEE d 'de' MMMM", { locale: es });
+    });
+    return Object.keys(groups).sort().map((key) => ({
+      key,
+      ...groups[key]
+    }));
+  }, [pendientes]);
+  useEffect(() => {
+    if (activeTab !== "pendientes") {
+      setIsPriorityExpanded(false);
+    } else {
+      setIsPriorityExpanded(true);
+    }
+  }, [activeTab]);
+  return /* @__PURE__ */ React.createElement(Layout, { maxWidth: "max-w-screen-2xl" }, /* @__PURE__ */ React.createElement("div", { className: "space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500" }, /* @__PURE__ */ React.createElement("header", { className: "hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-0" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement(CalendarIcon, { className: "w-6 h-6 text-slate-900" }), /* @__PURE__ */ React.createElement("h1", { className: "text-2xl font-bold text-slate-900 tracking-tight" }, "Agenda de Turnos")), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500 leading-tight" }, "Gestion\xE1 tu d\xEDa, confirma citas y optimiz\xE1 tu tiempo de trabajo.")), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-4" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      onClick: () => {
+        const today = /* @__PURE__ */ new Date();
+        setDate(today);
+        setCurrentMonth(today);
+      },
+      className: "flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors shadow-sm"
+    },
+    /* @__PURE__ */ React.createElement(CalendarDays, { className: "w-4 h-4 text-slate-400" }),
+    "Volver a hoy"
+  ), /* @__PURE__ */ React.createElement(
+    Button,
+    {
+      onClick: () => setShowDialog(true),
+      className: "rounded-xl font-bold gap-2"
+    },
+    /* @__PURE__ */ React.createElement(Plus, { className: "w-4 h-4" }),
+    "Nuevo Turno"
+  ))), /* @__PURE__ */ React.createElement("div", { className: "md:hidden px-5 pt-6 pb-2 bg-white sticky top-0 z-40" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-end mb-4" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "text-xs font-bold text-slate-400 uppercase tracking-wider mb-1" }, format(date, "EEEE, d MMM", { locale: es })), /* @__PURE__ */ React.createElement("h1", { className: "text-4xl font-black text-slate-900 tracking-tight" }, "Agenda")), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      onClick: () => setIsMobileCalendarOpen(true),
+      className: "w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-95 transition-transform"
+    },
+    /* @__PURE__ */ React.createElement(CalendarDays, { className: "w-6 h-6" })
+  )), /* @__PURE__ */ React.createElement("div", { className: "flex gap-3 mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-3" }, /* @__PURE__ */ React.createElement(Search, { className: "text-slate-400 w-5 h-5" }), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "text",
+      placeholder: "Buscar cliente o servicio...",
+      className: "bg-transparent border-none focus:ring-0 outline-none text-base ml-3 w-full text-slate-800 placeholder-slate-400 font-medium",
+      value: search,
+      onChange: (e) => setSearch(e.target.value)
+    }
+  )))), /* @__PURE__ */ React.createElement("div", { className: "md:hidden flex overflow-x-auto hide-scrollbar gap-3 px-5 py-2 mb-2 sticky top-[164px] z-30" }, [
+    { id: "pendientes", label: "Pendientes", count: pendientes.length, activeBg: "bg-amber-400", activeText: "text-amber-950", dot: "bg-amber-600" },
+    { id: "confirmados", label: "Confirmados", count: confirmados.length, activeBg: "bg-emerald-500", activeText: "text-white", dot: "bg-emerald-200" },
+    { id: "finalizados", label: "Finalizados", count: finalizados.length, activeBg: "bg-blue-600", activeText: "text-white", dot: "bg-blue-200" },
+    { id: "cancelados", label: "Cancelados", count: canceladosAusentes.length, activeBg: "bg-slate-900", activeText: "text-white", dot: "bg-slate-400" }
+  ].map((tab) => /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      key: tab.id,
+      onClick: () => setActiveTab(tab.id),
+      className: cn(
+        "whitespace-nowrap flex items-center gap-2.5 px-6 py-3.5 rounded-full text-[15px] font-black transition-all active:scale-95",
+        activeTab === tab.id ? `${tab.activeBg} ${tab.activeText} shadow-lg shadow-current/10` : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+      )
+    },
+    tab.label,
+    /* @__PURE__ */ React.createElement("span", { className: cn(
+      "py-0.5 px-2.5 rounded-full text-[10px] font-black",
+      activeTab === tab.id ? "bg-white/20" : "bg-slate-200/60"
+    ) }, tab.count)
+  ))), /* @__PURE__ */ React.createElement(
+    Tabs,
+    {
+      value: activeTab,
+      onValueChange: setActiveTab,
+      className: "w-full"
+    },
+    /* @__PURE__ */ React.createElement("div", { className: "flex flex-col lg:flex-row gap-8 w-full items-start pb-8" }, !isGridView && /* @__PURE__ */ React.createElement("aside", { className: "hidden lg:flex flex-col w-64 shrink-0 sticky top-6 gap-10" }, /* @__PURE__ */ React.createElement("div", { className: "flex flex-col w-full mt-2" }, /* @__PURE__ */ React.createElement("h4", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 px-1" }, "Turnos:"), /* @__PURE__ */ React.createElement(TabsList, { className: "flex flex-col h-auto w-full bg-white border border-slate-200 shadow-sm p-1.5 rounded-2xl items-stretch justify-start" }, /* @__PURE__ */ React.createElement(
+      TabsTrigger,
+      {
+        value: "pendientes",
+        className: "flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 transition-all"
+      },
+      /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-900" }, "Pendientes"),
+      /* @__PURE__ */ React.createElement("span", { className: "bg-amber-200 text-amber-800 py-0.5 px-2.5 rounded-full text-[10px] font-bold" }, pendientes.length)
+    ), /* @__PURE__ */ React.createElement(
+      TabsTrigger,
+      {
+        value: "confirmados",
+        className: "flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 transition-all"
+      },
+      /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-900" }, "Confirmados"),
+      /* @__PURE__ */ React.createElement("span", { className: "bg-emerald-200 text-emerald-800 py-0.5 px-2.5 rounded-full text-[10px] font-black" }, confirmados.length)
+    ), /* @__PURE__ */ React.createElement(
+      TabsTrigger,
+      {
+        value: "finalizados",
+        className: "flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 transition-all"
+      },
+      /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-900" }, "Finalizados"),
+      /* @__PURE__ */ React.createElement("span", { className: "bg-blue-200 text-blue-800 py-0.5 px-2.5 rounded-full text-[10px] font-black" }, finalizados.length)
+    ), /* @__PURE__ */ React.createElement(
+      TabsTrigger,
+      {
+        value: "cancelados",
+        className: "flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 transition-all"
+      },
+      /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-900" }, "Cancelados"),
+      /* @__PURE__ */ React.createElement("span", { className: "bg-rose-200 text-rose-800 py-0.5 px-2.5 rounded-full text-[10px] font-black" }, canceladosAusentes.length)
+    ))), /* @__PURE__ */ React.createElement("div", { className: "w-full" }, /* @__PURE__ */ React.createElement("h4", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 px-1 border-t border-slate-100 pt-6" }, "Vista R\xE1pida:"), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-3" }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setQuickView({ isOpen: true, filterType: "hoy" }),
+        className: "w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "p-2 bg-amber-100 rounded-lg text-amber-600" }, /* @__PURE__ */ React.createElement(Sun, { className: "w-4 h-4" })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-start leading-tight" }, /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors" }, "Hoy"), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-semibold text-slate-400 uppercase tracking-wider" }, "Ver ahora"))),
+      /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors" }, /* @__PURE__ */ React.createElement(ChevronRight, { className: "w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors" }))
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setQuickView({ isOpen: true, filterType: "manana" }),
+        className: "w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "p-2 bg-blue-100 rounded-lg text-blue-600" }, /* @__PURE__ */ React.createElement(Sunrise, { className: "w-4 h-4" })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-start leading-tight" }, /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors" }, "Ma\xF1ana"), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-semibold text-slate-400 uppercase tracking-wider" }, "D\xEDa siguiente"))),
+      /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors" }, /* @__PURE__ */ React.createElement(ChevronRight, { className: "w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors" }))
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setQuickView({ isOpen: true, filterType: "semana" }),
+        className: "w-full h-[60px] px-5 text-sm font-bold rounded-2xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 hover:shadow-md transition-all text-left flex items-center justify-between group shadow-sm overflow-hidden"
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "p-2 bg-indigo-100 rounded-lg text-indigo-600" }, /* @__PURE__ */ React.createElement(CalendarRange, { className: "w-4 h-4" })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-start leading-tight" }, /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors" }, "Esta Semana"), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-semibold text-slate-400 uppercase tracking-wider" }, "Lun a Dom"))),
+      /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors" }, /* @__PURE__ */ React.createElement(ChevronRight, { className: "w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors" }))
+    )))), /* @__PURE__ */ React.createElement("div", { className: "flex-1 w-full flex flex-col gap-6 items-start justify-start pt-2 min-w-0 pb-32" }, loading ? /* @__PURE__ */ React.createElement(AgendaSkeleton, null) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "hidden md:flex relative flex-col md:flex-row items-center gap-3 w-full" }, /* @__PURE__ */ React.createElement("div", { className: "relative flex-1 w-full" }, /* @__PURE__ */ React.createElement(Search, { className: "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" }), /* @__PURE__ */ React.createElement(
+      Input,
+      {
+        placeholder: "Buscar cliente o servicio...",
+        className: "w-full pl-10 pr-4 py-2.5 h-11 bg-white border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm",
+        value: search,
+        onChange: (e) => setSearch(e.target.value)
+      }
+    )), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 w-full md:w-auto" }, /* @__PURE__ */ React.createElement("div", { className: "relative", ref: searchFiltersRef }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        type: "button",
+        onClick: () => setShowSearchFilters(!showSearchFilters),
+        className: `flex items-center justify-center p-2.5 h-11 w-11 rounded-xl border transition-all shadow-sm shrink-0 active:scale-95 ${hasActiveFilters || showSearchFilters ? "bg-blue-50 border-blue-200 text-blue-600" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`
+      },
+      /* @__PURE__ */ React.createElement(Filter, { className: "w-5 h-5" }),
+      hasActiveFilters && /* @__PURE__ */ React.createElement("span", { className: "absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white -mt-1 -mr-1" })
+    ), showSearchFilters && /* @__PURE__ */ React.createElement("div", { className: "absolute top-full right-0 mt-3 w-[260px] bg-white rounded-2xl shadow-xl border border-slate-200 z-[60] p-3.5 animate-in fade-in slide-in-from-top-2" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2.5 border-b border-slate-100 pb-2" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold text-slate-800 text-sm" }, "Filtros Avanzados"), /* @__PURE__ */ React.createElement("button", { onClick: () => setShowSearchFilters(false), className: "text-slate-400 hover:text-slate-600" }, /* @__PURE__ */ React.createElement(Plus, { className: "w-5 h-5 rotate-45" }))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-2.5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { className: "block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" }, "Jornada"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-4 px-0.5" }, /* @__PURE__ */ React.createElement("label", { className: "flex items-center gap-2 cursor-pointer group" }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", className: "w-3.5 h-3.5 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" }), /* @__PURE__ */ React.createElement("span", { className: "text-xs text-slate-700 font-medium group-hover:text-blue-600 transition-colors" }, "Ma\xF1ana")), /* @__PURE__ */ React.createElement("label", { className: "flex items-center gap-2 cursor-pointer group" }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", className: "w-3.5 h-3.5 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" }), /* @__PURE__ */ React.createElement("span", { className: "text-xs text-slate-700 font-medium group-hover:text-blue-600 transition-colors" }, "Tarde")))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { className: "block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" }, "Tipo de Cliente"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-4 px-0.5" }, /* @__PURE__ */ React.createElement("label", { className: "flex items-center gap-2 cursor-pointer group" }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", className: "w-3.5 h-3.5 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" }), /* @__PURE__ */ React.createElement("span", { className: "text-xs text-slate-700 font-medium group-hover:text-blue-600 transition-colors" }, "Frecuente")), /* @__PURE__ */ React.createElement("label", { className: "flex items-center gap-2 cursor-pointer group" }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", className: "w-3.5 h-3.5 accent-blue-600 rounded text-blue-600 focus:ring-blue-500" }), /* @__PURE__ */ React.createElement("span", { className: "text-xs text-slate-700 font-medium group-hover:text-blue-600 transition-colors" }, "Primera Vez")))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { className: "block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" }, "Profesional"), /* @__PURE__ */ React.createElement("select", { className: "w-full py-1 px-2 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer" }, /* @__PURE__ */ React.createElement("option", { value: "todos" }, "Todos los profesionales"), /* @__PURE__ */ React.createElement("option", { value: "prof1" }, "Mart\xEDn (Barbero)"), /* @__PURE__ */ React.createElement("option", { value: "prof2" }, "Sof\xEDa (Colorista)")))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mt-3.5 pt-2.5 border-t border-slate-100" }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => {
+          setActiveSearchFilters({ jornada: [], cliente: [], staff: [] });
+          setShowSearchFilters(false);
+        },
+        className: "text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+      },
+      "Limpiar"
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setShowSearchFilters(false),
+        className: "px-5 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+      },
+      "Aplicar"
+    )))), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setIsGridView(!isGridView),
+        className: "flex items-center justify-center p-2.5 h-11 w-11 rounded-xl bg-white text-slate-400 border border-slate-200 hover:text-blue-600 hover:border-blue-500 focus:outline-none transition-all shrink-0 shadow-sm active:scale-95",
+        title: isGridView ? "Vista Lista" : "Vista Tablero"
+      },
+      isGridView ? /* @__PURE__ */ React.createElement(Rows3, { className: "w-5 h-5" }) : /* @__PURE__ */ React.createElement(Grid3X3, { className: "w-5 h-5" })
+    ))), !isGridView && activeTab !== "pendientes" && groupedPendientes.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "w-full mb-8 mt-6" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-4" }, /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        onClick: () => setIsPriorityExpanded(!isPriorityExpanded),
+        className: "flex items-center gap-2 cursor-pointer select-none group"
+      },
+      /* @__PURE__ */ React.createElement("span", { className: "relative flex h-3 w-3" }, /* @__PURE__ */ React.createElement("span", { className: "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" }), /* @__PURE__ */ React.createElement("span", { className: "relative inline-flex rounded-full h-3 w-3 bg-amber-500" })),
+      /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wider group-hover:text-blue-600 transition-colors" }, "Requieren Acci\xF3n Inmediata (", pendientes.length, ")"),
+      /* @__PURE__ */ React.createElement(
+        motion.div,
+        {
+          animate: { rotate: isPriorityExpanded ? 180 : 0 },
+          transition: { type: "spring", stiffness: 300, damping: 20 },
+          className: "w-5 h-5 flex items-center justify-center text-slate-400 group-hover:text-blue-600 transition-colors ml-1"
+        },
+        /* @__PURE__ */ React.createElement(ChevronDown, { className: "w-4 h-4" })
+      )
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        type: "button",
+        onClick: handleAcceptAllPending,
+        className: "flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95"
+      },
+      /* @__PURE__ */ React.createElement(CheckCircle, { className: "w-3.5 h-3.5" }),
+      "Aceptar Todos"
+    )), /* @__PURE__ */ React.createElement(AnimatePresence, { initial: false }, isPriorityExpanded && /* @__PURE__ */ React.createElement(
+      motion.div,
+      {
+        initial: { height: 0, opacity: 0 },
+        animate: { height: "auto", opacity: 1 },
+        exit: { height: 0, opacity: 0 },
+        transition: { duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] },
+        className: "overflow-hidden space-y-10"
+      },
+      groupedPendientes.map((group) => /* @__PURE__ */ React.createElement("div", { key: `group-${group.key}`, className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("span", { className: "text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap" }, "Pendientes de ", group.label), /* @__PURE__ */ React.createElement("div", { className: "h-[1px] w-full bg-slate-100" })), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full" }, group.items.map((turno) => /* @__PURE__ */ React.createElement("div", { key: `priority-pending-${turno.id}`, className: "w-full" }, /* @__PURE__ */ React.createElement(AppointmentCard, { appointment: turno, onClick: (app) => setSelectedAppointment(app) }))))))
+    ))), isGridView ? /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-6 w-full mt-4 items-start" }, /* @__PURE__ */ React.createElement(
+      AgendaGridColumn,
+      {
+        title: "Pendientes",
+        count: pendientes.length,
+        dotColor: "bg-amber-400",
+        items: pendientes,
+        onCardClick: setSelectedAppointment,
+        headerAction: pendientes.length > 0 && /* @__PURE__ */ React.createElement(
+          "button",
+          {
+            onClick: handleAcceptAllPending,
+            className: "ml-auto text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200 transition-colors"
+          },
+          "Aceptar Todos"
+        )
+      }
+    ), /* @__PURE__ */ React.createElement(AgendaGridColumn, { title: "Confirmados", count: confirmados.length, dotColor: "bg-emerald-500", items: confirmados, onCardClick: setSelectedAppointment }), /* @__PURE__ */ React.createElement(AgendaGridColumn, { title: "Finalizados", count: finalizados.length, dotColor: "bg-blue-500", items: finalizados, onCardClick: setSelectedAppointment }), /* @__PURE__ */ React.createElement(AgendaGridColumn, { title: "Cancelados", count: canceladosAusentes.length, dotColor: "bg-rose-500", items: canceladosAusentes, onCardClick: setSelectedAppointment })) : /* @__PURE__ */ React.createElement("div", { className: "flex-1 w-full flex flex-col gap-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex lg:hidden flex-col gap-3 mb-4 -mx-4 px-4 pb-2" }, /* @__PURE__ */ React.createElement("div", { className: "flex overflow-x-auto hide-scrollbar gap-2" }, [
+      { id: "pendientes", name: "Pendientes", count: pendientes.length, color: "amber" },
+      { id: "confirmados", name: "Confirmados", count: confirmados.length, color: "emerald" },
+      { id: "finalizados", name: "Finalizados", count: finalizados.length, color: "blue" },
+      { id: "cancelados", name: "Cancelados", count: canceladosAusentes.length, color: "rose" }
+    ].map((tab) => {
+      const colorMap = {
+        amber: { bg: "bg-amber-100", text: "text-amber-900", ring: "ring-amber-200", dot: "bg-amber-400" },
+        emerald: { bg: "bg-emerald-100", text: "text-emerald-900", ring: "ring-emerald-200", dot: "bg-emerald-400" },
+        blue: { bg: "bg-blue-100", text: "text-blue-900", ring: "ring-blue-200", dot: "bg-blue-400" },
+        rose: { bg: "bg-rose-100", text: "text-rose-900", ring: "ring-rose-200", dot: "bg-rose-400" }
+      };
+      const colors = colorMap[tab.color] || colorMap.blue;
+      return /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          key: tab.id,
+          onClick: () => setActiveTab(tab.id),
+          className: `whitespace-nowrap px-4 py-2.5 rounded-full text-[13px] font-bold transition-all shadow-sm flex items-center gap-2 ${activeTab === tab.id ? `${colors.bg} ${colors.text} ring-1 ${colors.ring}` : "bg-white text-slate-500 border border-slate-100"}`
+        },
+        /* @__PURE__ */ React.createElement("div", { className: `w-2 h-2 rounded-full ${colors.dot}` }),
+        /* @__PURE__ */ React.createElement("span", null, tab.name),
+        /* @__PURE__ */ React.createElement("span", { className: `px-1.5 py-0.5 rounded-lg text-[10px] font-black ${activeTab === tab.id ? `bg-white/70` : "bg-slate-50"}` }, tab.count)
+      );
+    })), /* @__PURE__ */ React.createElement("div", { className: "flex overflow-x-auto hide-scrollbar gap-2 border-t border-slate-50 pt-3" }, [
+      { type: "hoy", name: "Hoy", icon: Sun, color: "blue" },
+      { type: "manana", name: "Ma\xF1ana", icon: Sunrise, color: "emerald" },
+      { type: "semana", name: "Semana", icon: CalendarRange, color: "violet" }
+    ].map((filter) => {
+      const Icon = filter.icon;
+      return /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          key: filter.type,
+          onClick: () => setQuickView({ isOpen: true, filterType: filter.type }),
+          className: "whitespace-nowrap px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 flex items-center gap-2 text-[12px] font-bold hover:bg-slate-100 active:scale-95 transition-all"
+        },
+        /* @__PURE__ */ React.createElement(Icon, { className: "w-3.5 h-3.5" }),
+        filter.name
+      );
+    }))), /* @__PURE__ */ React.createElement(TabsContent, { value: "pendientes", className: "w-full mt-2 lg:mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300" }, pendientes.length > 0 ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-4 pb-2 border-b border-slate-100" }, /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wider" }, "Gesti\xF3n de Pendientes"), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: handleAcceptAllPending,
+        className: "flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-colors shadow-sm"
+      },
+      "Aceptar Todos"
+    )), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32" }, pendientes.map((turno) => /* @__PURE__ */ React.createElement("div", { key: turno.id, className: "w-full" }, /* @__PURE__ */ React.createElement(AppointmentCard, { appointment: turno, onClick: (app) => setSelectedAppointment(app) }))))) : /* @__PURE__ */ React.createElement("div", { className: "w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50" }, /* @__PURE__ */ React.createElement("div", { className: "w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4" }, /* @__PURE__ */ React.createElement(CalendarX2, { className: "w-6 h-6 text-slate-400" })), /* @__PURE__ */ React.createElement("p", { className: "text-sm font-bold text-slate-500 uppercase tracking-wider mb-4" }, "Sin turnos en esta vista"), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setShowDialog(true),
+        className: "flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
+      },
+      /* @__PURE__ */ React.createElement(Plus, { className: "w-4 h-4" }),
+      "Crear nuevo turno"
+    ))), /* @__PURE__ */ React.createElement(TabsContent, { value: "confirmados", className: "mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300" }, confirmados.length > 0 ? /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32" }, confirmados.map((appointment) => /* @__PURE__ */ React.createElement("div", { key: appointment.id, className: "w-full" }, /* @__PURE__ */ React.createElement(AppointmentCard, { appointment, onClick: (app) => setSelectedAppointment(app) })))) : /* @__PURE__ */ React.createElement("div", { className: "w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50" }, /* @__PURE__ */ React.createElement("div", { className: "w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4" }, /* @__PURE__ */ React.createElement(CalendarX2, { className: "w-6 h-6 text-slate-400" })), /* @__PURE__ */ React.createElement("p", { className: "text-sm font-bold text-slate-500 uppercase tracking-wider mb-4" }, "Sin turnos en esta vista"), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setShowDialog(true),
+        className: "flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
+      },
+      /* @__PURE__ */ React.createElement(Plus, { className: "w-4 h-4" }),
+      "Crear nuevo turno"
+    ))), /* @__PURE__ */ React.createElement(TabsContent, { value: "finalizados", className: "mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300" }, finalizados.length > 0 ? /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32" }, finalizados.map((appointment) => /* @__PURE__ */ React.createElement("div", { key: appointment.id, className: "w-full" }, /* @__PURE__ */ React.createElement(AppointmentCard, { appointment, onClick: (app) => setSelectedAppointment(app) })))) : /* @__PURE__ */ React.createElement("div", { className: "w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50" }, /* @__PURE__ */ React.createElement("div", { className: "w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4" }, /* @__PURE__ */ React.createElement(CalendarX2, { className: "w-6 h-6 text-slate-400" })), /* @__PURE__ */ React.createElement("p", { className: "text-sm font-bold text-slate-500 uppercase tracking-wider mb-4" }, "Sin turnos en esta vista"), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setShowDialog(true),
+        className: "flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
+      },
+      /* @__PURE__ */ React.createElement(Plus, { className: "w-4 h-4" }),
+      "Crear nuevo turno"
+    ))), /* @__PURE__ */ React.createElement(TabsContent, { value: "cancelados", className: "mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300" }, canceladosAusentes.length > 0 ? /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32" }, canceladosAusentes.sort((a, b) => a.time?.localeCompare(b.time || "")).map((appointment) => /* @__PURE__ */ React.createElement("div", { key: appointment.id, className: "w-full" }, /* @__PURE__ */ React.createElement(AppointmentCard, { appointment, onClick: (app) => setSelectedAppointment(app) })))) : /* @__PURE__ */ React.createElement("div", { className: "w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50" }, /* @__PURE__ */ React.createElement("div", { className: "w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4" }, /* @__PURE__ */ React.createElement(CalendarX2, { className: "w-6 h-6 text-slate-400" })), /* @__PURE__ */ React.createElement("p", { className: "text-sm font-bold text-slate-500 uppercase tracking-wider mb-4" }, "Sin turnos en esta vista"), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setShowDialog(true),
+        className: "flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
+      },
+      /* @__PURE__ */ React.createElement(Plus, { className: "w-4 h-4" }),
+      "Crear nuevo turno"
+    )))))), /* @__PURE__ */ React.createElement("aside", { className: "hidden xl:flex flex-col w-full lg:w-[320px] shrink-0 space-y-4 sticky top-6 pt-2" }, /* @__PURE__ */ React.createElement(Card, { className: "border-slate-100 rounded-2xl overflow-hidden shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "p-3" }, /* @__PURE__ */ React.createElement(
+      Calendar,
+      {
+        mode: "single",
+        selected: date,
+        onSelect: (d) => d && setDate(d),
+        onMonthChange: setCurrentMonth,
+        className: "w-full",
+        modifiers: { blocked: blockedDates },
+        modifiersStyles: {
+          blocked: {
+            backgroundColor: "#fee2e2",
+            color: "#dc2626",
+            fontWeight: "bold",
+            borderRadius: "0.5rem"
+          }
+        }
+      }
+    ))), activeBlock && /* @__PURE__ */ React.createElement(motion.div, { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, className: "bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col gap-3 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-start gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "p-2 bg-red-100 rounded-lg text-red-600" }, /* @__PURE__ */ React.createElement(Lock, { className: "w-5 h-5" })), /* @__PURE__ */ React.createElement("div", { className: "flex-1" }, /* @__PURE__ */ React.createElement("p", { className: "text-sm font-bold text-red-900 leading-tight" }, "Bloqueo Activo"), /* @__PURE__ */ React.createElement("p", { className: "text-[11px] text-red-700 leading-tight mt-1 truncate" }, '"', blockReason, '"'))), /* @__PURE__ */ React.createElement(Button, { type: "button", variant: "destructive", size: "sm", className: "w-full h-9 rounded-xl font-bold text-xs", onClick: handleUndoBlock }, "Deshacer Bloqueo")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-2" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 h-11 text-sm font-medium text-white hover:bg-blue-600 transition-colors", onClick: () => setShowBlockModal(true) }, /* @__PURE__ */ React.createElement(Lock, { className: "w-4 h-4" }), " Bloquear"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 h-11 text-sm font-medium text-white hover:bg-blue-600 transition-colors" }, /* @__PURE__ */ React.createElement(Clock, { className: "w-4 h-4" }), " Horarios"))))
+  )), /* @__PURE__ */ React.createElement(AnimatePresence, null, isMobileCalendarOpen && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+    motion.div,
+    {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+      onClick: () => setIsMobileCalendarOpen(false),
+      className: "fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm lg:hidden"
+    }
+  ), /* @__PURE__ */ React.createElement(
+    motion.div,
+    {
+      initial: { y: "100%" },
+      animate: { y: 0 },
+      exit: { y: "100%" },
+      transition: { type: "spring", damping: 25, stiffness: 200 },
+      className: "fixed inset-x-0 bottom-0 z-[120] bg-white rounded-t-[32px] p-8 pb-10 lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)]"
+    },
+    /* @__PURE__ */ React.createElement("div", { className: "w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6" }),
+    /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-8" }, /* @__PURE__ */ React.createElement("h3", { className: "text-2xl font-black text-slate-900" }, "Seleccionar Fecha"), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setIsMobileCalendarOpen(false),
+        className: "w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"
+      },
+      /* @__PURE__ */ React.createElement(Plus, { className: "w-7 h-7 rotate-45" })
+    )),
+    /* @__PURE__ */ React.createElement("div", { className: "bg-slate-50 rounded-3xl p-6 mb-2" }, /* @__PURE__ */ React.createElement(
+      Calendar,
+      {
+        mode: "single",
+        selected: date,
+        onSelect: (d) => {
+          if (d) {
+            setDate(d);
+            setCurrentMonth(d);
+            setIsMobileCalendarOpen(false);
+          }
+        },
+        onMonthChange: setCurrentMonth,
+        className: "w-full",
+        modifiers: { blocked: blockedDates },
+        modifiersStyles: {
+          blocked: {
+            backgroundColor: "#fee2e2",
+            color: "#dc2626",
+            fontWeight: "bold",
+            borderRadius: "0.5rem"
+          }
+        }
+      }
+    )),
+    /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => {
+          const today = /* @__PURE__ */ new Date();
+          setDate(today);
+          setCurrentMonth(today);
+          setIsMobileCalendarOpen(false);
+        },
+        className: "w-full mt-6 py-4.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 active:scale-95 transition-all text-lg"
+      },
+      "Volver a Hoy"
+    )
+  ))), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      onClick: () => setShowDialog(true),
+      className: "lg:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-blue-600 transition-all active:scale-90"
+    },
+    /* @__PURE__ */ React.createElement(Plus, { className: "w-7 h-7" })
+  ), /* @__PURE__ */ React.createElement(
+    AppointmentDialog,
+    {
+      isOpen: showDialog,
+      onClose: () => setShowDialog(false),
+      onConfirm: handleConfirmAdd,
+      initialDate: date
+    }
+  ), /* @__PURE__ */ React.createElement(AnimatePresence, null, quickView.isOpen && /* @__PURE__ */ React.createElement(
+    motion.div,
+    {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+      onClick: (e) => {
+        if (e.target === e.currentTarget) {
+          setQuickView({ isOpen: false, filterType: null });
+          setQuickViewStatusFilter("all");
+        }
+      },
+      className: "fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 overflow-hidden"
+    },
+    /* @__PURE__ */ React.createElement(motion.div, { initial: { scale: 0.9, opacity: 0, y: 40 }, animate: { scale: 1, opacity: 1, y: 0 }, exit: { scale: 0.9, opacity: 0, y: 40 }, className: "bg-white rounded-[32px] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-100" }, /* @__PURE__ */ React.createElement("div", { className: "px-8 pt-6 border-b border-slate-100 flex flex-col bg-white shrink-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 rounded-full ${quickViewTheme.dot} animate-pulse` }), /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold text-slate-900 tracking-tight" }, "Vista R\xE1pida: ", /* @__PURE__ */ React.createElement("span", { className: `${quickViewTheme.text.replace("text-", "text-opacity-100 text-")}` }, quickViewTheme.label))), /* @__PURE__ */ React.createElement(
+      Button,
+      {
+        onClick: () => {
+          setQuickView({ isOpen: false, filterType: null });
+          setQuickViewStatusFilter("all");
+        },
+        variant: "ghost",
+        size: "sm",
+        className: "rounded-full w-10 h-10 p-0 hover:bg-slate-100 text-slate-400"
+      },
+      /* @__PURE__ */ React.createElement(X, { className: "w-5 h-5" })
+    )), /* @__PURE__ */ React.createElement("div", { className: "flex gap-6 border-b border-transparent" }, [
+      { id: "all", label: "Todos", count: quickViewCounts.all },
+      { id: "pendientes", label: "Pendientes", count: quickViewCounts.pendientes },
+      { id: "confirmados", label: "Confirmados", count: quickViewCounts.confirmados },
+      { id: "finalizados", label: "Finalizados", count: quickViewCounts.finalizados },
+      { id: "cancelados", label: "Cancelados", count: quickViewCounts.cancelados }
+    ].map((tab) => /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key: tab.id,
+        onClick: () => setQuickViewStatusFilter(tab.id),
+        className: `pb-4 text-sm font-bold transition-all relative ${quickViewStatusFilter === tab.id ? quickViewTheme.text : "text-slate-400 hover:text-slate-600"}`
+      },
+      tab.label,
+      /* @__PURE__ */ React.createElement("span", { className: "ml-1.5 opacity-50 px-1.5 py-0.5 bg-slate-100 rounded-md text-[10px]" }, tab.count),
+      quickViewStatusFilter === tab.id && /* @__PURE__ */ React.createElement(
+        motion.div,
+        {
+          layoutId: "activeQuickTab",
+          className: cn("absolute bottom-0 left-0 right-0 h-1 rounded-t-full", quickViewTheme.dot)
+        }
+      )
+    )))), /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-auto p-8 bg-slate-50/30" }, quickViewFilteredAppointments.length > 0 ? /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20" }, (() => {
+      let currentHeader = null;
+      return quickViewFilteredAppointments.map((appointment, idx) => {
+        const time = format(new Date(appointment.start_at), "HH:mm");
+        const showHeader = currentHeader !== time;
+        currentHeader = time;
+        return /* @__PURE__ */ React.createElement(React.Fragment, { key: appointment.id }, showHeader && /* @__PURE__ */ React.createElement("div", { className: "col-span-full mt-6 first:mt-0 mb-2" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] bg-white px-3 py-1 rounded-full border border-slate-100 shadow-sm" }, time, " HS"), /* @__PURE__ */ React.createElement("div", { className: "h-[1px] flex-1 bg-gradient-to-r from-slate-200 to-transparent" }))), /* @__PURE__ */ React.createElement(
+          motion.div,
+          {
+            initial: { opacity: 0, scale: 0.95 },
+            animate: { opacity: 1, scale: 1 },
+            transition: { delay: idx * 0.01 },
+            className: "w-full"
+          },
+          /* @__PURE__ */ React.createElement(
+            AppointmentCard,
+            {
+              appointment,
+              onClick: (app) => {
+                setSelectedAppointment(app);
+                setQuickView({ isOpen: false, filterType: null });
+                setQuickViewStatusFilter("all");
+              }
+            }
+          )
+        ));
+      });
+    })()) : /* @__PURE__ */ React.createElement("div", { className: "flex-1 flex flex-col items-center justify-center p-12 text-center" }, /* @__PURE__ */ React.createElement("div", { className: "w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4" }, /* @__PURE__ */ React.createElement(CalendarIcon, { className: "w-8 h-8 text-slate-200" })), /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-black text-slate-400 uppercase tracking-widest" }, "Sin turnos agendados"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-300 mt-1" }, "Prob\xE1 cambiando el filtro lateral para ver otros estados.")), /* @__PURE__ */ React.createElement(AnimatePresence, null, showScrollIndicator && /* @__PURE__ */ React.createElement(
+      motion.div,
+      {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: 10 },
+        className: "absolute bottom-10 right-10 z-50 pointer-events-none"
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "bg-white/80 backdrop-blur-md shadow-xl border border-slate-100 p-2.5 rounded-full animate-bounce" }, /* @__PURE__ */ React.createElement(ChevronDown, { className: "w-5 h-5 text-indigo-600" }))
+    ))), /* @__PURE__ */ React.createElement("div", { className: "px-8 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center shrink-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("span", { className: cn("text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border", quickViewTheme.bg, quickViewTheme.border, quickViewTheme.text) }, "Total: ", quickViewFilteredAppointments.length, " turnos"))))
+  )), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      onClick: () => setShowDialog(true),
+      className: "md:hidden fixed bottom-6 right-5 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl shadow-slate-900/40 active:scale-90 transition-all z-50 animate-in zoom-in duration-300"
+    },
+    /* @__PURE__ */ React.createElement(Plus, { className: "w-7 h-7" })
+  ), /* @__PURE__ */ React.createElement(
+    BlockTimeModal,
+    {
+      isOpen: showBlockModal,
+      onClose: () => setShowBlockModal(false),
+      onConfirm: handleConfirmBlock,
+      initialDate: date
+    }
+  ), /* @__PURE__ */ React.createElement(
+    AppointmentDetailDialog,
+    {
+      appointment: selectedAppointment,
+      isOpen: !!selectedAppointment,
+      onClose: () => setSelectedAppointment(null),
+      onUpdateStatus: handleUpdateStatus,
+      onDelete: handleDelete
+    }
+  ));
+}
+export {
+  AgendaPage as default
+};

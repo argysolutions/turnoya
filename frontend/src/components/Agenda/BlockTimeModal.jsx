@@ -10,11 +10,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { format } from 'date-fns'
-import { Calendar as DateIcon, Clock } from 'lucide-react'
+import { Calendar as DateIcon, Clock, X } from 'lucide-react'
 import { MobileTimePicker } from '@/components/shared/MobileTimePicker'
 import { PickerButton } from '@/components/shared/MobilePicker'
+import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
 
-export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
+const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
   const [isAllDay, setIsAllDay] = useState(false)
   const [date, setDate] = useState(initialDate ? format(initialDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'))
@@ -57,103 +59,148 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
     if (!open && !loading) onClose()
   }
 
-  return (
-    <>
-      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-xl p-0 overflow-hidden bg-white border-none shadow-2xl rounded-3xl">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">Bloquear Horario</DialogTitle>
-            <DialogDescription className="text-sm text-slate-500 font-medium">
-              Reserva un espacio en la agenda para evitar citas.
-            </DialogDescription>
-          </DialogHeader>
+  const renderContent = () => (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="md:hidden w-12 h-1.5 bg-slate-200 rounded-full mx-auto my-4 shrink-0" />
+      
+      <div className="flex flex-col p-6 md:p-8 pt-2 md:pt-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Bloquear Horario</h2>
+            <p className="text-sm text-slate-500 font-medium mt-1">Reserva un espacio en la agenda para evitar citas.</p>
+          </div>
+          <button onClick={onClose} className="hidden md:flex p-2 hover:bg-slate-100 rounded-full text-slate-400 font-bold">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          <div className="p-6 space-y-6">
-            <div className="space-y-4">
-              {/* Toggle de Día Completo */}
-              <div 
-                className={`flex items-center justify-between p-4 border transition-all rounded-2xl cursor-pointer select-none ${isAllDay ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}
-                onClick={() => setIsAllDay(!isAllDay)}
-              >
-                <div>
-                  <p className="font-bold text-[15px]">Día Completo</p>
-                  <p className={`text-xs ${isAllDay ? 'text-slate-400' : 'text-slate-500'}`}>Bloquear las 24 horas del día.</p>
-                </div>
-                <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${isAllDay ? 'bg-blue-500' : 'bg-slate-300'}`}>
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${isAllDay ? 'translate-x-6' : 'translate-x-1'}`} />
-                </div>
+        <div className="mt-8 space-y-6">
+          <div className="space-y-4">
+            {/* Toggle de Día Completo */}
+            <div 
+              className={`flex items-center justify-between p-5 border transition-all rounded-[2rem] md:rounded-2xl cursor-pointer select-none ${isAllDay ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200' : 'bg-slate-50 border-transparent text-slate-900'}`}
+              onClick={() => setIsAllDay(!isAllDay)}
+            >
+              <div>
+                <p className="font-black text-base">Día Completo</p>
+                <p className={`text-xs font-bold leading-tight mt-0.5 ${isAllDay ? 'text-slate-400' : 'text-slate-500'}`}>Bloquear las 24 horas del día.</p>
               </div>
-
-              {/* Fecha */}
-              <div className="space-y-2">
-                <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Fecha de bloqueo</Label>
-                <div className="relative">
-                  <DateIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-                  <Input 
-                    type="date"
-                    className="pl-12 h-14 rounded-2xl border-slate-200 text-base font-bold text-slate-900 bg-slate-50/50 focus:bg-white transition-all shadow-sm"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                  />
-                </div>
+              <div className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 ${isAllDay ? 'bg-blue-500' : 'bg-slate-300'}`}>
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-200 ${isAllDay ? 'translate-x-6' : 'translate-x-1 shadow-sm'}`} />
               </div>
+            </div>
 
-              {/* Horas (Condicional) */}
-              {!isAllDay && (
-                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
-                  <div className="space-y-2">
-                    <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Desde</Label>
-                    <PickerButton
-                      placeholder="Inicio..."
-                      value={startTime}
-                      onClick={() => setActivePicker('start')}
-                      className="h-14 font-bold text-slate-900 bg-slate-50/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Hasta</Label>
-                    <PickerButton
-                      placeholder="Fin..."
-                      value={endTime}
-                      onClick={() => setActivePicker('end')}
-                      className="h-14 font-bold text-slate-900 bg-slate-50/50"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Motivo */}
-              <div className="space-y-2">
-                <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Motivo (Opcional)</Label>
+            {/* Fecha */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Fecha de bloqueo</label>
+              <div className="relative group">
+                <DateIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none group-focus-within:text-blue-500 transition-colors" />
                 <Input 
-                  placeholder="Ej: Feriado, Almuerzo, Receso..."
-                  className="h-14 rounded-2xl border-slate-200 text-base font-medium text-slate-900 bg-slate-50/50 focus:bg-white transition-all shadow-sm"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  type="date"
+                  className="h-16 md:h-14 pl-12 rounded-2xl border-transparent bg-slate-50/80 text-base font-bold text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                 />
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-50">
-              <Button 
-                variant="outline" 
-                onClick={onClose} 
-                disabled={loading}
-                className="w-full sm:flex-1 h-14 rounded-2xl font-bold text-slate-500 border-slate-100 hover:bg-slate-50"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={loading}
-                className="w-full sm:flex-1 h-14 rounded-2xl bg-slate-900 hover:bg-blue-600 text-white font-black text-lg transition-all shadow-xl shadow-slate-200 active:scale-95"
-              >
-                {loading ? 'Bloqueando...' : 'Confirmar'}
-              </Button>
+            {/* Horas (Condicional) */}
+            {!isAllDay && (
+              <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Desde</label>
+                  <PickerButton
+                    placeholder="Inicio..."
+                    value={startTime}
+                    onClick={() => setActivePicker('start')}
+                    className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Hasta</label>
+                  <PickerButton
+                    placeholder="Fin..."
+                    value={endTime}
+                    onClick={() => setActivePicker('end')}
+                    className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Motivo */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Motivo (Opcional)</label>
+              <Input 
+                placeholder="Ej: Feriado, Almuerzo, Receso..."
+                className="h-16 md:h-14 px-5 rounded-2xl border-transparent bg-slate-50/80 text-base font-bold text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-50 pb-8 md:pb-0">
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              disabled={loading}
+              className="w-full sm:flex-1 h-14 rounded-2xl font-bold text-slate-500 border-slate-100 hover:bg-slate-50"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full sm:flex-1 h-14 rounded-2xl bg-slate-900 hover:bg-blue-600 text-white font-black text-lg transition-all shadow-xl shadow-slate-200 active:scale-95"
+            >
+              {loading ? 'Bloqueando...' : 'Confirmar'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <>
+      <div className="hidden md:block">
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+          <DialogContent className="max-w-xl p-0 overflow-hidden bg-white border-none shadow-2xl rounded-[2rem]">
+            {renderContent()}
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <div className="md:hidden fixed inset-0 z-[100] flex items-end justify-center">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              drag="y"
+              dragConstraints={{ top: 0 }}
+              dragElastic={0.1}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 100) onClose()
+              }}
+              className="relative w-full bg-white rounded-t-[2.5rem] shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto hide-scrollbar"
+            >
+              {renderContent()}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* MOBILE TIME PICKERS */}
       <MobileTimePicker
@@ -174,3 +221,5 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
     </>
   )
 }
+
+export default BlockTimeModal
