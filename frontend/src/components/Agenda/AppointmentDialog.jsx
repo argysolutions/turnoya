@@ -47,21 +47,21 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
   const loadData = async () => {
     try {
-      const [c, s] = await Promise.all([getClientes(), getServices()])
-      setClientes(c)
-      setServicios(s)
+      const [{ data: c }, { data: s }] = await Promise.all([getClientes(), getServices()])
+      setClientes(c || [])
+      setServicios(s || [])
     } catch (error) {
       console.error('Error loading data:', error)
     }
   }
 
-  const clientOptions = useMemo(() => clientes.map(c => ({
+  const clientOptions = useMemo(() => (Array.isArray(clientes) ? clientes : []).map(c => ({
     id: c.id,
     label: c.name,
     subtext: c.phone
   })), [clientes])
 
-  const serviceOptions = useMemo(() => servicios.map(s => ({
+  const serviceOptions = useMemo(() => (Array.isArray(servicios) ? servicios : []).map(s => ({
     id: s.id,
     label: s.name,
     subtext: `${s.duration_min} min • $${s.price}`
