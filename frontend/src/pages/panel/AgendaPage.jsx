@@ -43,7 +43,7 @@ import AppointmentDialog from '@/components/Agenda/AppointmentDialog'
 import AppointmentDetailDialog from '@/components/Agenda/AppointmentDetailDialog'
 import BlockTimeModal from '@/components/Agenda/BlockTimeModal'
 import Layout from '@/components/shared/Layout'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import AgendaGridColumn from '@/components/panel/AgendaGridColumn'
 import { toast } from 'sonner'
 
@@ -55,13 +55,13 @@ export default function AgendaPage() {
     setAppointments,
     loading, 
     addAppointment, 
-    updateStatus,
+    updateStatus, 
     removeAppointment,
-    addBlock,
-    blockedDates,
-    fetchBlockedDates,
+    addBlock, 
+    blockedDates, 
+    fetchBlockedDates, 
     refresh
-  } = useAppointments(new Date('2026-04-20T00:00:00'))
+  } = useAppointments(new Date('2026-04-20'))
 
 
   // Fetch blocked dates for the calendar whenever the visible month changes
@@ -92,31 +92,48 @@ export default function AgendaPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  // Lógica de Swipe para Móvil
+  // Lógica de Swipe Sincronizado para Móvil (High Fidelity)
   const tabs = ['pendientes', 'confirmados', 'finalizados', 'cancelados']
+  const currentIndex = tabs.indexOf(activeTab)
+  
+  // Motion values para el carrusel
+  const dragX = useMotionValue(0)
+  
+  // Posición base del carrusel (donde debería estar según la pestaña activa)
+  const [baseX, setBaseX] = useState(0)
+  
+  useEffect(() => {
+    // Cuando cambia el tab, actualizamos la base con el índice correspondiente
+    setBaseX(-tabs.indexOf(activeTab) * window.innerWidth)
+    dragX.set(0) // Reiniciar el offset de arrastre
+  }, [activeTab])
+
+  // X final del carrusel = Base (pestaña) + Offset (arrastre manual)
+  const carouselX = useTransform(dragX, (val) => baseX + val)
+  const springCarouselX = useSpring(carouselX, { stiffness: 400, damping: 40 })
+
+  // Sincronización del Indicador de Pestaña (Interpolación)
+  // Mapeamos el progreso del carrusel a la posición física de la píldora [0% a 75%]
+  const pillX = useTransform(carouselX, 
+    [-(tabs.length - 1) * window.innerWidth, 0], 
+    ['75%', '0%']
+  )
+
   const handleDragEnd = (event, info) => {
-    if (window.innerWidth >= 1024) return // Desactivar swipe en desktop
+    const swipeThreshold = 50
+    const { offset, velocity } = info
     
-    const swipeThreshold = 60 // Umbral más sensible para reducir fricción
-    const currentIndex = tabs.indexOf(activeTab)
-    const velocity = info.velocity.x
-    
-    // Solo cambiar si el desplazamiento es significativo o la velocidad es alta (flick)
-    // Se añade un peso mayor a la velocidad para que el "flick" sea el protagonista
-    if (info.offset.x < -swipeThreshold || velocity < -400) {
-      // Swipe hacia la IZQUIERDA -> Ir a la siguiente pestaña
+    if (offset.x < -swipeThreshold || velocity.x < -500) {
+      // Siguiente
       const nextIndex = Math.min(currentIndex + 1, tabs.length - 1)
-      if (nextIndex !== currentIndex) {
-        setActiveTab(tabs[nextIndex])
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
-    } else if (info.offset.x > swipeThreshold || velocity > 400) {
-      // Swipe hacia la DERECHA -> Ir a la pestaña anterior
+      setActiveTab(tabs[nextIndex])
+    } else if (offset.x > swipeThreshold || velocity.x > 500) {
+      // Anterior
       const prevIndex = Math.max(currentIndex - 1, 0)
-      if (prevIndex !== currentIndex) {
-        setActiveTab(tabs[prevIndex])
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
+      setActiveTab(tabs[prevIndex])
+    } else {
+      // Snap al mismo
+      dragX.set(0)
     }
   }
 
@@ -481,43 +498,53 @@ export default function AgendaPage() {
           </AnimatePresence>
         </div>
 
-        {/* NAVEGACIÓN DE ESTADOS MÓVIL (Píldoras iOS Style) - Única y Sticky */}
-        <div className="lg:hidden flex overflow-x-auto hide-scrollbar gap-1 p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner mx-5 rounded-2xl animate-in fade-in transition-all">
-          {[
-            { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length },
-            { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length },
-            { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, count: finalizados.length },
-            { id: 'cancelados', label: 'Cancelados', icon: XCircle, count: canceladosAusentes.length }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "relative flex-1 whitespace-nowrap flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[15px] font-bold transition-all active:scale-95",
-                  isActive ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTabPill"
-                    className="absolute inset-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] rounded-xl z-0"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <Icon className={cn("w-4.5 h-4.5 relative z-10", isActive ? "text-blue-600" : "opacity-60")} />
-                <span className="relative z-10">{tab.label}</span>
-                {tab.count > 0 && (
-                  <span className={cn(
-                    "relative z-10 py-1 px-2 rounded-md text-[10px] font-black",
-                    isActive ? "bg-slate-100 text-slate-600" : "bg-slate-200/50 text-slate-400"
-                  )}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
+        {/* NAVEGACIÓN DE ESTADOS MÓVIL (Edge-to-Edge iOS Style) */}
+        <div className="lg:hidden flex overflow-x-auto hide-scrollbar p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner mx-1.5 rounded-2xl animate-in fade-in transition-all">
+          <div className="relative flex w-full">
+            {/* Indicador Continuo (Synced Pill) */}
+            <motion.div
+              style={{ 
+                x: pillX,
+                width: '25%' // 1/4 para 4 pestañas
+              }}
+              className="absolute inset-y-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-xl z-0"
+              transition={{ type: "spring", stiffness: 400, damping: 40 }}
+            />
+            
+            {[
+              { id: 'pendientes', label: 'Pends', icon: Clock, count: pendientes.length },
+              { id: 'confirmados', label: 'Confirms', icon: CheckCircle, count: confirmados.length },
+              { id: 'finalizados', label: 'Finals', icon: CalendarCheck, count: finalizados.length },
+              { id: 'cancelados', label: 'Cancels', icon: XCircle, count: canceladosAusentes.length }
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "relative flex-1 whitespace-nowrap flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-xl text-[14px] font-bold transition-all active:scale-95 z-10",
+                    isActive ? "text-slate-900" : "text-slate-500"
+                  )}
+                >
+                  <Icon className={cn("w-4 h-4", isActive ? "text-blue-600" : "opacity-40")} />
+                  <div className="flex items-center gap-1">
+                    <span>{tab.label}</span>
+                    {tab.count > 0 && (
+                      <span className={cn(
+                        "py-0.5 px-1.5 rounded-md text-[9px] font-black",
+                        isActive ? "bg-slate-100 text-slate-600" : "bg-slate-200/50 text-slate-400"
+                      )}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
             )
           })}
         </div>
@@ -849,144 +876,38 @@ export default function AgendaPage() {
                       <AgendaGridColumn title="Cancelados" count={canceladosAusentes.length} dotColor="bg-rose-500" items={canceladosAusentes} onCardClick={setSelectedAppointment} />
                     </div>
                   ) : (
-                    <>
+                    <div className="lg:hidden w-full overflow-hidden mt-0 min-h-[75vh]">
                       <motion.div
                         drag="x"
                         dragDirectionLock={true}
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={0.7}
+                        dragConstraints={{ left: -(tabs.length - 1) * window.innerWidth - 40, right: 40 }}
+                        style={{ x: springCarouselX }}
                         onDragEnd={handleDragEnd}
-                        className="w-full flex-1 min-h-[70vh]"
+                        className="flex w-[400%] h-full mt-2"
                       >
-                        <TabsContent value="pendientes" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
-                        {pendientes.length > 0 ? (
-                          <>
-                            <div className="hidden md:flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
-                                Gestión de Pendientes
-                              </h3>
-                              <button 
-                                onClick={handleAcceptAllPending}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-colors shadow-sm"
-                              >
-                                Aceptar Todos
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full mt-2 pb-32">
-                              {pendientes.map(turno => (
-                                <div key={turno.id} className="w-full">
-                                  <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
+                        {tabs.map(tabId => {
+                          const items = tabId === 'pendientes' ? pendientes : 
+                                       tabId === 'confirmados' ? confirmados : 
+                                       tabId === 'finalizados' ? finalizados : canceladosAusentes;
+                          return (
+                            <div key={`carousel-${tabId}`} className="w-[100vw] px-4">
+                              {items.length > 0 ? (
+                                <div className="grid grid-cols-1 gap-3 pb-32">
+                                  {items.map(turno => (
+                                    <AppointmentCard key={turno.id} appointment={turno} onClick={setSelectedAppointment} />
+                                  ))}
                                 </div>
-                              ))}
+                               ) : (
+                                <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200">
+                                  <CalendarX2 className="w-6 h-6 text-slate-400 mb-2" />
+                                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Sin turnos</p>
+                                </div>
+                              )}
                             </div>
-
-                            {/* BOTÓN ACEPTAR TODOS MÓVIL - Glassmorphism UI Style */}
-                            <div className="lg:hidden fixed bottom-24 left-5 right-5 z-[80] pointer-events-none pb-[env(safe-area-inset-bottom)]">
-                              <button 
-                                onClick={handleAcceptAllPending}
-                                className="w-full pointer-events-auto flex items-center justify-center gap-2 py-4 bg-slate-900/90 text-white backdrop-blur-xl font-bold rounded-2xl shadow-2xl active:scale-95 transition-all text-sm uppercase tracking-wider"
-                              >
-                                <CheckCircle className="w-5 h-5 text-emerald-400" />
-                                Aceptar Todos los Pendientes ({pendientes.length})
-                              </button>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
-                            <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
-                              <CalendarX2 className="w-6 h-6 text-slate-400" />
-                            </div>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Sin turnos en esta vista</p>
-                            <button 
-                              onClick={() => setShowDialog(true)}
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Crear nuevo turno
-                            </button>
-                          </div>
-                        )}
-                      </TabsContent>
-
-                        <TabsContent value="confirmados" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
-                        {confirmados.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
-                            {confirmados.map(appointment => (
-                              <div key={appointment.id} className="w-full">
-                                <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
-                            <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
-                              <CalendarX2 className="w-6 h-6 text-slate-400" />
-                            </div>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Sin turnos en esta vista</p>
-                            <button 
-                              onClick={() => setShowDialog(true)}
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Crear nuevo turno
-                            </button>
-                          </div>
-                        )}
-                      </TabsContent>
-
-                        <TabsContent value="finalizados" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
-                        {finalizados.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
-                            {finalizados.map(appointment => (
-                              <div key={appointment.id} className="w-full">
-                                <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
-                            <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
-                              <CalendarX2 className="w-6 h-6 text-slate-400" />
-                            </div>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Sin turnos en esta vista</p>
-                            <button 
-                              onClick={() => setShowDialog(true)}
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Crear nuevo turno
-                            </button>
-                          </div>
-                        )}
-                      </TabsContent>
-
-                        <TabsContent value="cancelados" className="w-full px-5 mt-2 lg:mt-6 outline-none animate-in fade-in transition-all">
-                        {canceladosAusentes.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-32">
-                            {canceladosAusentes.sort((a, b) => a.time?.localeCompare(b.time || '')).map(appointment => (
-                              <div key={appointment.id} className="w-full">
-                                <AppointmentCard appointment={appointment} onClick={(app) => setSelectedAppointment(app)} />
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
-                            <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
-                              <CalendarX2 className="w-6 h-6 text-slate-400" />
-                            </div>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Sin turnos en esta vista</p>
-                            <button 
-                              onClick={() => setShowDialog(true)}
-                              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-xl font-semibold text-sm transition-all shadow-sm"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Crear nuevo turno
-                            </button>
-                          </div>
-                        )}
-                      </TabsContent>
+                          );
+                        })}
                       </motion.div>
-                    </>
+                    </div>
                   )}
                 </>
               )}
