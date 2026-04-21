@@ -174,5 +174,3 @@ export const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
     </>
   )
 }
-  )
-}
