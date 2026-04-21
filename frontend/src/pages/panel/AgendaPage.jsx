@@ -95,17 +95,19 @@ export default function AgendaPage() {
   const handleDragEnd = (event, info) => {
     if (window.innerWidth >= 1024) return // Desactivar swipe en desktop
     
-    const swipeThreshold = 50
+    const swipeThreshold = 80 // Umbral aumentado para evitar falsos positivos
     const currentIndex = tabs.indexOf(activeTab)
+    const velocity = info.velocity.x
     
-    if (info.offset.x < -swipeThreshold) {
+    // Solo cambiar si el desplazamiento es significativo o la velocidad es alta (flick)
+    if (info.offset.x < -swipeThreshold || velocity < -500) {
       // Swipe hacia la IZQUIERDA -> Ir a la siguiente pestaña
       const nextIndex = Math.min(currentIndex + 1, tabs.length - 1)
       if (nextIndex !== currentIndex) {
         setActiveTab(tabs[nextIndex])
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
-    } else if (info.offset.x > swipeThreshold) {
+    } else if (info.offset.x > swipeThreshold || velocity > 500) {
       // Swipe hacia la DERECHA -> Ir a la pestaña anterior
       const prevIndex = Math.max(currentIndex - 1, 0)
       if (prevIndex !== currentIndex) {
@@ -465,34 +467,42 @@ export default function AgendaPage() {
           </AnimatePresence>
         </div>
 
-        {/* NAVEGACIÓN DE ESTADOS MÓVIL (Píldoras) - Única y Sticky */}
-        <div className="lg:hidden flex overflow-x-auto hide-scrollbar gap-3 px-5 py-2.5 bg-white sticky top-0 z-[60] border-b border-slate-100 shadow-sm animate-in fade-in transition-all">
+        {/* NAVEGACIÓN DE ESTADOS MÓVIL (Píldoras iOS Style) - Única y Sticky */}
+        <div className="lg:hidden flex overflow-x-auto hide-scrollbar gap-1 p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner mx-5 rounded-2xl animate-in fade-in transition-all">
           {[
-            { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length, activeBg: 'bg-amber-400', activeText: 'text-amber-950' },
-            { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length, activeBg: 'bg-emerald-500', activeText: 'text-white' },
-            { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, count: finalizados.length, activeBg: 'bg-blue-600', activeText: 'text-white' },
-            { id: 'cancelados', label: 'Cancelados', icon: XCircle, count: canceladosAusentes.length, activeBg: 'bg-slate-900', activeText: 'text-white' }
+            { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length },
+            { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length },
+            { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, count: finalizados.length },
+            { id: 'cancelados', label: 'Cancelados', icon: XCircle, count: canceladosAusentes.length }
           ].map(tab => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "whitespace-nowrap flex items-center gap-2 px-5 py-3 rounded-full text-[14px] font-black transition-all active:scale-95 shadow-sm",
-                  activeTab === tab.id 
-                    ? `${tab.activeBg} ${tab.activeText} shadow-lg shadow-current/20` 
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  "relative flex-1 whitespace-nowrap flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all active:scale-95",
+                  isActive ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
                 )}
               >
-                <Icon className={cn("w-4 h-4", activeTab === tab.id ? "opacity-100" : "opacity-60")} />
-                {tab.label}
-                <span className={cn(
-                  "py-0.5 px-2.5 rounded-full text-[10px] font-black",
-                  activeTab === tab.id ? "bg-white/20" : "bg-slate-200/60"
-                )}>
-                  {tab.count}
-                </span>
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTabPill"
+                    className="absolute inset-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] rounded-xl z-0"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <Icon className={cn("w-3.5 h-3.5 relative z-10", isActive ? "text-blue-600" : "opacity-60")} />
+                <span className="relative z-10">{tab.label}</span>
+                {tab.count > 0 && (
+                  <span className={cn(
+                    "relative z-10 py-0.5 px-1.5 rounded-md text-[9px] font-black",
+                    isActive ? "bg-slate-100 text-slate-600" : "bg-slate-200/50 text-slate-400"
+                  )}>
+                    {tab.count}
+                  </span>
+                )}
               </button>
             )
           })}
@@ -821,8 +831,9 @@ export default function AgendaPage() {
                     <>
                       <motion.div
                         drag="x"
+                        dragDirectionLock={true}
                         dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={0.2}
+                        dragElastic={0.4}
                         onDragEnd={handleDragEnd}
                         className="w-full flex-1"
                       >
@@ -848,13 +859,13 @@ export default function AgendaPage() {
                               ))}
                             </div>
 
-                            {/* BOTÓN ACEPTAR TODOS MÓVIL - Sticky en la parte inferior sobre el FAB */}
-                            <div className="lg:hidden fixed bottom-24 left-5 right-5 z-[80] pointer-events-none">
+                            {/* BOTÓN ACEPTAR TODOS MÓVIL - Glassmorphism UI Style */}
+                            <div className="lg:hidden fixed bottom-24 left-5 right-5 z-[80] pointer-events-none pb-[env(safe-area-inset-bottom)]">
                               <button 
                                 onClick={handleAcceptAllPending}
-                                className="w-full pointer-events-auto flex items-center justify-center gap-2 py-4 bg-amber-400 text-amber-950 font-black rounded-2xl shadow-[0_8px_30px_rgb(251,191,36,0.3)] active:scale-95 transition-all text-sm uppercase tracking-tighter"
+                                className="w-full pointer-events-auto flex items-center justify-center gap-2 py-4 bg-slate-900/90 text-white backdrop-blur-xl font-bold rounded-2xl shadow-2xl active:scale-95 transition-all text-sm uppercase tracking-wider"
                               >
-                                <CheckCircle className="w-5 h-5" />
+                                <CheckCircle className="w-5 h-5 text-emerald-400" />
                                 Aceptar Todos los Pendientes ({pendientes.length})
                               </button>
                             </div>
@@ -1245,10 +1256,10 @@ export default function AgendaPage() {
         )}
       </AnimatePresence>
 
-      {/* BOTÓN FLOTANTE (FAB) iOs Style */}
+      {/* BOTÓN FLOTANTE (FAB) iOs Style con Safe Area */}
       <button
         onClick={() => setShowDialog(true)}
-        className="md:hidden fixed bottom-6 right-5 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl shadow-slate-900/40 active:scale-90 transition-all z-50 animate-in zoom-in duration-300"
+        className="md:hidden fixed bottom-6 right-5 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl shadow-slate-900/40 active:scale-90 transition-all z-50 mb-[env(safe-area-inset-bottom)]"
       >
         <Plus className="w-7 h-7" />
       </button>
