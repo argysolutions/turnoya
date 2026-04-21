@@ -85,6 +85,23 @@ export default function AgendaPage() {
   const hasActiveFilters = Object.values(activeSearchFilters).some(arr => arr.length > 0)
 
   const scrollRef = useRef(null)
+  const searchFiltersRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchFiltersRef.current && !searchFiltersRef.current.contains(event.target)) {
+        setShowSearchFilters(false)
+      }
+    }
+
+    if (showSearchFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showSearchFilters])
 
   const handleConfirmAdd = async (data) => {
     await addAppointment(data)
@@ -506,7 +523,7 @@ export default function AgendaPage() {
                     
                     <div className="flex items-center gap-2 w-full md:w-auto">
                       {/* Botón de Filtro (Con estado activo) */}
-                      <div className="relative">
+                      <div className="relative" ref={searchFiltersRef}>
                         <button 
                           type="button" 
                           onClick={() => setShowSearchFilters(!showSearchFilters)}
