@@ -55,15 +55,15 @@ export const AppointmentCard = ({ appointment, onClick }) => {
     >
       <div className="flex items-center gap-4 md:gap-3 w-full">
         {/* TIME PILL */}
-        <div className="flex flex-col items-center justify-center min-w-[4.5rem] md:min-w-[3.5rem] bg-white/50 backdrop-blur-sm rounded-2xl md:rounded-xl py-2.5 md:py-1 border border-current/5 shadow-inner">
-          <span className="text-2xl md:text-lg font-black text-slate-900 leading-none">{startTime}</span>
+        <div className="flex flex-col items-center justify-center min-w-[4rem] md:min-w-[3.5rem] bg-white/50 backdrop-blur-sm rounded-2xl md:rounded-xl py-2 md:py-1 border border-current/5 shadow-inner">
+          <span className="text-base md:text-lg font-black text-slate-900 leading-none">{startTime}</span>
         </div>
 
         {/* CONTENT BLOCK */}
         <div className="flex flex-col border-l-2 md:border-l border-slate-200/50 pl-4 md:pl-3 flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-lg md:text-sm font-black text-slate-900 truncate">
+              <span className="text-base md:text-sm font-black text-slate-900 truncate">
                 {client_name || 'Sin nombre'}
               </span>
               {is_frequent && (
@@ -79,9 +79,9 @@ export const AppointmentCard = ({ appointment, onClick }) => {
             )} />
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 md:mt-1 text-[15px] md:text-[11px] text-slate-500 font-bold overflow-hidden">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 md:mt-1 text-xs md:text-[11px] text-slate-500 font-bold overflow-hidden">
             <div className="flex items-center gap-1.5 min-w-0 max-w-full">
-              <Scissors className="w-4.5 h-4.5 md:w-3 md:h-3 text-slate-400 shrink-0" /> 
+              <Scissors className="w-3.5 h-3.5 md:w-3 md:h-3 text-slate-400 shrink-0" /> 
               <span className="truncate whitespace-nowrap">{service_name || 'Servicio'}</span>
             </div>
             {phone && (

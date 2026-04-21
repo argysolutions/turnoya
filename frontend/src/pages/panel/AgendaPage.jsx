@@ -95,6 +95,18 @@ export default function AgendaPage() {
   // Lógica de Swipe Sincronizado para Móvil (High Fidelity)
   const tabs = ['pendientes', 'confirmados', 'finalizados', 'cancelados']
   const currentIndex = tabs.indexOf(activeTab)
+  const activeTabRef = useRef(null)
+  
+  // Auto-Scroll para píldoras de navegación
+  useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      })
+    }
+  }, [activeTab])
   
   // Motion values para el carrusel
   const dragX = useMotionValue(0)
@@ -404,7 +416,7 @@ export default function AgendaPage() {
     <Layout maxWidth="max-w-screen-2xl" hideMobileHeader={true} mobileMenuState={[isMenuOpen, setIsMenuOpen]}>
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        {/* Header - Consolidated following ClientesPage pattern (Desktop) */}
+        {/* 1. HEADER DESKTOP (Pattern ClientesPage) */}
         <header className="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-0">
           <div>
             <div className="flex items-center gap-2">
@@ -418,7 +430,7 @@ export default function AgendaPage() {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => {
-                const today = new Date(); // Use actual current date
+                const today = new Date();
                 setDate(today);
                 setCurrentMonth(today);
               }}
@@ -427,70 +439,42 @@ export default function AgendaPage() {
               <CalendarDays className="w-4 h-4 text-slate-400" />
               Volver a hoy
             </button>
-            <Button 
-              onClick={() => setShowDialog(true)}
-              className="rounded-xl font-bold gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Nuevo Turno
+            <Button onClick={() => setShowDialog(true)} className="rounded-xl font-bold gap-2">
+              <Plus className="w-4 h-4" /> Nuevo Turno
             </Button>
           </div>
         </header>
 
-        {/* MASTER HEADER MÓVIL (Ultra Compacto) */}
+        {/* 2. MASTER HEADER MÓVIL (Compacto + Search) */}
         <div className="lg:hidden px-5 pt-3 bg-white sticky top-0 z-[70] border-b border-slate-100 shadow-sm">
-          {/* Fila 1: Fecha e Iconos */}
           <div className="flex justify-between items-center mb-1">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">
               {format(date, "EEEE, d MMM", { locale: es })}
             </p>
             <div className="flex items-center gap-1">
-              <button 
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={cn(
-                  "w-11 h-11 rounded-full flex items-center justify-center transition-all active:scale-95",
-                  isSearchOpen ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100"
-                )}
-              >
+              <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("w-11 h-11 rounded-full flex items-center justify-center", isSearchOpen ? "bg-slate-900 text-white" : "text-slate-500")}>
                 <Search className="w-6 h-6" />
               </button>
-              <button 
-                onClick={() => setIsMobileCalendarOpen(true)}
-                className="w-11 h-11 text-slate-500 rounded-full flex items-center justify-center active:scale-95 transition-all"
-              >
+              <button onClick={() => setIsMobileCalendarOpen(true)} className="w-11 h-11 text-slate-500 flex items-center justify-center">
                 <CalendarDays className="w-6 h-6" />
               </button>
-              <button 
-                onClick={() => setIsMenuOpen(true)}
-                className="w-11 h-11 text-slate-900 rounded-full flex items-center justify-center active:scale-95 transition-all"
-              >
+              <button onClick={() => setIsMenuOpen(true)} className="w-11 h-11 text-slate-900 flex items-center justify-center">
                 <Menu className="w-7 h-7" />
               </button>
             </div>
           </div>
-
-          {/* Fila 2: Título */}
           <div className="mb-2">
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Agenda</h1>
           </div>
-
           <AnimatePresence>
             {isSearchOpen && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0, marginBottom: 0 }}
-                animate={{ height: 'auto', opacity: 1, marginBottom: 12 }}
-                exit={{ height: 0, opacity: 0, marginBottom: 0 }}
-                className="overflow-hidden"
-              >
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0 }} className="overflow-hidden pb-3">
                 <div className="flex-1 bg-slate-100 rounded-2xl flex items-center px-4 py-2.5 shadow-inner">
-                  <Search className="text-slate-400 w-4 h-4 focus-within:text-blue-500 transition-colors" />
+                  <Search className="text-slate-400 w-4 h-4" />
                   <input 
-                    type="text" 
-                    placeholder="Buscar cliente..." 
-                    autoFocus
-                    className="bg-transparent border-none focus:ring-0 outline-none text-sm ml-3 w-full text-slate-800 placeholder:text-slate-400" 
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    type="text" placeholder="Buscar cliente..." autoFocus 
+                    className="bg-transparent border-none focus:ring-0 outline-none text-sm ml-3 w-full" 
+                    value={search} onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
               </motion.div>
@@ -498,102 +482,72 @@ export default function AgendaPage() {
           </AnimatePresence>
         </div>
 
-        {/* NAVEGACIÓN DE ESTADOS MÓVIL (Edge-to-Edge iOS Style) */}
-        <div className="lg:hidden flex overflow-x-auto hide-scrollbar p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner mx-1.5 rounded-2xl animate-in fade-in transition-all">
+        {/* 3. NAVEGACIÓN FULL-BLEED (iPhone 6/SE Optimized) */}
+        <div className="lg:hidden flex overflow-x-auto hide-scrollbar snap-x p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner w-screen -ml-5 px-5 py-1 animate-in fade-in transition-all">
           <div className="relative flex w-full">
-            {/* Indicador Continuo (Synced Pill) */}
             <motion.div
-              style={{ 
-                x: pillX,
-                width: '25%' // 1/4 para 4 pestañas
-              }}
+              style={{ x: pillX, width: '25%' }}
               className="absolute inset-y-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-xl z-0"
               transition={{ type: "spring", stiffness: 400, damping: 40 }}
             />
-            
             {[
-              { id: 'pendientes', label: 'Pends', icon: Clock, count: pendientes.length },
-              { id: 'confirmados', label: 'Confirms', icon: CheckCircle, count: confirmados.length },
-              { id: 'finalizados', label: 'Finals', icon: CalendarCheck, count: finalizados.length },
-              { id: 'cancelados', label: 'Cancels', icon: XCircle, count: canceladosAusentes.length }
+              { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length },
+              { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length },
+              { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, count: finalizados.length },
+              { id: 'cancelados', label: 'Cancelados', icon: XCircle, count: canceladosAusentes.length }
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  ref={isActive ? activeTabRef : null}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "relative flex-1 whitespace-nowrap flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-xl text-[14px] font-bold transition-all active:scale-95 z-10",
+                    "relative flex-1 flex-shrink-0 snap-center min-w-[110px] whitespace-nowrap flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-xl text-[14px] font-bold z-10 transition-all active:scale-95",
                     isActive ? "text-slate-900" : "text-slate-500"
                   )}
                 >
                   <Icon className={cn("w-4 h-4", isActive ? "text-blue-600" : "opacity-40")} />
                   <div className="flex items-center gap-1">
-                    <span>{tab.label}</span>
-                    {tab.count > 0 && (
-                      <span className={cn(
-                        "py-0.5 px-1.5 rounded-md text-[9px] font-black",
-                        isActive ? "bg-slate-100 text-slate-600" : "bg-slate-200/50 text-slate-400"
-                      )}>
-                        {tab.count}
-                      </span>
-                    )}
+                    <span className="text-base">{tab.label}</span>
+                    {tab.count > 0 && <span className="bg-slate-200/50 text-[9px] px-1.5 rounded-md">{tab.count}</span>}
                   </div>
                 </button>
               );
             })}
           </div>
         </div>
-            )
-          })}
-        </div>
 
-        {/* TRIPLE COLUMN LAYOUT */}
-        <Tabs 
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <div className="flex flex-col lg:flex-row gap-8 w-full items-start pb-8">
+        {/* 4. TRIPLE COLUMN LAYOUT */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex flex-col lg:flex-row gap-8 w-full items-start pb-8 px-4 lg:px-0">
             
+            {/* 4.1 Sidebar Izquierda (Desktop) */}
             {!isGridView && (
               <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-6 gap-10">
                 <div className="flex flex-col w-full mt-2">
                   <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 px-1">Turnos:</h4>
-                  <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 shadow-sm p-1.5 rounded-2xl items-stretch justify-start">
-                    <TabsTrigger 
-                      value="pendientes" 
-                      className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-amber-400 data-[state=active]:bg-amber-50 transition-all"
-                    >
-                      <span className="text-sm font-bold text-slate-900">Pendientes</span>
-                      <span className="bg-amber-200 text-amber-800 py-0.5 px-2.5 rounded-full text-[10px] font-bold">{pendientes.length}</span>
+                  <TabsList className="flex flex-col h-auto w-full bg-white border border-slate-200 shadow-sm p-1.5 rounded-2xl items-stretch">
+                    <TabsTrigger value="pendientes" className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-amber-400">
+                      <span className="text-sm font-bold">Pendientes</span>
+                      <span className="bg-amber-200 text-[10px] px-2.5 rounded-full">{pendientes.length}</span>
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="confirmados" 
-                      className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50 transition-all"
-                    >
-                      <span className="text-sm font-bold text-slate-900">Confirmados</span>
-                      <span className="bg-emerald-200 text-emerald-800 py-0.5 px-2.5 rounded-full text-[10px] font-black">{confirmados.length}</span>
+                    <TabsTrigger value="confirmados" className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-emerald-500">
+                      <span className="text-sm font-bold">Confirmados</span>
+                      <span className="bg-emerald-200 text-[10px] px-2.5 rounded-full">{confirmados.length}</span>
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="finalizados" 
-                      className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50 transition-all"
-                    >
-                      <span className="text-sm font-bold text-slate-900">Finalizados</span>
-                      <span className="bg-blue-200 text-blue-800 py-0.5 px-2.5 rounded-full text-[10px] font-black">{finalizados.length}</span>
+                    <TabsTrigger value="finalizados" className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-blue-500">
+                      <span className="text-sm font-bold">Finalizados</span>
+                      <span className="bg-blue-200 text-[10px] px-2.5 rounded-full">{finalizados.length}</span>
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="cancelados" 
-                      className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-rose-500 data-[state=active]:bg-rose-50 transition-all"
-                    >
-                      <span className="text-sm font-bold text-slate-900">Cancelados</span>
-                      <span className="bg-rose-200 text-rose-800 py-0.5 px-2.5 rounded-full text-[10px] font-black">{canceladosAusentes.length}</span>
+                    <TabsTrigger value="cancelados" className="flex items-center justify-between px-4 py-3 rounded-xl border-l-4 border-transparent data-[state=active]:border-rose-500">
+                      <span className="text-sm font-bold">Cancelados</span>
+                      <span className="bg-rose-200 text-[10px] px-2.5 rounded-full">{canceladosAusentes.length}</span>
                     </TabsTrigger>
                   </TabsList>
                 </div>
 
-                {/* FILTROS RÁPIDOS - FORMATO MOSAICO PREMIUM */}
                 <div className="w-full">
                   <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 px-1 border-t border-slate-100 pt-6">Vista Rápida:</h4>
                   <div className="flex flex-col gap-3">
