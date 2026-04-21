@@ -42,7 +42,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [activePicker, setActivePicker] = useState(null) // 'cliente' | 'servicio' | 'hora' | 'fecha'
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    const handleResize = () => setIsMobile(window.innerWidth < 1024)
     handleResize()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
@@ -106,16 +106,9 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
   const renderDesktopContent = () => (
     <div className="p-8">
-      <DialogHeader className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <DialogTitle className="text-2xl font-black text-slate-900">Nuevo Turno</DialogTitle>
-            <DialogDescription className="text-slate-500 font-medium mt-1">Completa los datos para agendar la cita.</DialogDescription>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+      <DialogHeader className="mb-8 pr-12">
+        <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight">Nuevo Turno</DialogTitle>
+        <DialogDescription className="text-slate-500 font-medium text-base mt-1">Completa los datos para agendar la cita.</DialogDescription>
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -123,7 +116,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
           <div className="space-y-2">
             <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Cliente</Label>
             <select 
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+              className="w-full h-11 pl-4 pr-10 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat cursor-pointer"
               value={formData.client_id}
               onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
             >
@@ -136,7 +129,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
           <div className="space-y-2">
             <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Servicio</Label>
             <select 
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+              className="w-full h-11 pl-4 pr-10 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat cursor-pointer"
               value={formData.service_id}
               onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
             >
@@ -296,7 +289,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
       {/* DESKTOP DIALOG */}
       {!isMobile && (
         <Dialog open={isOpen} onOpenChange={(open) => !loading && !open && onClose()}>
-          <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white border-none shadow-2xl rounded-3xl">
+          <DialogContent className="max-w-xl p-0 overflow-hidden bg-white border-none shadow-2xl rounded-[2.5rem]">
             {renderDesktopContent()}
           </DialogContent>
         </Dialog>

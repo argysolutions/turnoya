@@ -57,8 +57,25 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     /* Ergonomía Móvil: Escala de fuente mejorada */
-    @media (max-width: 768px) {
+    @media (max-width: 1023px) {
       font-size: 105%;
+    }
+  }
+
+  /* Ergonomía Táctica Móvil: Solo aplica en vista móvil/tablet (< 1024px) */
+  @media (max-width: 1023px) {
+    button:not(.px-0):not(.h-fit), 
+    input:not([type="checkbox"]):not([type="radio"]), 
+    select, 
+    textarea {
+      @apply py-3.5 !important;
+    }
+    
+    .text-sm {
+      @apply text-base;
+    }
+    .text-xs {
+      @apply text-sm;
     }
   }
 }
