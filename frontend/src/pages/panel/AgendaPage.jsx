@@ -431,30 +431,30 @@ export default function AgendaPage() {
               <button 
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className={cn(
-                  "w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95",
+                  "w-11 h-11 rounded-full flex items-center justify-center transition-all active:scale-95",
                   isSearchOpen ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100"
                 )}
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-6 h-6" />
               </button>
               <button 
                 onClick={() => setIsMobileCalendarOpen(true)}
-                className="w-9 h-9 text-slate-500 rounded-full flex items-center justify-center active:scale-95 transition-all"
+                className="w-11 h-11 text-slate-500 rounded-full flex items-center justify-center active:scale-95 transition-all"
               >
-                <CalendarDays className="w-5 h-5" />
+                <CalendarDays className="w-6 h-6" />
               </button>
               <button 
                 onClick={() => setIsMenuOpen(true)}
-                className="w-9 h-9 text-slate-900 rounded-full flex items-center justify-center active:scale-95 transition-all"
+                className="w-11 h-11 text-slate-900 rounded-full flex items-center justify-center active:scale-95 transition-all"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-7 h-7" />
               </button>
             </div>
           </div>
 
           {/* Fila 2: Título */}
           <div className="mb-2">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Agenda</h1>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Agenda</h1>
           </div>
 
           <AnimatePresence>
@@ -496,7 +496,7 @@ export default function AgendaPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative flex-1 whitespace-nowrap flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all active:scale-95",
+                  "relative flex-1 whitespace-nowrap flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[15px] font-bold transition-all active:scale-95",
                   isActive ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
                 )}
               >
@@ -507,11 +507,11 @@ export default function AgendaPage() {
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
-                <Icon className={cn("w-3.5 h-3.5 relative z-10", isActive ? "text-blue-600" : "opacity-60")} />
+                <Icon className={cn("w-4.5 h-4.5 relative z-10", isActive ? "text-blue-600" : "opacity-60")} />
                 <span className="relative z-10">{tab.label}</span>
                 {tab.count > 0 && (
                   <span className={cn(
-                    "relative z-10 py-0.5 px-1.5 rounded-md text-[9px] font-black",
+                    "relative z-10 py-1 px-2 rounded-md text-[10px] font-black",
                     isActive ? "bg-slate-100 text-slate-600" : "bg-slate-200/50 text-slate-400"
                   )}>
                     {tab.count}
@@ -690,8 +690,15 @@ export default function AgendaPage() {
                                 </div>
                               </div>
 
+                              {/* Ergonomía Móvil: Escala de fuente mejorada para máxima legibilidad */}
+                              <style jsx>{`
+                                @media (max-width: 1023px) {
+                                  .mobile-text-scale { font-size: 108%; }
+                                }
+                              `}</style>
+
                               {/* Bloque: Tipo de Cliente */}
-                              <div>
+                              <div className="mobile-text-scale">
                                 <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tipo de Cliente</span>
                                 <div className="flex items-center gap-4 px-0.5">
                                   <label className="flex items-center gap-2 cursor-pointer group">

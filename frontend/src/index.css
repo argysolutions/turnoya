@@ -56,9 +56,9 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Ergonomía Móvil: Escala de fuente mejorada */
+    /* Ergonomía Móvil: Escala de fuente mejorada para máxima legibilidad Apple Style */
     @media (max-width: 1023px) {
-      font-size: 105%;
+      font-size: 110%;
     }
   }
 
