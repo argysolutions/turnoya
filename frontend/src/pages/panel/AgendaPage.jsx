@@ -581,8 +581,8 @@ export default function AgendaPage() {
                     </div>
                   </div>
 
-                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo visible en Vista Lista */}
-                  {!isGridView && groupedPendientes.length > 0 && (
+                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo visible en Vista Lista y cuando NO estamos en la pestaña de pendientes */}
+                  {!isGridView && activeTab !== 'pendientes' && groupedPendientes.length > 0 && (
                     <div className="w-full mb-8 mt-6">
                       <div className="flex items-center justify-between mb-4">
                         {/* Lado Izquierdo: Título y Ping (Clickable to Toggle) */}
@@ -595,7 +595,7 @@ export default function AgendaPage() {
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                           </span>
                           <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
-                            {activeTab === 'pendientes' ? 'Turnos Pendientes' : 'Requieren Acción Inmediata'} ({pendientes.length})
+                            Requieren Acción Inmediata ({pendientes.length})
                           </h3>
                           <motion.div
                             animate={{ rotate: isPriorityExpanded ? 180 : 0 }}
@@ -676,26 +676,27 @@ export default function AgendaPage() {
                     </div>
                   ) : (
                     <div className="flex-1 w-full flex flex-col gap-4">
-                       <TabsContent value="pendientes" className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
-                        {!isPriorityExpanded && pendientes.length > 0 && (
-                          <div className="w-full py-12 flex flex-col items-center justify-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200 text-center mb-4 px-6 animate-in fade-in zoom-in-95 duration-500">
-                             <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-3">
-                               <Inbox className="w-6 h-6 text-amber-500 opacity-60" />
-                             </div>
-                            <h4 className="text-base font-bold text-slate-800">Sección colapsada</h4>
-                            <p className="text-xs font-medium text-slate-400 mt-1 max-w-[240px]">
-                              Actualmente tienes {pendientes.length} turnos por gestionar en la bandeja superior.
-                            </p>
-                            <Button 
-                              onClick={() => setIsPriorityExpanded(true)}
-                              className="mt-4 rounded-xl font-bold bg-slate-900"
-                              size="sm"
-                            >
-                              Expandir Pendientes
-                            </Button>
-                          </div>
-                        )}
-                        {pendientes.length === 0 && (
+                      <TabsContent value="pendientes" className="w-full mt-6 outline-none animate-in fade-in slide-in-from-right-4 duration-300">
+                        {pendientes.length > 0 ? (
+                          <>
+                            <div className="flex justify-end mb-4">
+                              <button 
+                                onClick={handleAcceptAllPending}
+                                className="flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                Aceptar Todos
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 auto-rows-max w-full pb-8">
+                              {pendientes.map(turno => (
+                                <div key={turno.id} className="w-full">
+                                  <AppointmentCard appointment={turno} onClick={(app) => setSelectedAppointment(app)} />
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
                           <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200 transition-all hover:bg-slate-50">
                             <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center mb-4">
                               <CalendarX2 className="w-6 h-6 text-slate-400" />
