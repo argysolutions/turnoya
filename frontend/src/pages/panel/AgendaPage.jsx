@@ -108,30 +108,8 @@ export default function AgendaPage() {
     }
   }, [activeTab])
   
-  // Motion values para el carrusel
-  const dragX = useMotionValue(0)
+  // El auto-scroll de las píldoras se mantiene igual (funciona bien)
   
-  // Posición base del carrusel (donde debería estar según la pestaña activa)
-  const [baseX, setBaseX] = useState(0)
-  
-  useEffect(() => {
-    // Cuando cambia el tab, actualizamos la base con el índice correspondiente
-    setBaseX(-tabs.indexOf(activeTab) * window.innerWidth)
-    dragX.set(0) // Reiniciar el offset de arrastre
-  }, [activeTab])
-
-  // X final del carrusel = Base (pestaña) + Offset (arrastre manual)
-  const carouselX = useTransform(dragX, (val) => baseX + val)
-  const springCarouselX = useSpring(carouselX, { stiffness: 400, damping: 40 })
-
-  // Sincronización del Indicador de Pestaña (Interpolación)
-  // Mapeamos el progreso del carrusel a la posición física de la píldora [0% a 75%]
-  const pillX = useTransform(carouselX, 
-    [-(tabs.length - 1) * window.innerWidth, 0], 
-    ['75%', '0%'],
-    { clamp: true }
-  )
-
   const handleDragEnd = (event, info) => {
     const swipeThreshold = 50
     const { offset, velocity } = info
@@ -144,9 +122,6 @@ export default function AgendaPage() {
       // Anterior
       const prevIndex = Math.max(currentIndex - 1, 0)
       setActiveTab(tabs[prevIndex])
-    } else {
-      // Snap al mismo
-      dragX.set(0)
     }
   }
 
@@ -484,13 +459,8 @@ export default function AgendaPage() {
         </div>
 
         {/* 3. NAVEGACIÓN FULL-BLEED (iPhone 6/SE Optimized) */}
-        <div className="lg:hidden flex overflow-x-auto hide-scrollbar snap-x p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner w-screen -ml-5 px-5 py-1 animate-in fade-in transition-all overflow-hidden">
-          <div className="relative flex w-full overflow-hidden">
-            <motion.div
-              style={{ x: pillX, width: '25%' }}
-              className="absolute inset-y-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-xl z-0"
-              transition={{ type: "spring", stiffness: 400, damping: 40 }}
-            />
+        <div className="lg:hidden flex overflow-x-auto hide-scrollbar snap-x p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner w-screen -ml-5 px-5 py-1 animate-in fade-in transition-all">
+          <div className="relative flex w-full">
             {[
               { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length },
               { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length },
@@ -509,6 +479,13 @@ export default function AgendaPage() {
                     isActive ? "text-slate-900" : "text-slate-500"
                   )}
                 >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTabPill"
+                      className="absolute inset-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-xl -z-10"
+                      transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                    />
+                  )}
                   <Icon className={cn("w-4 h-4", isActive ? "text-blue-600" : "opacity-40")} />
                   <div className="flex items-center gap-1">
                     <span className="text-base">{tab.label}</span>
@@ -834,10 +811,11 @@ export default function AgendaPage() {
                     <div className="lg:hidden w-full overflow-hidden mt-0 min-h-[75vh]">
                       <motion.div
                         drag="x"
-                        dragDirectionLock={true}
-                        dragConstraints={{ left: -(tabs.length - 1) * window.innerWidth - 40, right: 40 }}
-                        style={{ x: springCarouselX }}
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.25}
                         onDragEnd={handleDragEnd}
+                        animate={{ x: `-${currentIndex * 100}%` }}
+                        transition={{ type: "spring", stiffness: 300, damping: 32 }}
                         className="flex w-[400%] h-full mt-2"
                       >
                         {tabs.map(tabId => {
