@@ -5,10 +5,20 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-// Re-usamos la lógica de conexión para el worker
-const connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-  maxRetriesPerRequest: null,
-})
+// 🛡️ HOTFIX: Validación de REDIS_URL para evitar crash en el Worker
+const REDIS_URL = process.env.REDIS_URL
+let connection = null
+
+if (REDIS_URL) {
+  connection = new Redis(REDIS_URL, {
+    maxRetriesPerRequest: null,
+    retryStrategy: (times) => Math.min(times * 1000, 10000)
+  })
+  connection.on('error', (err) => {
+    // Silencioso para evitar spam en logs de producción si Redis no es crítico
+    // console.warn('[Worker Redis Error] Ignorado:', err.message)
+  })
+}
 
 const pool = new Pool(
   process.env.DATABASE_URL
@@ -23,13 +33,17 @@ const pool = new Pool(
 )
 
 export const startBookingWorker = (logger = console) => {
+  if (!connection) {
+    logger.warn('⚠️ BullMQ Worker desactivado: No hay REDIS_URL configurada.');
+    return null;
+  }
+
   const worker = new Worker('bookingQueue', async (job) => {
     if (job.name === 'expire-lock') {
       const { appointmentId } = job.data
       logger.info({ appointmentId }, '🔍 BullMQ: Procesando expiración para turno')
 
       try {
-        // Verificar el estado actual del turno
         const res = await pool.query(
           'SELECT status FROM appointments WHERE id = $1',
           [appointmentId]
@@ -42,7 +56,6 @@ export const startBookingWorker = (logger = console) => {
 
         const currentStatus = res.rows[0].status
 
-        // Si el turno sigue en estado 'pendiente' o 'bloqueado', lo expiramos
         if (currentStatus === 'pending' || currentStatus === 'blocked') {
           logger.info({ appointmentId, currentStatus }, '⏰ Expirando turno')
           
@@ -57,7 +70,7 @@ export const startBookingWorker = (logger = console) => {
         }
       } catch (err) {
         logger.error({ err, appointmentId }, '❌ Error procesando expiración del turno')
-        throw err // BullMQ reintentará según la configuración
+        throw err 
       }
     }
   }, { connection })
