@@ -9,8 +9,13 @@ const connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', 
   maxRetriesPerRequest: null, // Requerido por BullMQ
 })
 
+let lastRedisError = 0
 connection.on('error', (err) => {
-  logger.error(err, 'Redis Connection Error')
+  const now = Date.now()
+  if (now - lastRedisError > 30000) {
+    logger.warn('Redis connection issue (silenced for 30s): ' + err.message)
+    lastRedisError = now
+  }
 })
 
 // Cola para gestionar la expiración de turnos

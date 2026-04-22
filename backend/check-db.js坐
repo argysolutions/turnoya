@@ -1,0 +1,16 @@
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+dotenv.config();
+
+const pool = new Pool({
+  connectionString: `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
+});
+
+async function check() {
+  const r = await pool.query('SELECT id, reminder_sent, start_at, status FROM appointments ORDER BY id DESC LIMIT 10');
+  console.table(r.rows);
+  await pool.end();
+}
+
+check();

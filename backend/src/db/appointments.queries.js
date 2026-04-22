@@ -181,3 +181,30 @@ export const setAppointmentLiberationTime = async (id, businessId, liberatesAt) 
   )
   return result.rows[0]
 }
+
+/**
+ * Busca turnos que ocurren en las próximas 24 horas y aún no han enviado recordatorio.
+ */
+export const getAppointmentsForReminders = async () => {
+  const result = await pool.query(
+    `SELECT a.*, c.nombre as client_name, c.telefono as client_phone, s.name as service_name
+     FROM appointments a
+     JOIN clientes c ON a.client_id = c.id
+     JOIN services s ON a.service_id = s.id
+     WHERE a.reminder_sent = FALSE
+       AND a.status = 'confirmed'
+       AND a.start_at > NOW()
+       AND a.start_at <= NOW() + INTERVAL '24 hours'`
+  )
+  return result.rows
+}
+
+/**
+ * Marca un turno como recordatorio enviado.
+ */
+export const markReminderSent = async (id) => {
+  await pool.query(
+    `UPDATE appointments SET reminder_sent = TRUE WHERE id = $1`,
+    [id]
+  )
+}

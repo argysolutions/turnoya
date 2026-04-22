@@ -1,0 +1,71 @@
+import { NotificationService } from './src/services/notification.service.js';
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+dotenv.config();
+
+const pool = new Pool({
+  connectionString: `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
+});
+
+async function runTest() {
+  console.log('🧪 Iniciando Test de Inyección de Turno...');
+
+  try {
+    // 1. Obtener IDs válidos (o usar mocks si confías en tu DB local)
+    const bRes = await pool.query('SELECT id FROM businesses LIMIT 1');
+    const sRes = await pool.query('SELECT id FROM services LIMIT 1');
+    const cRes = await pool.query('SELECT id FROM clientes LIMIT 1');
+
+    if (!bRes.rows[0] || !sRes.rows[0] || !cRes.rows[0]) {
+      console.error('❌ Error: No hay datos suficientes en las tablas businesses, services o clientes para crear un turno.');
+      process.exit(1);
+    }
+
+    const businessId = bRes.rows[0].id;
+    const serviceId = sRes.rows[0].id;
+    const clientId = cRes.rows[0].id;
+
+    // 2. Insertar turno para MAÑANA
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0, 0, 0);
+
+    console.log(`⏳ Insertando turno para: ${tomorrow.toISOString()}...`);
+    
+    const insertRes = await pool.query(
+      `INSERT INTO appointments (business_id, service_id, client_id, start_at, end_at, status, reminder_sent)
+       VALUES ($1, $2, $3, $4, $5, 'confirmed', FALSE)
+       RETURNING *`,
+      [businessId, serviceId, clientId, tomorrow, new Date(tomorrow.getTime() + 3600000)]
+    );
+
+    const appointment = insertRes.rows[0];
+    console.log(`✅ Turno #${appointment.id} insertado con éxito.`);
+
+    // 3. Disparar confirmación manual (Inmediata)
+    console.log('\n📧 Disparando confirmación manual (Nodemailer/Ethereal)...');
+    
+    // Mock de datos para el servicio de notificación
+    const mockData = {
+      ...appointment,
+      client_name: 'Cliente de Prueba',
+      client_email: 'cliente@test.com',
+      service_name: 'Servicio de Prueba'
+    };
+
+    await NotificationService.sendConfirmation(mockData);
+
+    console.log('\n--- RESULTADO ---');
+    console.log('1. Revisa arriba la "Preview URL" de la confirmación.');
+    console.log('2. Deja el servidor (npm run dev) encendido.');
+    console.log('3. En el próximo minuto, el Cron Job detectará el turno y generará la SEGUNDA URL del recordatorio.');
+    
+  } catch (err) {
+    console.error('❌ Error en el test:', err.message);
+  } finally {
+    await pool.end();
+  }
+}
+
+runTest();

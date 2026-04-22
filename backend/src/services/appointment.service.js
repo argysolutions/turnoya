@@ -12,6 +12,7 @@ import { getServiceById } from '../db/services.queries.js'
 import { sendConfirmation } from './whatsapp.service.js'
 import { ensureContactExists } from './google.service.js'
 import { bookingQueue } from './queue.service.js'
+import { NotificationService } from './notification.service.js'
 import { pool } from '../config/db.js'
 
 /**
@@ -81,6 +82,8 @@ export class AppointmentService {
       date: new Date(startAt).toLocaleDateString(),
       startTime: new Date(startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }).catch(() => {})
+
+    NotificationService.sendConfirmation(full).catch(() => {})
 
     return full
   }

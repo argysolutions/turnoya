@@ -17,6 +17,7 @@ import { salesRoutes } from './routes/sales.routes.js'
 import { financesRoutes } from './routes/finances.routes.js'
 import { clientesRoutes } from './routes/clientes.routes.js'
 import { incidenciasRoutes } from './routes/incidencias.routes.js'
+import { paymentRoutes } from './routes/payment.routes.js'
 
 const loggerConfig = {
   development: {
@@ -80,11 +81,13 @@ await app.register(async (api) => {
   api.register(financesRoutes)
   api.register(clientesRoutes)
   api.register(incidenciasRoutes)
+  api.register(paymentRoutes)
 }, { prefix: '/api' })
 
 app.get('/health', async () => ({ status: 'ok', app: 'TurnoYa' }))
 
 import { startBookingWorker } from './workers/booking.worker.js'
+import { startReminderCron } from './workers/reminder.worker.js'
 
 export const start = async () => {
   // Inyectamos el logger de Fastify en la conexión a la DB y en el Worker
@@ -104,6 +107,10 @@ export const start = async () => {
   
   // Iniciar Worker de BullMQ
   startBookingWorker(app.log)
+  
+  // Iniciar Cron Job de Recordatorios
+  console.log('DEBUG: Llamando a startReminderCron...');
+  startReminderCron(app.log)
 
   try {
     const port = ENV.PORT || 3000

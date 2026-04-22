@@ -1,0 +1,28 @@
+import nodemailer from 'nodemailer';
+
+/**
+ * Notification Service (Fase 1)
+ * Encargado de gestionar el envío de confirmaciones y recordatorios.
+ * Actualmente usa un mock con console.log y una configuración base de nodemailer.
+ */
+export class NotificationService {
+  
+  static async sendConfirmation(appointment) {
+    console.log(`[NotificationService] 📧 Enviando confirmación de turno #${appointment.id}`);
+    console.log(`Para: ${appointment.client_name} (${appointment.client_phone})`);
+    console.log(`Servicio: ${appointment.service_name}`);
+    console.log(`Fecha: ${appointment.start_at}`);
+    
+    // Mock de envío exitoso
+    return true;
+  }
+
+  static async sendUpcomingReminder(appointment) {
+    console.log(`[NotificationService] ⏰ Enviando recordatorio automático para turno #${appointment.id}`);
+    console.log(`Cliente: ${appointment.client_name}`);
+    console.log(`Hora: ${appointment.start_at}`);
+    
+    // En el futuro aquí se integrará con WhatsApp o Email real
+    return true;
+  }
+}
