@@ -1,5 +1,5 @@
 import { createPaymentPreference, handleWebhook } from '../controllers/payment.controller.js';
-import { verifyToken } from '../middleware/auth.middleware.js';
+import { verifyToken } from '../middlewares/auth.middleware.js';
 
 /**
  * Payment Routes (Fastify Plugin)
