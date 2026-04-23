@@ -436,7 +436,7 @@ function ManagementContent({
       {/* Operaciones — solo visibles para el dueño */}
       {isOwner && (
         <div>
-          <p className="text-2xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-1">Operaciones</p>
+          <p className="text-sm md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-1">Operaciones</p>
           <div className="space-y-1 md:space-y-0.5">
             <Item icon={PlusCircle} label="Registrar Gasto" onClick={onOpenExpenseModal} />
             {session?.status === 'open' && (
@@ -449,7 +449,7 @@ function ManagementContent({
       {/* Arqueo de Caja */}
       {session?.status === 'open' && (
         <div>
-          <p className="text-2xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-2">Arqueo de Caja</p>
+          <p className="text-sm md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-2">Arqueo de Caja</p>
           <div className="mx-2 md:mx-1 p-5 md:p-4 rounded-3xl md:rounded-2xl bg-blue-950 text-white shadow-lg">
             <div className="flex justify-between items-center">
               <div>
@@ -468,7 +468,7 @@ function ManagementContent({
       {/* Comisiones Staff */}
       {professionals.length > 0 && commissionRate > 0 && (
         <div>
-          <p className="text-2xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-2">Comisiones Staff ({commissionRate}%)</p>
+          <p className="text-sm md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-2">Comisiones Staff ({commissionRate}%)</p>
           <div className="mx-2 md:mx-1 space-y-2 md:space-y-1">
             {professionals.map(p => (
               <div key={p.name} className="flex items-center justify-between p-4 md:p-2 rounded-2xl md:rounded-xl bg-slate-50 border border-slate-100">
@@ -485,7 +485,7 @@ function ManagementContent({
 
       {/* Exportación */}
       <div>
-        <p className="text-2xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-1">Exportar Cierre</p>
+        <p className="text-sm md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-1">Exportar Cierre</p>
         <div className="space-y-1 md:space-y-0.5">
           <Item icon={Share2} label="Enviar por WhatsApp" onClick={handleWhatsAppExport} />
           <Item icon={FileText} label="Descargar TXT" onClick={handleTXTDownload} />
@@ -526,7 +526,7 @@ function ManagementDrawer({ onClose, ...contentProps }) {
           >
             <ChevronLeft className="w-6 h-6 md:w-5 md:h-5" />
           </button>
-          <h2 className="text-lg md:text-sm font-black uppercase tracking-widest text-slate-800">Gestión y Reportes</h2>
+          <h2 className="text-sm md:text-sm font-black uppercase tracking-tighter md:tracking-widest text-slate-800">Gestión y Reportes</h2>
         </div>
 
         {/* Content */}
@@ -961,7 +961,7 @@ export default function CajaPage() {
                   </div>
                 ) : ledgerEntries.length === 0 ? (
                   <div className="py-20 text-center px-6">
-                    <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Sin movimientos</p>
+                    <p className="text-sm md:text-xs font-black text-slate-300 uppercase tracking-tighter mb-2">Sin movimientos</p>
                     <p className="text-[11px] text-slate-400">Finalizá turnos o agregá gastos para verlos aquí.</p>
                   </div>
                 ) : (
