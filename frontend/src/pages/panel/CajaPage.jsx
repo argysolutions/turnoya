@@ -749,21 +749,6 @@ export default function CajaPage() {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-1 min-w-[48px] justify-end">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => setHidden(!hidden)}
-                    className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                      hidden ? "bg-blue-50 text-blue-600" : "text-slate-400"
-                    )}
-                  >
-                    {hidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Privacidad</TooltipContent>
-              </Tooltip>
-              
               <button 
                 onClick={() => setIsCalendarExpanded(true)}
                 className="w-10 h-10 flex items-center justify-center text-blue-600"
@@ -799,19 +784,6 @@ export default function CajaPage() {
                       {String(role).toLowerCase() === 'employee' ? 'Resumen de tus cobros' : 'Control de ventas y gastos'}
                     </p>
                   </div>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => setHidden(!hidden)}
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
-                          hidden ? 'bg-blue-50 text-blue-500 ring-1 ring-blue-100' : 'text-slate-300 hover:text-slate-500 hover:bg-white'
-                        }`}
-                      >
-                        {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Privacidad</TooltipContent>
-                  </Tooltip>
                 </div>
 
                 <div className="flex-1 flex justify-center">
@@ -850,9 +822,20 @@ export default function CajaPage() {
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
                   </div>
-                  <p className="text-5xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none mb-3 mt-1">
-                    {display(digitalTotal)}
-                  </p>
+                  <div className="flex items-end gap-3 mb-3 mt-1">
+                    <p className="text-5xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
+                      {display(digitalTotal)}
+                    </p>
+                    <button
+                      onClick={() => setHidden(!hidden)}
+                      className={cn(
+                        "w-10 h-10 md:w-7 md:h-7 rounded-xl md:rounded-lg flex items-center justify-center transition-all",
+                        hidden ? "bg-blue-50 text-blue-500 ring-1 ring-blue-100" : "text-slate-200 hover:text-slate-400"
+                      )}
+                    >
+                      {hidden ? <EyeOff className="w-5 h-5 md:w-3.5 md:h-3.5" /> : <Eye className="w-5 h-5 md:w-3.5 md:h-3.5" />}
+                    </button>
+                  </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-semibold text-slate-400">
                     {(byMethod['Transferencia']?.total ?? 0) > 0 && (
                       <span className="flex items-center gap-1">
@@ -877,9 +860,20 @@ export default function CajaPage() {
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
                   </div>
-                  <p className="text-5xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none mb-3 mt-1">
-                    {display(efectivoTotal)}
-                  </p>
+                  <div className="flex items-end gap-3 mb-3 mt-1">
+                    <p className="text-5xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
+                      {display(efectivoTotal)}
+                    </p>
+                    <button
+                      onClick={() => setHidden(!hidden)}
+                      className={cn(
+                        "w-10 h-10 md:w-7 md:h-7 rounded-xl md:rounded-lg flex items-center justify-center transition-all",
+                        hidden ? "bg-blue-50 text-blue-600 ring-1 ring-blue-100" : "text-slate-200 hover:text-slate-400"
+                      )}
+                    >
+                      {hidden ? <EyeOff className="w-5 h-5 md:w-3.5 md:h-3.5" /> : <Eye className="w-5 h-5 md:w-3.5 md:h-3.5" />}
+                    </button>
+                  </div>
                   {session?.status === 'open' && (
                     <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
