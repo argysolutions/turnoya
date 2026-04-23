@@ -97,7 +97,7 @@ const generateWhatsAppText = ({ dateLabel, summary, byMethod, session }) => {
 // SUB-COMPONENTS
 // ════════════════════════════════════════════════════════════════════════════
 
-function SessionBanner({ session, onOpen, onOpenCierre, loading, isOwner }) {
+function SessionBanner({ session, onOpen, onOpenCierre, onOpenManagement, loading, isOwner }) {
   if (loading) return null
 
   if (session?.status === 'open') {
@@ -112,13 +112,21 @@ function SessionBanner({ session, onOpen, onOpenCierre, loading, isOwner }) {
           <span className="text-[10px] font-bold text-emerald-600 hidden sm:block">Inicio: {fmt(session.initial_amount)}</span>
         </div>
         {isOwner && (
-          <Button
-            onClick={onOpenCierre}
-            variant="ghost"
-            className="h-7 px-3 text-[9px] font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
-          >
-            Cerrar Caja
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={onOpenCierre}
+              variant="ghost"
+              className="h-7 px-2.5 text-[9px] font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
+            >
+              Cerrar Caja
+            </Button>
+            <button 
+              onClick={onOpenManagement}
+              className="h-7 w-7 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg active:scale-90 transition-transform"
+            >
+              <MoreVertical className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )}
       </div>
     )
@@ -134,10 +142,10 @@ function SessionBanner({ session, onOpen, onOpenCierre, loading, isOwner }) {
     )
   }
 
-  return <AperturaBanner inline onOpen={onOpen} />
+  return <AperturaBanner inline onOpen={onOpen} onOpenManagement={onOpenManagement} />
 }
 
-function AperturaBanner({ onOpen, inline = false }) {
+function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
   const [amount, setAmount] = useState('')
   const [formOpen, setFormOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -166,13 +174,21 @@ function AperturaBanner({ onOpen, inline = false }) {
             <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider">Caja Cerrada</span>
           </div>
           {!formOpen && (
-            <Button
-              onClick={() => setFormOpen(true)}
-              variant="ghost"
-              className="h-7 px-3 text-[9px] font-black uppercase bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg"
-            >
-              Abrir Sesión
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setFormOpen(true)}
+                variant="ghost"
+                className="h-7 px-2.5 text-[9px] font-black uppercase bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg"
+              >
+                Abrir Sesión
+              </Button>
+              <button 
+                onClick={onOpenManagement}
+                className="h-7 w-7 flex items-center justify-center bg-amber-100 text-amber-700 rounded-lg active:scale-90 transition-transform"
+              >
+                <MoreVertical className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
         </div>
 
@@ -717,7 +733,7 @@ export default function CajaPage() {
           <div className="flex-1 min-w-0 flex flex-col gap-4 pb-10">
 
             {/* ── HEADER ─────────────────────────────── */}
-            <div className="flex items-center gap-3 sticky top-14 z-40 bg-white -mx-4 px-4 pt-1 pb-4 border-b border-slate-100/80 mb-6">
+            <div className="flex items-center gap-3 sticky top-14 z-40 bg-white -mx-4 px-4 pt-1 pb-2 border-b border-slate-100/80 mb-2">
 
               {/* Título CAJA + Privacy Toggle */}
               <div className="flex items-center gap-2 shrink-0">
@@ -803,6 +819,7 @@ export default function CajaPage() {
                 loading={sessionLoading}
                 onOpen={handleOpenCaja}
                 onOpenCierre={() => setShowCierreModal(true)}
+                onOpenManagement={() => setShowManagementDrawer(true)}
                 isOwner={isOwner}
               />
             )}
