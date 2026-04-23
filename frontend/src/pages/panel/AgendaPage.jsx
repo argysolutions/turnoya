@@ -514,7 +514,7 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-3xl lg:text-2xl font-black text-black tracking-tighter uppercase">AGENDA</span>
+                    <span className="text-3xl lg:text-2xl font-black text-black tracking-tighter">Agenda</span>
                   </motion.div>
                 ) : headerStage === 1 && isDateToday ? (
                   <motion.div
