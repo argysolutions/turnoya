@@ -58,7 +58,7 @@ export default function StaffLoginPage() {
       localStorage.setItem('turno_ya_last_staff_business_id', form.business_id)
       if (data.staff?.name) localStorage.setItem('turno_ya_last_staff_name', data.staff.name)
       toast.success('Sesión iniciada')
-      navigate('/dashboard/caja', { replace: true })
+      navigate('/dashboard/agenda', { replace: true })
     } catch (err) {
       const msg = err?.response?.data?.error || 'PIN incorrecto'
       toast.error(msg)

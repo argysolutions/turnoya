@@ -514,7 +514,7 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-2xl font-black text-black tracking-tighter uppercase">AGENDA</span>
+                    <span className="text-3xl lg:text-2xl font-black text-black tracking-tighter uppercase">AGENDA</span>
                   </motion.div>
                 ) : headerStage === 1 && isDateToday ? (
                   <motion.div
@@ -524,7 +524,7 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-2xl font-black text-blue-600 uppercase tracking-widest animate-pulse">HOY</span>
+                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-widest animate-pulse">HOY</span>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -534,7 +534,7 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-xl font-black text-blue-600 uppercase tracking-widest whitespace-nowrap animate-pulse">
+                    <span className="text-2xl lg:text-xl font-black text-blue-600 uppercase tracking-widest whitespace-nowrap animate-pulse">
                       {format(date, "EEE dd - MM", { locale: es }).replace('.', '').toUpperCase()}
                     </span>
                   </motion.div>
@@ -617,7 +617,7 @@ export default function AgendaPage() {
                       />
                     )}
                     <Icon className={cn("w-4 h-4", isActive ? tab.color : "opacity-40")} />
-                    <span className="text-[11px] lg:text-xl uppercase tracking-widest">{tab.label}</span>
+                    <span className="text-sm lg:text-xl font-black uppercase tracking-tighter">{tab.label}</span>
                   </button>
                 );
               })}
@@ -660,9 +660,9 @@ export default function AgendaPage() {
                         <div className="flex justify-start px-1 -mt-8 mb-0 overflow-visible relative z-[100]">
                           <button 
                             onClick={handleAcceptAllPending}
-                            className="flex items-center gap-2 px-5 py-2 bg-amber-50 text-amber-700 border border-amber-200/50 rounded-full text-[11px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-amber-50 text-amber-700 border border-amber-200/50 rounded-full text-sm font-black uppercase tracking-tighter shadow-sm active:scale-95 transition-all"
                           >
-                            <CheckCircle className="w-3.5 h-3.5" />
+                            <CheckCircle className="w-4 h-4" />
                             Aceptar Todos
                           </button>
                         </div>
@@ -676,7 +676,7 @@ export default function AgendaPage() {
                       <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                         <CalendarX2 className="w-8 h-8 text-slate-300" />
                       </div>
-                      <p className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Sin turnos</p>
+                      <p className="text-lg md:text-sm font-black text-slate-400 uppercase tracking-widest">Sin turnos</p>
                     </div>
                   )}
                 </div>

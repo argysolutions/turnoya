@@ -98,14 +98,14 @@ export const MobileTimePicker = ({ isOpen, onClose, value, onChange, title = "Se
               </button>
             </div>
 
-            <div className="p-8 flex items-center justify-center gap-4">
+            <div className="p-8 flex items-center justify-center gap-12">
               {children ? (
                 children
               ) : (
                 <>
-                  <Wheel items={hours} selected={selHour} onSelect={setSelHour} label="Hora" />
-                  <div className="text-2xl font-black text-slate-200 pt-6">:</div>
-                  <Wheel items={minutes} selected={selMin} onSelect={setSelMin} label="Minutos" />
+                  <Wheel items={hours} selected={selHour} onSelect={setSelHour} label="HORA" />
+                  <div className="text-3xl font-black text-slate-300 pt-6">:</div>
+                  <Wheel items={minutes} selected={selMin} onSelect={setSelMin} label="MINUTOS" />
                 </>
               )}
             </div>
@@ -113,7 +113,7 @@ export const MobileTimePicker = ({ isOpen, onClose, value, onChange, title = "Se
             <div className="px-6 pb-10">
               <button 
                 onClick={handleConfirm}
-                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 active:scale-95 transition-all text-lg"
+                className="w-full py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 active:scale-95 transition-all text-lg"
               >
                 Confirmar Hora
               </button>

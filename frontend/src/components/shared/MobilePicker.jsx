@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { Search, X, Check, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +18,7 @@ export const MobilePicker = ({
   searchPlaceholder = "Buscar...",
   renderOption
 }) => {
+  const dragControls = useDragControls()
   const [search, setSearch] = useState('')
 
   const filteredOptions = useMemo(() => {
@@ -54,21 +55,30 @@ export const MobilePicker = ({
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
             drag="y"
-            dragConstraints={{ top: 0 }}
-            dragElastic={0.2}
-            onDragEnd={(_, info) => {
-              if (info.offset.y > 100) onClose()
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 500 }}
+            dragElastic={{ top: 0, bottom: 0.1 }}
+            onDragEnd={(e, info) => {
+              if (info.offset.y > 100 || info.velocity.y > 300) {
+                onClose()
+              }
             }}
             className="fixed inset-x-0 bottom-0 z-[160] flex flex-col bg-white rounded-t-[32px] lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)] max-h-[85vh]"
           >
-            {/* Handle bar */}
-            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-3 mb-2 shrink-0" />
+            {/* Handle bar area with drag listener */}
+            <div 
+              onPointerDown={(e) => dragControls.start(e)}
+              style={{ touchAction: 'none' }}
+              className="w-full py-4 cursor-grab active:cursor-grabbing shrink-0"
+            >
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto" />
+            </div>
 
-            {/* Header */}
             <div className="px-6 py-4 flex items-center justify-between border-b border-slate-50 shrink-0">
-              <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+              <h3 className="text-xl font-black text-black">{title}</h3>
               <button 
                 onClick={onClose}
                 className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 active:scale-90 transition-all"
@@ -158,7 +168,7 @@ export const PickerButton = ({ label, value, placeholder, onClick, className, ic
     )}
   >
     <div className="flex items-center gap-3 truncate">
-      {Icon && <Icon className="w-5 h-5 text-slate-400 shrink-0" />}
+      {Icon && <Icon className="w-5 h-5 text-blue-600 shrink-0" />}
       <span className="truncate">{value || placeholder}</span>
     </div>
     <ChevronDown className="w-5 h-5 text-slate-300 shrink-0 ml-2" />

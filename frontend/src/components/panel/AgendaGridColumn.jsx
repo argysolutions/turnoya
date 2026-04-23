@@ -9,7 +9,7 @@ export default function AgendaGridColumn({ title, count, dotColor, items, onCard
         {/* Grupo Izquierdo: Punto, Título y Badge numérico juntos */}
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${dotColor}`}></div>
-          <span className="font-sans text-sm font-bold text-slate-800 uppercase tracking-wide m-0">{title}</span>
+          <span className="text-xl font-black text-slate-800 tracking-tighter m-0">{title}</span>
           <span className="font-sans text-xs font-bold bg-slate-100 text-slate-600 py-0.5 px-2 rounded-full">{count}</span>
         </div>
         
