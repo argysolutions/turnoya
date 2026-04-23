@@ -25,6 +25,7 @@ import {
   Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff, MoreVertical
 } from 'lucide-react'
 import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
+import { cn } from '@/lib/utils'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const today = () => new Date().toISOString().split('T')[0]
