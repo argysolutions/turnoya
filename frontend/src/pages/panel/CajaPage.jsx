@@ -121,9 +121,10 @@ function SessionBanner({ session, onOpen, onOpenCierre, onOpenManagement, loadin
             >
               Cerrar Caja
             </Button>
+            {/* Solo mostramos el MoreVertical en el banner si es desktop, en mobile ya está en la cabecera */}
             <button 
               onClick={onOpenManagement}
-              className="h-9 w-9 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-xl active:scale-90 transition-transform"
+              className="hidden lg:flex h-9 w-9 items-center justify-center bg-emerald-100 text-emerald-700 rounded-xl active:scale-90 transition-transform"
             >
               <MoreVertical className="w-4 h-4" />
             </button>
@@ -584,6 +585,49 @@ export default function CajaPage() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [businessSettings, setBusinessSettings] = useState(null)
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
+  const [ledgerFilter, setLedgerFilter] = useState('')
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [activeLedgerTab, setActiveLedgerTab] = useState('todos') // todos, ingresos, egresos
+
+  // Filtrado final de Ledger (Tabs + Search)
+  const ledgerEntries = useMemo(() => {
+    let list = [
+      ...sales.map(s => ({
+        id: `sale-${s.id}`,
+        type: 'income',
+        amount: s.total_amount,
+        description: s.client_name || 'Venta Minorista',
+        time: s.created_at,
+        method: s.payment_method,
+        raw: s
+      })),
+      ...expenses.map(e => ({
+        id: `expense-${e.id}`,
+        type: 'expense',
+        amount: e.amount,
+        description: e.description,
+        time: e.created_at,
+        category: e.category,
+        raw: e
+      }))
+    ].sort((a, b) => new Date(b.time) - new Date(a.time))
+
+    // Filtro por Tab (Mobile)
+    if (activeLedgerTab === 'ingresos') list = list.filter(e => e.type === 'income')
+    if (activeLedgerTab === 'egresos') list = list.filter(e => e.type === 'expense')
+
+    // Filtro por Búsqueda
+    if (ledgerFilter) {
+      const q = ledgerFilter.toLowerCase()
+      list = list.filter(e => 
+        e.description.toLowerCase().includes(q) || 
+        (e.category && e.category.toLowerCase().includes(q)) ||
+        (e.method && e.method.toLowerCase().includes(q))
+      )
+    }
+
+    return list
+  }, [sales, expenses, ledgerFilter, activeLedgerTab])
 
   // UI States
   const [showManagementDrawer, setShowManagementDrawer] = useState(false)
@@ -591,7 +635,6 @@ export default function CajaPage() {
   const [showCierreModal, setShowCierreModal] = useState(false)
   const [drawerSale, setDrawerSale] = useState(null)
   const [isDetailExpanded, setIsDetailExpanded] = useState(false)
-  const [ledgerFilter, setLedgerFilter] = useState('')
 
   // Recuperar privacy_mode desde prefs cifradas apenas la clave esté lista
   useEffect(() => {
@@ -750,20 +793,86 @@ export default function CajaPage() {
             {/* Right: Actions */}
             <div className="flex items-center gap-1 min-w-[48px] justify-end">
               <button 
-                onClick={() => setIsCalendarExpanded(true)}
-                className="w-10 h-10 flex items-center justify-center text-blue-600"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className={cn(
+                  "w-12 h-12 flex items-center justify-center transition-all",
+                  isSearchOpen ? "text-blue-600" : "text-slate-400"
+                )}
               >
-                <Search className="w-6 h-6" />
+                <Search className="w-7 h-7" />
+              </button>
+
+              <button 
+                onClick={() => setIsCalendarExpanded(true)}
+                className="w-12 h-12 flex items-center justify-center text-blue-600"
+              >
+                <Smartphone className="w-7 h-7 rotate-90" /> {/* Icono de fecha similar a Agenda */}
               </button>
 
               {isOwner && (
                 <button 
                   onClick={() => setShowManagementDrawer(true)}
-                  className="w-10 h-10 flex items-center justify-center text-slate-400"
+                  className="w-12 h-12 flex items-center justify-center text-slate-400"
                 >
-                  <MoreVertical className="w-6 h-6" />
+                  <MoreVertical className="w-7 h-7" />
                 </button>
               )}
+            </div>
+          </div>
+
+          {/* 1.1 BARRA DE BÚSQUEDA (Pattern AgendaPage) */}
+          <AnimatePresence>
+            {isSearchOpen && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }} 
+                animate={{ height: 'auto', opacity: 1 }} 
+                exit={{ height: 0, opacity: 0 }} 
+                className="lg:hidden overflow-hidden bg-white border-b border-slate-100 px-4 pb-4"
+              >
+                <div className="bg-slate-100 rounded-2xl flex items-center px-4 py-3 shadow-inner mt-4">
+                  <Search className="text-blue-600 w-5 h-5 shrink-0" />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar por cliente o concepto..." 
+                    autoFocus 
+                    className="bg-transparent border-none focus:ring-0 outline-none text-lg ml-3 w-full font-bold" 
+                    value={ledgerFilter} 
+                    onChange={(e) => setLedgerFilter(e.target.value)}
+                  />
+                  {ledgerFilter && (
+                    <button onClick={() => setLedgerFilter('')} className="text-slate-400">
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 1.2 NAVEGACIÓN POR PILLS (Pattern AgendaPage) */}
+          <div className="lg:hidden flex overflow-x-auto hide-scrollbar w-screen -ml-4 px-4 py-3 bg-white border-b border-slate-100 sticky top-16 z-[60]">
+            <div className="flex gap-2">
+              {[
+                { id: 'todos', label: 'Todos', icon: FileText, color: 'text-slate-600', bg: 'bg-slate-100' },
+                { id: 'ingresos', label: 'Ingresos', icon: Banknote, color: 'text-emerald-600', bg: 'bg-emerald-100' },
+                { id: 'egresos', label: 'Egresos', icon: Wallet, color: 'text-rose-600', bg: 'bg-rose-100' }
+              ].map(tab => {
+                const isActive = activeLedgerTab === tab.id;
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveLedgerTab(tab.id)}
+                    className={cn(
+                      "relative flex items-center gap-2 px-6 py-2.5 rounded-full font-black uppercase text-sm tracking-tighter transition-all active:scale-95",
+                      isActive ? "bg-slate-900 text-white shadow-lg" : "bg-slate-50 text-slate-400"
+                    )}
+                  >
+                    <Icon className={cn("w-4 h-4", isActive ? "" : "opacity-40")} />
+                    <span>{tab.label}</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -933,8 +1042,8 @@ export default function CajaPage() {
             <div className="flex-1 flex flex-col min-h-0">
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
 
-                {/* Buscador como header del ledger */}
-                <div className="px-4 py-3 border-b border-slate-50 flex items-center gap-3 bg-white sticky top-0">
+                {/* Buscador (Solo Desktop) */}
+                <div className="hidden lg:flex px-4 py-3 border-b border-slate-50 items-center gap-3 bg-white sticky top-0">
                   <Search className="w-4 h-4 text-slate-300 shrink-0" />
                   <input
                     id="ledger-search"
@@ -965,65 +1074,56 @@ export default function CajaPage() {
                     <p className="text-[11px] text-slate-400">Finalizá turnos o agregá gastos para verlos aquí.</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-50">
+                  <div className="p-2 space-y-3">
                     {ledgerEntries.map((entry) => (
                       <button
                         key={entry.id}
                         onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
-                        className={`w-full text-left px-4 py-3.5 flex items-center justify-between transition-colors group ${
-                          entry.type === 'income'
-                            ? 'hover:bg-slate-50/80 cursor-pointer'
-                            : 'cursor-default'
-                        }`}
+                        className={cn(
+                          "w-full text-left p-4 rounded-[1.5rem] flex items-center justify-between transition-all active:scale-[0.98] border border-slate-100",
+                          entry.type === 'income' ? "bg-white shadow-sm" : "bg-slate-50/50 border-dashed"
+                        )}
                       >
-                        {/* Left: dot + info */}
-                        <div className="flex items-center gap-3 min-w-0">
-                          {/* Colored dot */}
-                          <div className={`w-2 h-2 rounded-full shrink-0 ${
-                            entry.type === 'income' ? 'bg-emerald-400' : 'bg-red-400'
-                          }`} />
+                        {/* Left: Info */}
+                        <div className="flex items-center gap-4 min-w-0">
+                          {/* Indicator */}
+                          <div className={cn(
+                            "w-1 h-10 rounded-full shrink-0",
+                            entry.type === 'income' ? "bg-emerald-500" : "bg-rose-500"
+                          )} />
 
                           <div className="min-w-0">
-                            <p className="text-2xl md:text-sm font-black md:font-semibold text-slate-800 truncate leading-snug">
+                            <p className="text-2xl md:text-sm font-black md:font-semibold text-slate-900 truncate leading-tight mb-1">
                               {entry.description}
                             </p>
-                            <div className="flex items-center gap-1.5 text-xs md:text-[10px] font-medium text-slate-400 mt-0.5">
-                              <span>{fmtTime(entry.time)}</span>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="text-xs font-black uppercase text-slate-400 tracking-tighter">{fmtTime(entry.time)}</span>
                               {entry.method && (
-                                <>
-                                  <span className="text-slate-200">·</span>
-                                  <span className="flex items-center gap-0.5">
-                                    {METHOD_ICON[entry.method]}
-                                    {entry.method}
-                                  </span>
-                                </>
+                                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold text-[10px] flex items-center gap-1">
+                                  {METHOD_ICON[entry.method]}
+                                  {entry.method}
+                                </span>
                               )}
                               {isOwner && entry.raw?.professional_name && (
-                                <>
-                                  <span className="text-slate-200">·</span>
-                                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold text-[9px]">
-                                    {entry.raw.professional_name}
-                                  </span>
-                                </>
-                              )}
-                              {entry.category && (
-                                <>
-                                  <span className="text-slate-200">·</span>
-                                  <span>{entry.category}</span>
-                                </>
+                                <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px]">
+                                  {entry.raw.professional_name}
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
 
-                        {/* Right: amount */}
-                        <span className={`text-3xl md:text-sm font-black tabular-nums shrink-0 ml-4 tracking-tighter md:tracking-normal ${
-                          entry.type === 'income' ? 'text-emerald-600' : 'text-red-500'
-                        }`}>
-                          <span className={hidden ? 'blur-md select-none' : ''}>
-                            {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
-                          </span>
-                        </span>
+                        {/* Right: Amount */}
+                        <div className="text-right ml-4 shrink-0">
+                          <p className={cn(
+                            "text-3xl md:text-sm font-black tabular-nums tracking-tighter md:tracking-normal",
+                            entry.type === 'income' ? "text-emerald-600" : "text-rose-600"
+                          )}>
+                            <span className={hidden ? 'blur-md select-none' : ''}>
+                              {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
+                            </span>
+                          </p>
+                        </div>
                       </button>
                     ))}
                   </div>
