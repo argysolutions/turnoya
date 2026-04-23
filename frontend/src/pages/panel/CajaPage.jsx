@@ -436,7 +436,7 @@ function ManagementContent({
       {/* Operaciones — solo visibles para el dueño */}
       {isOwner && (
         <div>
-          <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-400 px-4 md:px-3 mb-4 md:mb-1">Operaciones</p>
+          <p className="text-2xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-1">Operaciones</p>
           <div className="space-y-1 md:space-y-0.5">
             <Item icon={PlusCircle} label="Registrar Gasto" onClick={onOpenExpenseModal} />
             {session?.status === 'open' && (
@@ -449,7 +449,7 @@ function ManagementContent({
       {/* Arqueo de Caja */}
       {session?.status === 'open' && (
         <div>
-          <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-400 px-4 md:px-3 mb-4 md:mb-2">Arqueo de Caja</p>
+          <p className="text-2xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-2">Arqueo de Caja</p>
           <div className="mx-2 md:mx-1 p-5 md:p-4 rounded-3xl md:rounded-2xl bg-blue-950 text-white shadow-lg">
             <div className="flex justify-between items-center">
               <div>
@@ -468,7 +468,7 @@ function ManagementContent({
       {/* Comisiones Staff */}
       {professionals.length > 0 && commissionRate > 0 && (
         <div>
-          <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-400 px-4 md:px-3 mb-4 md:mb-2">Comisiones Staff ({commissionRate}%)</p>
+          <p className="text-2xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-2">Comisiones Staff ({commissionRate}%)</p>
           <div className="mx-2 md:mx-1 space-y-2 md:space-y-1">
             {professionals.map(p => (
               <div key={p.name} className="flex items-center justify-between p-4 md:p-2 rounded-2xl md:rounded-xl bg-slate-50 border border-slate-100">
@@ -485,7 +485,7 @@ function ManagementContent({
 
       {/* Exportación */}
       <div>
-        <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-400 px-4 md:px-3 mb-4 md:mb-1">Exportar Cierre</p>
+        <p className="text-2xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-500 px-4 md:px-3 mb-4 md:mb-1">Exportar Cierre</p>
         <div className="space-y-1 md:space-y-0.5">
           <Item icon={Share2} label="Enviar por WhatsApp" onClick={handleWhatsAppExport} />
           <Item icon={FileText} label="Descargar TXT" onClick={handleTXTDownload} />
@@ -820,7 +820,7 @@ export default function CajaPage() {
                     <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
                       <Smartphone className="w-4 h-4 text-blue-500" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
+                    <span className="text-xs md:text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
                   </div>
                   <div className="flex items-end gap-3 mb-3 mt-1">
                     <p className="text-4xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
@@ -858,7 +858,7 @@ export default function CajaPage() {
                     <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
                       <Banknote className="w-4 h-4 text-emerald-500" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
+                    <span className="text-xs md:text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
                   </div>
                   <div className="flex items-end gap-3 mb-3 mt-1">
                     <p className="text-4xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
@@ -987,7 +987,7 @@ export default function CajaPage() {
                             <p className="text-2xl md:text-sm font-black md:font-semibold text-slate-800 truncate leading-snug">
                               {entry.description}
                             </p>
-                            <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 mt-0.5">
+                            <div className="flex items-center gap-1.5 text-xs md:text-[10px] font-medium text-slate-400 mt-0.5">
                               <span>{fmtTime(entry.time)}</span>
                               {entry.method && (
                                 <>
