@@ -589,19 +589,27 @@ export default function CajaPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [activeLedgerTab, setActiveLedgerTab] = useState('todos') // todos, ingresos, egresos
 
-  // Filtrado final de Ledger (Tabs + Search)
+  // Filtrado final de Ledger (Tabs + Search + Roles)
   const ledgerEntries = useMemo(() => {
+    // Si es empleado, filtrar para ver solo sus movimientos
+    const isActuallyEmployee = role === 'employee' || isEmployee
+    const filteredSales = !isActuallyEmployee 
+      ? sales 
+      : sales.filter(s => s.professional_name === professionalName)
+    
+    const filteredExpenses = !isActuallyEmployee ? expenses : []
+
     let list = [
-      ...sales.map(s => ({
+      ...filteredSales.map(s => ({
         id: `sale-${s.id}`,
         type: 'income',
-        amount: s.total_amount,
+        amount: s.total_amount || s.amount,
         description: s.client_name || 'Venta Minorista',
         time: s.created_at,
         method: s.payment_method,
         raw: s
       })),
-      ...expenses.map(e => ({
+      ...filteredExpenses.map(e => ({
         id: `expense-${e.id}`,
         type: 'expense',
         amount: e.amount,
@@ -627,7 +635,7 @@ export default function CajaPage() {
     }
 
     return list
-  }, [sales, expenses, ledgerFilter, activeLedgerTab])
+  }, [sales, expenses, ledgerFilter, activeLedgerTab, isEmployee, role, professionalName])
 
   // UI States
   const [showManagementDrawer, setShowManagementDrawer] = useState(false)
@@ -705,40 +713,7 @@ export default function CajaPage() {
 
   const isToday = date === today()
 
-  const ledgerEntries = useMemo(() => {
-    // Si es empleado, filtrar para ver solo sus movimientos
-    const isActuallyEmployee = role === 'employee' || isEmployee
-    const filteredSales = !isActuallyEmployee 
-      ? sales 
-      : sales.filter(s => s.professional_name === professionalName)
-    
-    const filteredExpenses = !isActuallyEmployee ? expenses : [] // Empleados no suelen ver gastos generales
 
-    const entries = [
-      ...filteredSales.map(s => ({
-        type: 'income', id: `s-${s.id}`,
-        description: s.client_name || 'Venta',
-        amount: parseFloat(s.amount),
-        method: s.payment_method,
-        time: s.created_at,
-        raw: s,
-      })),
-      ...filteredExpenses.map(e => ({
-        type: 'expense', id: `e-${e.id}`,
-        description: e.description || 'Gasto',
-        amount: parseFloat(e.amount),
-        category: e.category,
-        time: e.created_at,
-      }))
-    ]
-    // Orden cronológico ascendente (más antiguo primero, como un ledger real)
-    entries.sort((a, b) => new Date(a.time) - new Date(b.time))
-    if (ledgerFilter.trim()) {
-      const q = ledgerFilter.toLowerCase()
-      return entries.filter(e => e.description?.toLowerCase().includes(q))
-    }
-    return entries
-  }, [sales, expenses, ledgerFilter, isEmployee, role, professionalName])
 
   const byMethod = summary?.byMethod || {}
   const digitalTotal = (byMethod['Transferencia']?.total ?? 0) + (byMethod['Tarjeta']?.total ?? 0)
