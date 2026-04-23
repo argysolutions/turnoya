@@ -806,7 +806,7 @@ export default function CajaPage() {
                 onClick={() => setIsCalendarExpanded(true)}
                 className="w-12 h-12 flex items-center justify-center text-blue-600"
               >
-                <Smartphone className="w-7 h-7 rotate-90" /> {/* Icono de fecha similar a Agenda */}
+                <CalendarDays className="w-7 h-7" />
               </button>
 
               {isOwner && (
@@ -1088,16 +1088,16 @@ export default function CajaPage() {
                         <div className="flex items-center gap-4 min-w-0">
                           {/* Indicator */}
                           <div className={cn(
-                            "w-1 h-10 rounded-full shrink-0",
+                            "w-1.5 h-12 rounded-full shrink-0",
                             entry.type === 'income' ? "bg-emerald-500" : "bg-rose-500"
                           )} />
 
                           <div className="min-w-0">
-                            <p className="text-2xl md:text-sm font-black md:font-semibold text-slate-900 truncate leading-tight mb-1">
+                            <p className="text-2xl md:text-sm font-black text-slate-900 truncate leading-tight mb-1">
                               {entry.description}
                             </p>
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                              <span className="text-xs font-black uppercase text-slate-400 tracking-tighter">{fmtTime(entry.time)}</span>
+                              <span className="text-sm font-black uppercase text-slate-400 tracking-tighter">{fmtTime(entry.time)}</span>
                               {entry.method && (
                                 <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold text-[10px] flex items-center gap-1">
                                   {METHOD_ICON[entry.method]}
