@@ -192,7 +192,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
       <div className="flex flex-col p-6 md:p-8 pt-2 md:pt-6">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-3xl font-black text-black tracking-tighter">Agendar Nuevo Turno</h2>
+            <h2 className="text-3xl font-black text-black tracking-tight">Agendar Nuevo Turno</h2>
             <p className="text-lg text-slate-600 font-bold mt-2">Completa los datos para agendar la cita.</p>
           </div>
           <button onClick={onClose} className="hidden md:flex p-2 hover:bg-slate-100 rounded-full text-black">
