@@ -21,7 +21,7 @@ import { addDays as fnsAddDays } from 'date-fns'
 import {
   ChevronLeft, ChevronRight, CreditCard, Wallet, ArrowLeftRight,
   HelpCircle, Eye, EyeOff, PlusCircle, X, Unlock,
-  Share2, Search, FileText, Download,
+  Share2, Search, FileText, Download, CalendarDays,
   Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff, MoreVertical
 } from 'lucide-react'
 import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
