@@ -354,14 +354,14 @@ const Item = ({ icon: IconComponent, label, onClick, accent = 'blue' }) => {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors hover:bg-slate-50 text-slate-700"
+      className="w-full flex items-center gap-4 md:gap-3 px-4 md:px-3 py-4 md:py-2.5 rounded-2xl md:rounded-xl text-left transition-colors hover:bg-slate-50 text-slate-700 active:scale-[0.98]"
     >
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+      <div className={`w-12 h-12 md:w-8 md:h-8 rounded-xl md:rounded-lg flex items-center justify-center shrink-0 ${
         accent === 'red' ? 'bg-red-50 text-red-500' : 'bg-slate-100 text-slate-500'
       }`}>
-        <IconComponent className="w-4 h-4" />
+        <IconComponent className="w-6 h-6 md:w-4 md:h-4" />
       </div>
-      <span className="text-sm font-semibold">{label}</span>
+      <span className="text-lg md:text-sm font-bold md:font-semibold">{label}</span>
     </button>
   )
 }
@@ -419,8 +419,8 @@ function ManagementContent({
       {/* Operaciones — solo visibles para el dueño */}
       {isOwner && (
         <div>
-          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-1">Operaciones</p>
-          <div className="space-y-0.5">
+          <p className="text-xs md:text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 md:px-3 mb-2 md:mb-1">Operaciones</p>
+          <div className="space-y-1 md:space-y-0.5">
             <Item icon={PlusCircle} label="Registrar Gasto" onClick={onOpenExpenseModal} />
             {session?.status === 'open' && (
               <Item icon={Lock} label="Cierre Definitivo" onClick={onOpenCierre} accent="red" />
@@ -432,16 +432,16 @@ function ManagementContent({
       {/* Arqueo de Caja */}
       {session?.status === 'open' && (
         <div>
-          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-2">Arqueo de Caja</p>
-          <div className="mx-1 p-4 rounded-2xl bg-blue-950 text-white shadow-lg">
+          <p className="text-xs md:text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 md:px-3 mb-3 md:mb-2">Arqueo de Caja</p>
+          <div className="mx-2 md:mx-1 p-5 md:p-4 rounded-3xl md:rounded-2xl bg-blue-950 text-white shadow-lg">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-[8px] uppercase font-black text-blue-400 mb-0.5">Esperado</p>
-                <p className="text-base font-black">{fmt(session.expected_cash)}</p>
+                <p className="text-[10px] md:text-[8px] uppercase font-black text-blue-400 mb-1 md:mb-0.5">Esperado</p>
+                <p className="text-xl md:text-base font-black">{fmt(session.expected_cash)}</p>
               </div>
               <div className="text-right">
-                <p className="text-[8px] uppercase font-black text-blue-400 mb-0.5">Inicial</p>
-                <p className="text-base font-black">{fmt(session.initial_amount)}</p>
+                <p className="text-[10px] md:text-[8px] uppercase font-black text-blue-400 mb-1 md:mb-0.5">Inicial</p>
+                <p className="text-xl md:text-base font-black">{fmt(session.initial_amount)}</p>
               </div>
             </div>
           </div>
@@ -451,15 +451,15 @@ function ManagementContent({
       {/* Comisiones Staff */}
       {professionals.length > 0 && commissionRate > 0 && (
         <div>
-          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-2">Comisiones Staff ({commissionRate}%)</p>
-          <div className="mx-1 space-y-1">
+          <p className="text-xs md:text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 md:px-3 mb-3 md:mb-2">Comisiones Staff ({commissionRate}%)</p>
+          <div className="mx-2 md:mx-1 space-y-2 md:space-y-1">
             {professionals.map(p => (
-              <div key={p.name} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <div key={p.name} className="flex items-center justify-between p-4 md:p-2 rounded-2xl md:rounded-xl bg-slate-50 border border-slate-100">
                 <div>
-                  <p className="text-[11px] font-bold text-slate-800">{p.name}</p>
-                  <p className="text-[9px] text-slate-400">Bruto: {fmt(p.total)}</p>
+                  <p className="text-sm md:text-[11px] font-bold text-slate-800">{p.name}</p>
+                  <p className="text-[11px] md:text-[9px] text-slate-400 font-medium mt-0.5 md:mt-0">Bruto: {fmt(p.total)}</p>
                 </div>
-                <p className="text-xs font-black text-blue-600">{display(p.total * commissionRate / 100)}</p>
+                <p className="text-base md:text-xs font-black text-blue-600">{display(p.total * commissionRate / 100)}</p>
               </div>
             ))}
           </div>
@@ -468,8 +468,8 @@ function ManagementContent({
 
       {/* Exportación */}
       <div>
-        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 mb-1">Exportar Cierre</p>
-        <div className="space-y-0.5">
+        <p className="text-xs md:text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 md:px-3 mb-2 md:mb-1">Exportar Cierre</p>
+        <div className="space-y-1 md:space-y-0.5">
           <Item icon={Share2} label="Enviar por WhatsApp" onClick={handleWhatsAppExport} />
           <Item icon={FileText} label="Descargar TXT" onClick={handleTXTDownload} />
           <Item icon={Download} label="Descargar XML" onClick={handleXMLDownload} />
@@ -502,23 +502,23 @@ function ManagementDrawer({ onClose, ...contentProps }) {
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-slate-200 rounded-full -ml-0.5 opacity-60" />
 
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3 shrink-0">
+        <div className="px-5 py-6 md:py-4 border-b border-slate-100 flex items-center gap-4 md:gap-3 shrink-0">
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="w-12 h-12 md:w-8 md:h-8 rounded-2xl md:rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6 md:w-5 md:h-5" />
           </button>
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-800">Gestión y Reportes</h2>
+          <h2 className="text-lg md:text-sm font-black uppercase tracking-widest text-slate-800">Gestión y Reportes</h2>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-4 md:p-4 pb-10 scrollbar-hide">
           <ManagementContent {...contentProps} />
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 shrink-0">
-          <Button variant="ghost" className="w-full uppercase font-black text-[10px] tracking-widest text-slate-300" onClick={onClose}>Cerrar Panel</Button>
+        <div className="px-6 py-6 md:py-4 border-t border-slate-100 shrink-0">
+          <Button variant="ghost" className="w-full h-14 md:h-10 uppercase font-black text-xs md:text-[10px] tracking-widest text-slate-400 md:text-slate-300 rounded-2xl md:rounded-xl" onClick={onClose}>Cerrar Panel</Button>
         </div>
       </motion.div>
     </div>
