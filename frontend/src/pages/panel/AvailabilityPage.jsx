@@ -141,43 +141,23 @@ export default function AvailabilityPage() {
                 {slots[day.value].enabled ? (
                   <div className="flex flex-row items-center gap-4 w-full sm:w-auto flex-1">
                     <div className="flex-1 w-full sm:w-32">
-                      {isMobile ? (
-                        <TimePickerModal
-                          label="Abre"
-                          value={slots[day.value].start}
-                          onChange={(val) => handleTime(day.value, 'start', val)}
-                        />
-                      ) : (
-                        <>
-                          <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Abre</Label>
-                          <input
-                            type="time"
-                            value={slots[day.value].start}
-                            onChange={(e) => handleTime(day.value, 'start', e.target.value)}
-                            className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                          />
-                        </>
-                      )}
+                      <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Abre</Label>
+                      <input
+                        type="time"
+                        value={slots[day.value].start}
+                        onChange={(e) => handleTime(day.value, 'start', e.target.value)}
+                        className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                      />
                     </div>
                     <span className="text-slate-400 text-sm hidden sm:block mt-6">a</span>
                     <div className="flex-1 w-full sm:w-32">
-                      {isMobile ? (
-                        <TimePickerModal
-                          label="Cierra"
-                          value={slots[day.value].end}
-                          onChange={(val) => handleTime(day.value, 'end', val)}
-                        />
-                      ) : (
-                        <>
-                          <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Cierra</Label>
-                          <input
-                            type="time"
-                            value={slots[day.value].end}
-                            onChange={(e) => handleTime(day.value, 'end', e.target.value)}
-                            className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                          />
-                        </>
-                      )}
+                      <Label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Cierra</Label>
+                      <input
+                        type="time"
+                        value={slots[day.value].end}
+                        onChange={(e) => handleTime(day.value, 'end', e.target.value)}
+                        className="w-full text-sm border border-slate-200 rounded-md px-2 h-10 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                      />
                     </div>
                   </div>
                 ) : (

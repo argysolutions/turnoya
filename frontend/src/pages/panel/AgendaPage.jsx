@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import { format, isSameDay, startOfToday, addDays, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns'
+import { format, isSameDay, startOfToday, addDays, startOfWeek, endOfWeek, isWithinInterval, addMonths } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { 
   Plus, 
@@ -42,12 +42,14 @@ import AgendaSkeleton from '@/components/Agenda/AgendaSkeleton'
 import AppointmentDialog from '@/components/Agenda/AppointmentDialog'
 import AppointmentDetailDialog from '@/components/Agenda/AppointmentDetailDialog'
 import BlockTimeModal from '@/components/Agenda/BlockTimeModal'
+import AvailabilityDrawer from '@/components/Agenda/AvailabilityDrawer'
 import Layout from '@/components/shared/Layout'
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useAnimation, useDragControls } from 'framer-motion'
 import AgendaGridColumn from '@/components/panel/AgendaGridColumn'
 import { toast } from 'sonner'
 
 export default function AgendaPage() {
+  const dragControls = useDragControls()
   const { 
     date, 
     setDate, 
@@ -65,7 +67,33 @@ export default function AgendaPage() {
 
 
   // Fetch blocked dates for the calendar whenever the visible month changes
-  const [currentMonth, setCurrentMonth] = React.useState(new Date())
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [touchStart, setTouchStart] = useState(null)
+  const [touchEnd, setTouchEnd] = useState(null)
+
+  // Swipe sensitivity
+  const minSwipeDistance = 50
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX)
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+    
+    if (isLeftSwipe) {
+      setCurrentMonth(addMonths(currentMonth, 1))
+    }
+    if (isRightSwipe) {
+      setCurrentMonth(addMonths(currentMonth, -1))
+    }
+  }
 
   React.useEffect(() => {
     fetchBlockedDates(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
@@ -74,14 +102,18 @@ export default function AgendaPage() {
   const [search, setSearch] = useState('')
   const [showDialog, setShowDialog] = useState(false)
   const [showBlockModal, setShowBlockModal] = useState(false)
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [isMobileCalendarOpen, setIsMobileCalendarOpen] = useState(false)
-  const [isGridView, setIsGridView] = useState(false)
+  const [headerStage, setHeaderStage] = useState(0); // 0: Agenda, 1: Hoy, 2: Date
+  const [isMobileCalendarOpen, setIsMobileCalendarOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('pendientes')
   const [quickView, setQuickView] = useState({ isOpen: false, filterType: null })
   const [quickViewStatusFilter, setQuickViewStatusFilter] = useState('all')
   const [showScrollIndicator, setShowScrollIndicator] = useState(false)
   const [hasInitializedTab, setHasInitializedTab] = useState(false)
+  const [isGridView, setIsGridView] = useState(false)
   const [isPriorityExpanded, setIsPriorityExpanded] = useState(true)
   const [showSearchFilters, setShowSearchFilters] = useState(false)
   const [activeSearchFilters, setActiveSearchFilters] = useState({
@@ -89,13 +121,51 @@ export default function AgendaPage() {
     cliente: [], // 'frecuente', 'nuevo'
     staff: [] // array de IDs o nombres
   })
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const isDateToday = isSameDay(date, new Date());
+
+  // Infinite cycle animation
+  useEffect(() => {
+    setHeaderStage(0);
+    const interval = setInterval(() => {
+      setHeaderStage(prev => {
+        if (prev === 0) return isDateToday ? 1 : 2;
+        if (prev === 1) return 2;
+        if (prev === 2) return 0;
+        return 0;
+      });
+    }, 2500); // Cambia cada 2.5 segundos
+
+    return () => clearInterval(interval);
+  }, [date, isDateToday]);
+
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0)
+
+  const handleClearSelection = useCallback(() => {
+    if (window.getSelection) {
+      window.getSelection().removeAllRanges();
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Lógica de Swipe Sincronizado para Móvil (High Fidelity)
   const tabs = ['pendientes', 'confirmados', 'finalizados', 'cancelados']
   const currentIndex = tabs.indexOf(activeTab)
   const activeTabRef = useRef(null)
+  const carouselControls = useAnimation()
+
+  // Sincronizar el carrusel cuando cambia el activeTab o el ancho de ventana
+  useEffect(() => {
+    carouselControls.start({ 
+      x: -(currentIndex * windowWidth),
+      transition: { type: "tween", ease: [0.32, 0.72, 0, 1], duration: 0.35 }
+    })
+  }, [currentIndex, windowWidth, carouselControls])
   
   // Auto-Scroll para píldoras de navegación
   useEffect(() => {
@@ -114,14 +184,15 @@ export default function AgendaPage() {
     const swipeThreshold = 50
     const { offset, velocity } = info
     
-    if (offset.x < -swipeThreshold || velocity.x < -500) {
-      // Siguiente
-      const nextIndex = Math.min(currentIndex + 1, tabs.length - 1)
-      setActiveTab(tabs[nextIndex])
-    } else if (offset.x > swipeThreshold || velocity.x > 500) {
-      // Anterior
-      const prevIndex = Math.max(currentIndex - 1, 0)
-      setActiveTab(tabs[prevIndex])
+    // Si el swipe es lo suficientemente fuerte o largo
+    if (Math.abs(offset.x) > swipeThreshold || Math.abs(velocity.x) > 500) {
+      if (offset.x < 0 && currentIndex < tabs.length - 1) {
+        // Siguiente
+        setActiveTab(tabs[currentIndex + 1])
+      } else if (offset.x > 0 && currentIndex > 0) {
+        // Anterior
+        setActiveTab(tabs[currentIndex - 1])
+      }
     }
   }
 
@@ -258,10 +329,11 @@ export default function AgendaPage() {
       pendiente: list.filter(a => a.status === 'pending' || a.status === 'pending_block'),
       confirmado: list.filter(a => a.status === 'confirmed'),
       finalizado: list.filter(a => a.status === 'completed'),
-      cancelado: list.filter(a => ['cancelled', 'cancelled_timeout', 'cancelled_occupied'].includes(a.status)),
-      ausente: list.filter(a => a.status === 'no_show'),
+      canceladoAusente: list.filter(a => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(a.status)),
     }
   }, [appointments, search])
+
+  const { pendiente: pendientes, confirmado: confirmados, finalizado: finalizados, canceladoAusente: canceladosAusentes } = filteredSections;
   
   const quickViewFilteredAppointments = useMemo(() => {
     if (!quickView.isOpen || !quickView.filterType) return []
@@ -349,11 +421,6 @@ export default function AgendaPage() {
     return { color: 'violet', label: 'Semana', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-900', secondary: 'text-violet-400', dot: 'bg-violet-600', shadow: 'shadow-violet-100', icon: CalendarRange }
   }, [quickView.filterType])
 
-  const pendientes = filteredSections.pendiente;
-  const confirmados = filteredSections.confirmado;
-  const finalizados = filteredSections.finalizado;
-  const canceladosAusentes = [...filteredSections.cancelado, ...filteredSections.ausente];
-
   // Agrupación de pendientes por fecha para la bandeja prioritaria
   const groupedPendientes = useMemo(() => {
     const today = startOfToday();
@@ -389,11 +456,16 @@ export default function AgendaPage() {
   }, [activeTab]);
 
   return (
-    <Layout maxWidth="max-w-screen-2xl" hideMobileHeader={true} mobileMenuState={[isMenuOpen, setIsMenuOpen]}>
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <Layout 
+      maxWidth="max-w-screen-2xl" 
+      hideMobileHeader={true} 
+      mobileMenuState={[isMenuOpen, setIsMenuOpen]}
+      onCalendarClick={() => setIsMobileCalendarOpen(true)}
+    >
+      <div className="space-y-6 lg:pt-2 pt-0">
         
         {/* 1. HEADER DESKTOP (Pattern ClientesPage) */}
-        <header className="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-0">
+        <header className="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 lg:px-0 mb-4">
           <div>
             <div className="flex items-center gap-2">
               <CalendarIcon className="w-6 h-6 text-slate-900" />
@@ -412,93 +484,210 @@ export default function AgendaPage() {
               }}
               className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors shadow-sm"
             >
-              <CalendarDays className="w-4 h-4 text-slate-400" />
+              <CalendarDays className="w-4 h-4 text-blue-500" />
               Volver a hoy
             </button>
-            <Button onClick={() => setShowDialog(true)} className="rounded-xl font-bold gap-2">
+            <Button onClick={() => setShowDialog(true)} className="rounded-xl font-bold gap-2 bg-slate-900 hover:bg-blue-600 transition-all">
               <Plus className="w-4 h-4" /> Nuevo Turno
             </Button>
           </div>
         </header>
 
-        {/* 2. MASTER HEADER MÓVIL (Compacto + Search) */}
-        <div className="lg:hidden px-5 pt-1.5 bg-white sticky top-0 z-[70] border-b border-slate-100 shadow-sm">
-          <div className="flex justify-between items-center -mb-1">
-            <p className="text-[13px] font-black text-slate-400 uppercase tracking-[0.2em]">
-              {format(date, "EEEE, d MMM", { locale: es })}
-            </p>
-            <div className="flex items-center gap-1">
-              <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("w-11 h-11 rounded-full flex items-center justify-center", isSearchOpen ? "bg-slate-900 text-white" : "text-slate-500")}>
-                <Search className="w-6 h-6" />
+        <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 pt-0 pb-0">
+          {/* 2. MASTER HEADER MÓVIL */}
+          <div className="h-16 flex items-center justify-between relative z-10 px-1">
+            {/* Left: Menu Icon */}
+            <div className="min-w-[60px]">
+              <button onClick={() => setIsMenuOpen(true)} className="w-12 h-12 flex items-center justify-center text-black">
+                <Menu className="w-8 h-8" />
               </button>
-              <button onClick={() => setIsMobileCalendarOpen(true)} className="w-11 h-11 text-slate-500 flex items-center justify-center">
-                <CalendarDays className="w-6 h-6" />
+            </div>
+
+            {/* Center: Dynamic Animated Title */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <AnimatePresence mode="wait">
+                {headerStage === 0 ? (
+                  <motion.div
+                    key="stage-agenda"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    <span className="text-2xl font-black text-black tracking-tighter uppercase">AGENDA</span>
+                  </motion.div>
+                ) : headerStage === 1 && isDateToday ? (
+                  <motion.div
+                    key="stage-hoy"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    <span className="text-2xl font-black text-blue-600 uppercase tracking-widest animate-pulse">HOY</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="stage-date"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    <span className="text-xl font-black text-blue-600 uppercase tracking-widest whitespace-nowrap animate-pulse">
+                      {format(date, "EEE dd - MM", { locale: es }).replace('.', '').toUpperCase()}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-0.5 min-w-[100px] justify-end">
+              <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("w-12 h-12 flex items-center justify-center transition-colors rounded-full", isSearchOpen ? "bg-black text-white" : "text-blue-600")}>
+                <Search className="w-7 h-7" />
               </button>
-              <button onClick={() => setIsMenuOpen(true)} className="w-11 h-11 text-slate-900 flex items-center justify-center">
-                <Menu className="w-7 h-7" />
+              <button onClick={() => setIsMobileCalendarOpen(true)} className="w-12 h-12 text-blue-600 flex items-center justify-center">
+                <CalendarDays className="w-7 h-7" />
               </button>
             </div>
           </div>
-          <div className="mb-1 -mt-1">
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Agenda</h1>
-          </div>
-          <AnimatePresence>
-            {isSearchOpen && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0 }} className="overflow-hidden pb-3">
-                <div className="flex-1 bg-slate-100 rounded-full flex items-center px-5 py-2.5 shadow-inner">
-                  <Search className="text-slate-400 w-4 h-4" />
-                  <input 
-                    type="text" placeholder="Buscar cliente..." autoFocus 
-                    className="bg-transparent border-none focus:ring-0 outline-none text-sm ml-3 w-full" 
-                    value={search} onChange={(e) => setSearch(e.target.value)}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+            <AnimatePresence initial={false} mode="popLayout">
+              {isSearchOpen && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }} 
+                  animate={{ height: 94, opacity: 1 }} 
+                  exit={{ height: 0, opacity: 0 }} 
+                  transition={{ 
+                    type: "tween",
+                    duration: 0.25,
+                    ease: [0.4, 0, 0.2, 1]
+                  }}
+                  className="overflow-hidden relative z-[100] mt-6"
+                >
+                  <div className="pt-1 pb-4">
+                    <div className="bg-slate-100 rounded-full flex items-center px-5 py-2.5 shadow-inner">
+                      <Search className="text-blue-600 w-4 h-4" />
+                      <input 
+                        type="text" placeholder="Buscar cliente..." autoFocus 
+                        className="bg-transparent border-none focus:ring-0 outline-none text-sm ml-3 w-full" 
+                        value={search} onChange={(e) => setSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          {/* 3. NAVEGACIÓN FULL-BLEED (iPhone 6/SE Optimized) */}
+          <motion.div 
+            layout 
+            transition={{ 
+              type: "tween",
+              duration: 0.25,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+            className="flex overflow-x-auto hide-scrollbar snap-x w-screen -ml-4 px-1 py-3 relative z-20"
+          >
+            <div className="relative flex w-full gap-2 px-2">
+              {[
+                { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length, color: 'text-amber-500', bg: 'bg-amber-100' },
+                { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length, color: 'text-emerald-500', bg: 'bg-emerald-100' },
+                { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, count: finalizados.length, color: 'text-blue-500', bg: 'bg-blue-100' },
+                { id: 'cancelados', label: 'Cancelados', icon: XCircle, count: canceladosAusentes.length, color: 'text-rose-500', bg: 'bg-rose-100' }
+              ].map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    ref={isActive ? activeTabRef : null}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "relative flex-1 flex-shrink-1 snap-center min-w-0 lg:min-w-[118px] whitespace-nowrap flex flex-col items-center justify-center gap-0.5 py-2 rounded-full font-black tracking-tighter z-10 transition-all active:scale-95",
+                      isActive ? "text-slate-900" : "text-slate-500"
+                    )}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabPill"
+                        className="absolute inset-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-full -z-10"
+                        transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                      />
+                    )}
+                    <Icon className={cn("w-4 h-4", isActive ? tab.color : "opacity-40")} />
+                    <span className="text-[11px] lg:text-xl uppercase tracking-widest">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
         </div>
 
-        {/* 3. NAVEGACIÓN FULL-BLEED (iPhone 6/SE Optimized) */}
-        <div className="lg:hidden flex overflow-x-auto hide-scrollbar snap-x p-1 bg-slate-100/50 backdrop-blur-xl sticky top-0 z-[60] border-b border-slate-200/50 shadow-inner w-screen -ml-5 px-5 py-1 animate-in fade-in transition-all">
-          <div className="relative flex w-full">
-            {[
-              { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length },
-              { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length },
-              { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, count: finalizados.length },
-              { id: 'cancelados', label: 'Cancelados', icon: XCircle, count: canceladosAusentes.length }
-            ].map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+        <div className="lg:hidden relative w-screen -ml-4 overflow-hidden mt-0 min-h-[70vh]">
+          <motion.div
+            drag="x"
+            dragConstraints={{ 
+              left: -((tabs.length - 1) * windowWidth), 
+              right: 0 
+            }}
+            dragElastic={0.03}
+            dragMomentum={false}
+            onDragEnd={handleDragEnd}
+            animate={carouselControls}
+            style={{ 
+              width: `${tabs.length * 100}%`,
+              willChange: 'transform',
+              touchAction: 'pan-y'
+            }}
+            className="flex h-full transform-gpu"
+          >
+            {tabs.map((tabId) => {
+              const items = tabId === 'pendientes' ? pendientes : 
+                           tabId === 'confirmados' ? confirmados : 
+                           tabId === 'finalizados' ? finalizados : canceladosAusentes;
               return (
-                <button
-                  key={tab.id}
-                  ref={isActive ? activeTabRef : null}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "relative flex-1 flex-shrink-0 snap-center min-w-[110px] whitespace-nowrap flex flex-col items-center justify-center gap-0.5 py-2.5 rounded-xl text-[14px] font-bold z-10 transition-all active:scale-95",
-                    isActive ? "text-slate-900" : "text-slate-500"
+                  <div 
+                    key={`mobile-slide-${tabId}`} 
+                    onClick={handleClearSelection}
+                    className={cn("h-full flex-shrink-0", tabId === 'pendientes' ? "pt-8" : "pt-1")}
+                    style={{ width: windowWidth }}
+                  >
+                  {items.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-1.5 pb-48 px-4">
+                      {tabId === 'pendientes' && (
+                        <div className="flex justify-start px-1 -mt-8 mb-0 overflow-visible relative z-[100]">
+                          <button 
+                            onClick={handleAcceptAllPending}
+                            className="flex items-center gap-2 px-5 py-2 bg-amber-50 text-amber-700 border border-amber-200/50 rounded-full text-[11px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            Aceptar Todos
+                          </button>
+                        </div>
+                      )}
+                      {items.map(turno => (
+                        <AppointmentCard key={turno.id} appointment={turno} onClick={setSelectedAppointment} />
+                      ))}
+                    </div>
+                   ) : (
+                    <div className="mx-2 mt-4 flex flex-col items-center justify-center py-20 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-slate-200/60 shadow-inner">
+                      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                        <CalendarX2 className="w-8 h-8 text-slate-300" />
+                      </div>
+                      <p className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Sin turnos</p>
+                    </div>
                   )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTabPill"
-                      className="absolute inset-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-xl -z-10"
-                      transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                    />
-                  )}
-                  <Icon className={cn("w-4 h-4", isActive ? "text-blue-600" : "opacity-40")} />
-                  <div className="flex items-center gap-1">
-                    <span className="text-base">{tab.label}</span>
-                    {tab.count > 0 && <span className="bg-slate-200/50 text-[9px] px-1.5 rounded-md">{tab.count}</span>}
-                  </div>
-                </button>
+                </div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
 
-        {/* 4. TRIPLE COLUMN LAYOUT */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* 5. TRIPLE COLUMN LAYOUT (Desktop Only) */}
+        <div className="hidden lg:block w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex flex-col lg:flex-row gap-8 w-full items-start pb-8 px-4 lg:px-0">
             
             {/* 4.1 Sidebar Izquierda (Desktop) */}
@@ -595,7 +784,7 @@ export default function AgendaPage() {
                   <div className="hidden md:flex relative flex-col md:flex-row items-center gap-3 w-full">
                     {/* Buscador */}
                     <div className="relative flex-1 w-full">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600" />
                       <Input 
                         placeholder="Buscar cliente o servicio..." 
                         className="w-full pl-10 pr-4 py-2.5 h-11 bg-white border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
@@ -616,7 +805,7 @@ export default function AgendaPage() {
                               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                           }`}
                         >
-                          <Filter className="w-5 h-5" />
+                          <Filter className="w-5 h-5 text-blue-600" />
                           {/* Indicador de filtro activo */}
                           {hasActiveFilters && <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white -mt-1 -mr-1"></span>}
                         </button>
@@ -714,9 +903,9 @@ export default function AgendaPage() {
                     </div>
                   </div>
 
-                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo visible en Vista Lista y cuando NO estamos en la pestaña de pendientes */}
+                  {/* BANDEJA DE ACCIÓN PRIORITARIA: Solo visible en Desktop */}
                   {!isGridView && activeTab !== 'pendientes' && groupedPendientes.length > 0 && (
-                    <div className="w-full mb-8 mt-6">
+                    <div className="hidden lg:block w-full mb-8 mt-6">
                       <div className="flex items-center justify-between mb-4">
                         {/* Lado Izquierdo: Título y Ping (Clickable to Toggle) */}
                         <div 
@@ -727,7 +916,7 @@ export default function AgendaPage() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                           </span>
-                          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
+                          <h3 className="text-xl font-black text-slate-700 tracking-tighter group-hover:text-blue-600 transition-colors">
                             Requieren Acción Inmediata ({pendientes.length})
                           </h3>
                           <motion.div
@@ -762,7 +951,7 @@ export default function AgendaPage() {
                             {groupedPendientes.map(group => (
                               <div key={`group-${group.key}`} className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                                  <span className="text-lg font-black text-slate-400 tracking-tighter whitespace-nowrap">
                                     Pendientes de {group.label}
                                   </span>
                                   <div className="h-[1px] w-full bg-slate-100" />
@@ -783,65 +972,29 @@ export default function AgendaPage() {
                     </div>
                   )}
 
-                  {/* 2. AREA DE CONTENIDO (LISTA O TABLERO KANBAN) */}
-                  {isGridView ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-6 w-full mt-4 items-start">
-                      <AgendaGridColumn 
-                        title="Pendientes" 
-                        count={pendientes.length} 
-                        dotColor="bg-amber-400" 
-                        items={pendientes} 
-                        onCardClick={setSelectedAppointment} 
-                        headerAction={
-                          pendientes.length > 0 && (
-                            <button 
-                              onClick={handleAcceptAllPending}
-                              className="ml-auto text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200 transition-colors"
-                            >
-                              Aceptar Todos
-                            </button>
-                          )
-                        }
-                      />
-                      <AgendaGridColumn title="Confirmados" count={confirmados.length} dotColor="bg-emerald-500" items={confirmados} onCardClick={setSelectedAppointment} />
-                      <AgendaGridColumn title="Finalizados" count={finalizados.length} dotColor="bg-blue-500" items={finalizados} onCardClick={setSelectedAppointment} />
-                      <AgendaGridColumn title="Cancelados" count={canceladosAusentes.length} dotColor="bg-rose-500" items={canceladosAusentes} onCardClick={setSelectedAppointment} />
-                    </div>
-                  ) : (
-                    <div className="lg:hidden w-full overflow-hidden mt-0 min-h-[75vh]">
-                      <motion.div
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={0.25}
-                        onDragEnd={handleDragEnd}
-                        animate={{ x: `-${currentIndex * 100}vw` }}
-                        transition={{ type: "spring", stiffness: 300, damping: 32 }}
-                        className="flex w-[400%] h-full mt-2"
-                      >
-                        {tabs.map(tabId => {
-                          const items = tabId === 'pendientes' ? pendientes : 
-                                       tabId === 'confirmados' ? confirmados : 
-                                       tabId === 'finalizados' ? finalizados : canceladosAusentes;
-                          return (
-                            <div key={`carousel-${tabId}`} className="w-[100vw] px-4">
-                              {items.length > 0 ? (
-                                <div className="grid grid-cols-1 gap-3 pb-32">
-                                  {items.map(turno => (
-                                    <AppointmentCard key={turno.id} appointment={turno} onClick={setSelectedAppointment} />
-                                  ))}
-                                </div>
-                               ) : (
-                                <div className="w-full flex flex-col items-center justify-center py-14 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200">
-                                  <CalendarX2 className="w-6 h-6 text-slate-400 mb-2" />
-                                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Sin turnos</p>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </motion.div>
-                    </div>
-                  )}
+                  {/* AREA DE CONTENIDO (Desktop Grid) */}
+                  <div className="hidden lg:grid lg:grid-cols-2 2xl:grid-cols-4 gap-6 w-full mt-4 items-start">
+                    <AgendaGridColumn 
+                      title="Pendientes" 
+                      count={pendientes.length} 
+                      dotColor="bg-amber-400" 
+                      items={pendientes} 
+                      onCardClick={setSelectedAppointment} 
+                      headerAction={
+                        pendientes.length > 0 && (
+                          <button 
+                            onClick={handleAcceptAllPending}
+                            className="ml-auto text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200 transition-colors"
+                          >
+                            Aceptar Todos
+                          </button>
+                        )
+                      }
+                    />
+                    <AgendaGridColumn title="Confirmados" count={confirmados.length} dotColor="bg-emerald-500" items={confirmados} onCardClick={setSelectedAppointment} />
+                    <AgendaGridColumn title="Finalizados" count={finalizados.length} dotColor="bg-blue-500" items={finalizados} onCardClick={setSelectedAppointment} />
+                    <AgendaGridColumn title="Cancelados" count={canceladosAusentes.length} dotColor="bg-rose-500" items={canceladosAusentes} onCardClick={setSelectedAppointment} />
+                  </div>
                 </>
               )}
             </div>
@@ -886,7 +1039,7 @@ export default function AgendaPage() {
                 <button type="button" className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 h-11 text-sm font-medium text-white hover:bg-blue-600 transition-colors" onClick={() => setShowBlockModal(true)}>
                   <Lock className="w-4 h-4" /> Bloquear
                 </button>
-                <button type="button" className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 h-11 text-sm font-medium text-white hover:bg-blue-600 transition-colors">
+                <button type="button" onClick={() => setIsAvailabilityOpen(true)} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 h-11 text-sm font-medium text-white hover:bg-blue-600 transition-colors">
                   <Clock className="w-4 h-4" /> Horarios
                 </button>
               </div>
@@ -894,6 +1047,7 @@ export default function AgendaPage() {
           </div>
         </Tabs>
       </div>
+    </div>
 
       <AnimatePresence>
         {isMobileCalendarOpen && (
@@ -911,32 +1065,76 @@ export default function AgendaPage() {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-x-0 bottom-0 z-[120] bg-white rounded-t-[32px] p-8 pb-10 lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)]"
+              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+              drag="y"
+              dragControls={dragControls}
+              dragListener={false}
+              dragConstraints={{ top: 0, bottom: 500 }}
+              dragElastic={{ top: 0, bottom: 0.1 }}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 100 || info.velocity.y > 300) {
+                  setIsMobileCalendarOpen(false)
+                }
+              }}
+              className="fixed inset-x-0 bottom-0 z-[120] bg-white rounded-t-[32px] flex flex-col lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)]"
             >
-              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6" />
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-black text-slate-900">Seleccionar Fecha</h3>
+              {/* Handle Bar Area */}
+              <div 
+                onPointerDown={(e) => dragControls.start(e)}
+                style={{ touchAction: 'none' }}
+                className="w-full py-4 cursor-grab active:cursor-grabbing shrink-0"
+              >
+                <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto" />
+              </div>
+              {/* Header */}
+              <div className="px-6 py-4 flex items-center justify-between border-b border-slate-50 shrink-0">
+                <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Calendario</h3>
                 <button 
                   onClick={() => setIsMobileCalendarOpen(false)}
-                  className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"
+                  className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-black active:scale-90 transition-transform"
                 >
-                  <Plus className="w-7 h-7 rotate-45" />
+                  <Plus className="w-6 h-6 rotate-45" />
                 </button>
               </div>
-              <div className="bg-slate-50 rounded-3xl p-6 mb-2">
+              <div 
+                className="p-1 flex flex-col items-center"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
                 <Calendar
                   mode="single"
                   selected={date}
+                  month={currentMonth}
                   onSelect={(d) => {
                     if (d) {
                       setDate(d);
-                      setCurrentMonth(d);
                       setIsMobileCalendarOpen(false);
                     }
                   }}
                   onMonthChange={setCurrentMonth}
-                  className="w-full"
+                  fixedWeeks
+                  className="w-full p-2"
+                  classNames={{
+                    months: "w-full relative",
+                    month: "w-full space-y-6 relative",
+                    caption: "flex justify-center relative items-center w-full mb-4 h-10",
+                    caption_label: "text-lg font-black text-slate-900 capitalize",
+                    nav: "absolute top-0 left-0 right-0 flex justify-between items-center h-10 px-10 z-20",
+                    nav_button: cn(
+                      "h-10 w-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
+                    ),
+                    nav_button_previous: "",
+                    nav_button_next: "",
+                    table: "w-full border-collapse",
+                    head_row: "flex w-full justify-between mb-2",
+                    head_cell: "text-slate-400 font-bold text-[10px] flex-1 text-center uppercase tracking-widest",
+                    row: "flex w-full mt-2 justify-between",
+                    cell: "flex-1 text-center p-0.5 relative focus-within:relative focus-within:z-20",
+                    day: cn(
+                      "h-14 w-full p-0 font-black text-base aria-selected:opacity-100 flex items-center justify-center rounded-2xl transition-all"
+                    ),
+                  }}
                   modifiers={{ blocked: blockedDates }}
                   modifiersStyles={{ 
                     blocked: { 
@@ -948,29 +1146,27 @@ export default function AgendaPage() {
                   }}
                 />
               </div>
-              <button 
-                onClick={() => {
-                  const today = new Date();
-                  setDate(today);
-                  setCurrentMonth(today);
-                  setIsMobileCalendarOpen(false);
-                }}
-                className="w-full mt-6 py-4.5 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 active:scale-95 transition-all text-lg"
-              >
-                Volver a Hoy
-              </button>
+              <div className="px-6 pb-6">
+                <button 
+                  onClick={() => {
+                    const today = new Date();
+                    setDate(today);
+                    setCurrentMonth(today);
+                  }}
+                  className="w-full mt-2 py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 active:scale-95 transition-all text-lg"
+                >
+                  Volver a Hoy
+                </button>
+              </div>
+
+              {/* Bottom Safe Area Padding */}
+              <div className="h-8 shrink-0" />
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      {/* FAB (Floating Action Button) - Mobile Only */}
-      <button 
-        onClick={() => setShowDialog(true)}
-        className="lg:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-blue-600 transition-all active:scale-90"
-      >
-        <Plus className="w-7 h-7" />
-      </button>
+
 
       <AppointmentDialog 
         isOpen={showDialog}
@@ -1131,42 +1327,13 @@ export default function AgendaPage() {
         )}
       </AnimatePresence>
 
-      {/* BOTÓN DE ACCIÓN MASIVA "FIXED BOTTOM" - Mobile Only (iPhone Pattern) */}
-      <AnimatePresence>
-        {activeTab === 'pendientes' && pendientes.length > 0 && (
-          <motion.div 
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="lg:hidden fixed bottom-6 inset-x-5 z-40"
-          >
-            <button
-              onClick={handleAcceptAllPending}
-              className="w-full h-14 bg-amber-400 text-amber-950 font-black rounded-2xl shadow-[0_8px_30px_rgb(251,191,36,0.3)] flex items-center justify-between px-6 active:scale-[0.98] transition-all border border-amber-300/50 backdrop-blur-md"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-amber-950/10 rounded-xl flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5" />
-                </div>
-                <span className="text-base uppercase tracking-tighter">Aceptar Todos</span>
-              </div>
-              <span className="bg-amber-950/10 px-3 py-1 rounded-lg text-sm font-black">
-                {pendientes.length}
-              </span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* BOTÓN FLOTANTE (FAB) iOs Style con Safe Area */}
-      <button
+      {/* BOTÓN FLOTANTE (FAB) Estilo WhatsApp (Posición Fija y Ergonómica) */}
+      <button 
         onClick={() => setShowDialog(true)}
-        className={cn(
-          "md:hidden fixed right-5 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl shadow-slate-900/40 active:scale-90 transition-all z-50 mb-[env(safe-area-inset-bottom)]",
-          (activeTab === 'pendientes' && pendientes.length > 0) ? "bottom-[92px]" : "bottom-6"
-        )}
+        className="fixed bottom-6 right-6 w-16 h-16 bg-slate-900 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-all z-[60] lg:hidden"
       >
-        <Plus className="w-7 h-7" />
+        <Plus className="w-8 h-8" />
       </button>
 
       <BlockTimeModal 
@@ -1174,6 +1341,11 @@ export default function AgendaPage() {
         onClose={() => setShowBlockModal(false)} 
         onConfirm={handleConfirmBlock}
         initialDate={date}
+      />
+
+      <AvailabilityDrawer 
+        isOpen={isAvailabilityOpen} 
+        onClose={() => setIsAvailabilityOpen(false)} 
       />
 
       <AppointmentDetailDialog

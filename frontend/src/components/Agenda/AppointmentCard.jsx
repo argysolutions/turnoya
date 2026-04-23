@@ -1,7 +1,7 @@
 import React from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, User, Scissors, Info as InfoIcon, Star, ChevronRight } from 'lucide-react'
+import { Clock, User, Scissors, Info as InfoIcon, Star, ChevronRight, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const statusStyles = {
@@ -41,7 +41,7 @@ const getCardColors = (status) => {
   }
 };
 
-export const AppointmentCard = ({ appointment, onClick }) => {
+export const AppointmentCard = React.memo(({ appointment, onClick }) => {
   const { start_at, client_name, service_name, status, phone, is_frequent } = appointment
   const startTime = format(new Date(start_at), 'HH:mm')
 
@@ -49,21 +49,21 @@ export const AppointmentCard = ({ appointment, onClick }) => {
     <div 
       onClick={() => onClick?.(appointment)}
       className={cn(
-        "group relative flex items-center p-5 md:p-3 border rounded-[2rem] md:rounded-2xl transition-all cursor-pointer hover:shadow-xl active:scale-[0.98] shadow-sm w-full h-auto min-h-[100px] md:min-h-0",
+        "group relative flex items-center p-5 md:p-3 border rounded-[2rem] md:rounded-2xl transition-all cursor-pointer hover:shadow-xl active:scale-[0.98] shadow-sm w-full h-auto min-h-[100px] md:min-h-0 select-none",
         getCardColors(status)
       )}
     >
       <div className="flex items-center gap-4 md:gap-3 w-full">
         {/* TIME PILL */}
-        <div className="flex flex-col items-center justify-center min-w-[4rem] md:min-w-[3.5rem] bg-white/50 backdrop-blur-sm rounded-2xl md:rounded-xl py-2 md:py-1 border border-current/5 shadow-inner">
-          <span className="text-base md:text-lg font-black text-slate-900 leading-none">{startTime}</span>
+        <div className="flex flex-col items-center justify-center min-w-[5.5rem] md:min-w-[3.5rem] bg-white/50 backdrop-blur-sm rounded-2xl md:rounded-xl py-3 md:py-1 px-1 border border-current/5 shadow-inner">
+          <span className="text-2xl md:text-lg font-black text-slate-900 leading-none">{startTime}</span>
         </div>
 
         {/* CONTENT BLOCK */}
         <div className="flex flex-col border-l-2 md:border-l border-slate-200/50 pl-4 md:pl-3 flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-base md:text-sm font-black text-slate-900 truncate">
+              <span className="text-xl md:text-sm font-black text-slate-900 truncate">
                 {client_name || 'Sin nombre'}
               </span>
               {is_frequent && (
@@ -79,15 +79,24 @@ export const AppointmentCard = ({ appointment, onClick }) => {
             )} />
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 md:mt-1 text-xs md:text-[11px] text-slate-500 font-bold overflow-hidden">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 md:mt-1 text-sm md:text-[11px] text-slate-500 font-bold overflow-hidden">
             <div className="flex items-center gap-1.5 min-w-0 max-w-full">
-              <Scissors className="w-3.5 h-3.5 md:w-3 md:h-3 text-slate-400 shrink-0" /> 
+              <Scissors className="w-4 h-4 md:w-3 md:h-3 text-slate-400 shrink-0" /> 
               <span className="truncate whitespace-nowrap">{service_name || 'Servicio'}</span>
             </div>
             {phone && (
-              <div className="flex items-center gap-1.5 text-slate-400 font-medium">
-                <span className="hidden md:inline opacity-30">•</span>
-                <span className="truncate">{phone}</span>
+              <div className="flex items-center gap-1.5 ml-auto md:ml-0">
+                <span className="hidden md:inline opacity-30 text-slate-400">•</span>
+                <span className="text-base md:text-[12px] text-black font-black select-text whitespace-nowrap">{phone}</span>
+                <a 
+                  href={`https://wa.me/${phone.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center p-2 bg-emerald-100 text-emerald-600 rounded-lg active:scale-90 transition-transform ml-1"
+                >
+                  <MessageCircle className="w-5 h-5 fill-emerald-600/10" />
+                </a>
               </div>
             )}
           </div>
@@ -103,6 +112,6 @@ export const AppointmentCard = ({ appointment, onClick }) => {
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/10 to-transparent pointer-events-none rounded-b-[2rem]" />
     </div>
   )
-}
+})
 
 export default AppointmentCard

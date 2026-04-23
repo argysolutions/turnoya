@@ -14,7 +14,7 @@ import { getClientes } from '@/api/clientes'
 import { getServices } from '@/api/services'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { User, Briefcase, Calendar as DateIcon, X } from 'lucide-react'
+import { User, Briefcase, Calendar as DateIcon, X, Clock } from 'lucide-react'
 import { MobilePicker, PickerButton } from '@/components/shared/MobilePicker'
 import { MobileTimePicker } from '@/components/shared/MobileTimePicker'
 import { MobileCalendarPicker } from '@/components/shared/MobileCalendarPicker'
@@ -32,6 +32,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
     service_id: '',
     date: initialDate ? format(initialDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
     start_time: '12:00',
+    end_time: '13:00',
     notes: ''
   })
 
@@ -107,14 +108,14 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const renderDesktopContent = () => (
     <div className="p-8">
       <DialogHeader className="mb-8 pr-12">
-        <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight">Nuevo Turno</DialogTitle>
-        <DialogDescription className="text-slate-500 font-medium text-base mt-1">Completa los datos para agendar la cita.</DialogDescription>
+        <DialogTitle className="text-3xl font-black text-slate-900 tracking-tighter">Agendar Nuevo Turno</DialogTitle>
+        <DialogDescription className="text-slate-500 font-bold text-lg mt-2">Completa los datos para agendar la cita.</DialogDescription>
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Cliente</Label>
+            <Label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">Cliente</Label>
             <select 
               className="w-full h-11 pl-4 pr-10 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat cursor-pointer"
               value={formData.client_id}
@@ -127,7 +128,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
             </select>
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Servicio</Label>
+            <Label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">Servicio</Label>
             <select 
               className="w-full h-11 pl-4 pr-10 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat cursor-pointer"
               value={formData.service_id}
@@ -143,7 +144,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Fecha</Label>
+            <Label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">Fecha</Label>
             <Input 
               type="date"
               className="h-11 rounded-xl border-slate-200"
@@ -152,7 +153,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Hora Inicio</Label>
+            <Label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">Hora Inicio</Label>
             <Input 
               type="time"
               className="h-11 rounded-xl border-slate-200"
@@ -163,7 +164,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Notas (Opcional)</Label>
+          <Label className="text-sm font-black text-slate-500 uppercase tracking-wider ml-1">Notas (Opcional)</Label>
           <textarea
             className="w-full min-h-[100px] p-4 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
             placeholder="Instrucciones especiales..."
@@ -173,7 +174,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
         </div>
 
         <DialogFooter className="pt-4 gap-3 bg-slate-50 -mx-8 px-8 py-6 mt-6">
-          <Button type="button" variant="ghost" onClick={onClose} disabled={loading} className="h-11 rounded-xl font-bold text-slate-500">
+          <Button type="button" variant="ghost" onClick={onClose} disabled={loading} className="h-11 rounded-xl font-bold text-red-500 hover:text-red-600 hover:bg-red-50">
             Cancelar
           </Button>
           <Button type="submit" disabled={loading} className="h-11 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold px-8">
@@ -191,70 +192,85 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
       <div className="flex flex-col p-6 md:p-8 pt-2 md:pt-6">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Nuevo Turno</h2>
-            <p className="text-sm text-slate-500 font-medium mt-1">Completa los datos para agendar la cita.</p>
+            <h2 className="text-3xl font-black text-black tracking-tighter">Agendar Nuevo Turno</h2>
+            <p className="text-lg text-slate-600 font-bold mt-2">Completa los datos para agendar la cita.</p>
           </div>
-          <button onClick={onClose} className="hidden md:flex p-2 hover:bg-slate-100 rounded-full text-slate-400">
+          <button onClick={onClose} className="hidden md:flex p-2 hover:bg-slate-100 rounded-full text-black">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="mt-8 space-y-6">
-          <div className="space-y-4">
+        <div className="mt-4 space-y-4">
+          <div className="space-y-3">
             {/* Cliente */}
             <div className="space-y-2">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Cliente</label>
+              <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-wider ml-1">Cliente</label>
               <PickerButton
                 icon={User}
                 placeholder="Seleccionar cliente..."
                 value={clientOptions.find(opt => opt.id.toString() === formData.client_id)?.label}
                 onClick={() => setActivePicker('cliente')}
-                className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                className="h-14 font-black text-black bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
               />
             </div>
 
             {/* Servicio */}
             <div className="space-y-2">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Servicio</label>
+              <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-wider ml-1">Servicio</label>
               <PickerButton
                 icon={Briefcase}
                 placeholder="¿Qué servicio realizará?"
                 value={serviceOptions.find(opt => opt.id.toString() === formData.service_id)?.label}
                 onClick={() => setActivePicker('servicio')}
-                className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                className="h-14 font-black text-black bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-5 gap-3">
               {/* Fecha */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Fecha</label>
+              <div className="col-span-2 space-y-2">
+                <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-wider ml-1">Fecha</label>
                 <PickerButton 
                   icon={DateIcon}
                   placeholder="Seleccionar..."
                   value={formData.date ? format(new Date(formData.date + 'T12:00:00'), 'dd/MM/yyyy') : ''}
                   onClick={() => setActivePicker('fecha')}
-                  className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                  className="h-14 font-black text-black bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
                 />
               </div>
 
-              {/* Hora */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Hora Inicio</label>
-                <PickerButton
-                  placeholder="Hora..."
-                  value={formData.start_time}
-                  onClick={() => setActivePicker('hora')}
-                  className="h-16 md:h-14 font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
-                />
+              <div className="col-span-3 grid grid-cols-2 gap-2">
+                {/* Hora Inicio */}
+                <div className="space-y-2">
+                  <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-wider ml-1">INICIO</label>
+                  <PickerButton
+                    icon={Clock}
+                    placeholder="Inicio..."
+                    value={formData.start_time}
+                    onClick={() => setActivePicker('hora_inicio')}
+                    className="h-14 font-black text-black bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl px-2"
+                  />
+                </div>
+
+                {/* Hora Fin */}
+                <div className="space-y-2">
+                  <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-wider ml-1">FIN</label>
+                  <PickerButton
+                    icon={Clock}
+                    placeholder="Fin..."
+                    value={formData.end_time}
+                    onClick={() => setActivePicker('hora_fin')}
+                    className="h-14 font-black text-black bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl px-2"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Notas */}
             <div className="space-y-2">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">Notas (Opcional)</label>
+              <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-wider ml-1">Notas (Opcional)</label>
               <textarea
-                className="w-full min-h-[100px] p-4 rounded-2xl border border-transparent bg-slate-50/80 text-base font-medium focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
+                className="w-full min-h-[80px] p-4 rounded-2xl border border-transparent bg-slate-50/80 text-base font-bold text-black focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
                 placeholder="Instrucciones especiales para el turno..."
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -264,10 +280,10 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-50 pb-8 md:pb-0">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               onClick={onClose} 
               disabled={loading}
-              className="w-full sm:flex-1 h-14 rounded-2xl font-bold text-slate-500 border-slate-100 hover:bg-slate-50"
+              className="w-full sm:flex-1 h-14 rounded-2xl font-bold text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 border border-red-100"
             >
               Cancelar
             </Button>
@@ -357,16 +373,28 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
       />
 
       <MobileTimePicker
-        isOpen={activePicker === 'hora'}
+        isOpen={activePicker === 'hora_inicio' || activePicker === 'hora_fin'}
         onClose={() => setActivePicker(null)}
-        value={formData.start_time}
-        onChange={(val) => setFormData({ ...formData, start_time: val })}
-        title="Hora de Inicio"
+        value={activePicker === 'hora_inicio' ? formData.start_time : formData.end_time}
+        onChange={(time) => {
+          if (activePicker === 'hora_inicio') {
+            setFormData({ ...formData, start_time: time });
+          } else {
+            setFormData({ ...formData, end_time: time });
+          }
+        }}
+        title={activePicker === 'hora_inicio' ? "Hora de Inicio" : "Hora de Finalización"}
       >
         <div className="p-4 bg-slate-50 rounded-2xl mt-4">
           <WheelTimePicker 
-            value={formData.start_time}
-            onChange={(val) => setFormData({ ...formData, start_time: val })}
+            value={activePicker === 'hora_inicio' ? formData.start_time : formData.end_time}
+            onChange={(time) => {
+              if (activePicker === 'hora_inicio') {
+                setFormData({ ...formData, start_time: time });
+              } else {
+                setFormData({ ...formData, end_time: time });
+              }
+            }}
           />
         </div>
       </MobileTimePicker>

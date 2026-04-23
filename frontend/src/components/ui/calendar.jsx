@@ -23,19 +23,19 @@ function Calendar({
         months: "relative",
         month: "space-y-4",
         month_caption: "flex justify-center relative items-center h-10 w-full mb-6",
-        caption_label: "text-sm font-bold text-slate-900 capitalize",
+        caption_label: "text-3xl md:text-2xl font-black tracking-tighter text-slate-900 capitalize",
         nav: "flex items-center",
         button_previous: "h-8 w-8 bg-slate-900 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center p-0 absolute left-2 top-5 -translate-y-1/2 z-10",
         button_next: "h-8 w-8 bg-slate-900 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center p-0 absolute right-2 top-5 -translate-y-1/2 z-10",
         month_grid: "w-full border-collapse",
         weekdays: "grid grid-cols-7 mb-4",
-        weekday: "text-slate-500 font-medium text-xs uppercase tracking-tight text-center flex items-center justify-center h-10",
+        weekday: "text-slate-500 font-black text-base md:text-sm uppercase tracking-tighter text-center flex items-center justify-center h-12 md:h-10",
         weeks: "w-full",
         week: "grid grid-cols-7 w-full mt-1.5 gap-1",
-        day: "h-10 w-full flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
+        day: "h-12 md:h-10 w-full flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-10 w-10 p-0 text-sm font-semibold transition-all cursor-pointer rounded-xl flex items-center justify-center hover:bg-blue-50 hover:text-blue-700"
+          "h-12 w-12 md:h-10 md:w-10 p-0 text-2xl md:text-xl font-black tracking-tighter transition-all cursor-pointer rounded-xl flex items-center justify-center hover:bg-blue-50 hover:text-blue-700"
         ),
         selected: "[&_button]:bg-slate-900 [&_button]:text-white [&_button]:font-black [&_button]:opacity-100 [&_button]:hover:bg-blue-600 [&_button]:hover:text-white [&_button]:transition-colors", 
         today: "[&_button]:border-2 [&_button]:border-slate-200 [&_button]:text-slate-900 [&_button]:font-black",

@@ -22,6 +22,7 @@ import {
   X, 
   Bell, 
   CalendarDays, 
+  ClipboardList,
   Briefcase, 
   Clock, 
   Wallet, 
@@ -30,11 +31,12 @@ import {
 } from 'lucide-react'
 import NotificationTray from './NotificationTray'
 import { Button } from '@/components/ui/button'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import AvailabilityDrawer from '@/components/Agenda/AvailabilityDrawer'
 
 const navItems = [
-  { label: 'Agenda', path: '/dashboard/agenda', icon: CalendarDays },
+  { label: 'Agenda', path: '/dashboard/agenda', icon: ClipboardList },
   { label: 'Servicios', path: '/dashboard/servicios', icon: Briefcase },
   { label: 'Disponibilidad', path: '/dashboard/disponibilidad', icon: Clock },
   { label: 'Caja', path: '/dashboard/caja', icon: Wallet },
@@ -99,8 +101,8 @@ function NavScrollable() {
             className={({ isActive }) => 
               `relative text-[13px] sm:text-sm px-2.5 sm:px-4 h-11 flex items-center justify-center shrink-0 transition-colors ${
                 isActive
-                  ? 'text-slate-900 font-bold'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'text-slate-900 font-black tracking-tighter'
+                  : 'text-slate-500 hover:text-slate-900 font-extrabold tracking-tight'
               }`
             }
           >
@@ -130,7 +132,8 @@ export default function Layout({
   children, 
   maxWidth = "max-w-5xl", 
   hideMobileHeader = false, 
-  mobileMenuState // [isOpen, setIsOpen]
+  mobileMenuState, // [isOpen, setIsOpen]
+  onCalendarClick
 }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -159,8 +162,10 @@ export default function Layout({
   const [business] = useState(() => JSON.parse(localStorage.getItem('business') || '{}'))
   
   const [internalMenuOpen, setInternalMenuOpen] = useState(false)
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false)
   const isMobileMenuOpen = mobileMenuState ? mobileMenuState[0] : internalMenuOpen
   const setIsMobileMenuOpen = mobileMenuState ? mobileMenuState[1] : setInternalMenuOpen
+  const dragControls = useDragControls()
 
   // Filtrar links para el menú móvil (misma lógica que NavScrollable)
   const visibleNavItems = navItems.filter(item => {
@@ -177,7 +182,7 @@ export default function Layout({
         <div className={`${maxWidth} mx-auto px-4 h-14 flex items-center justify-between`}>
           <div className="flex items-center gap-4 sm:gap-6 w-full overflow-hidden">
             <div className="flex items-center gap-2 shrink-0">
-              <span className="font-semibold text-slate-900 text-sm">TurnoYa</span>
+              <span className="font-black tracking-tighter text-slate-900 text-lg">TurnoYa</span>
               {isActuallyEmployee && (
                 <span className="bg-blue-600 text-[9px] text-white font-black uppercase px-1.5 py-0.5 rounded-md tracking-widest shrink-0 animate-pulse">Staff Mode</span>
               )}
@@ -198,7 +203,7 @@ export default function Layout({
             onClick={() => setIsMobileMenuOpen(true)}
             className="text-slate-900 p-1 active:scale-95 transition-transform"
           >
-            <Menu className="w-7 h-7" />
+            <Menu className="w-7 h-7 text-black" />
           </button>
         </div>
       )}
@@ -212,60 +217,102 @@ export default function Layout({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               onClick={() => setIsMobileMenuOpen(false)}
               className="lg:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100]"
             />
             
             {/* Drawer */}
             <motion.div 
-              initial={{ x: '100%' }}
+              initial={{ x: '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="lg:hidden fixed inset-y-0 right-0 w-[85%] max-w-sm bg-white z-[110] shadow-2xl flex flex-col"
+              exit={{ x: '-100%' }}
+              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+              drag="x"
+              dragControls={dragControls}
+              dragListener={false}
+              dragConstraints={{ left: -500, right: 0 }}
+              dragElastic={{ left: 0, right: 0.1 }}
+              onDragEnd={(e, info) => {
+                if (info.offset.x < -100 || info.velocity.x < -300) {
+                  setIsMobileMenuOpen(false)
+                }
+              }}
+              className="lg:hidden fixed inset-y-0 left-0 w-[85%] max-w-sm bg-white z-[110] shadow-[8px_0_30px_rgba(0,0,0,0.12)] rounded-r-[32px] flex flex-col overflow-hidden"
             >
-              <div className="p-6 flex items-center justify-between border-b border-slate-50">
-                <div className="flex flex-col">
-                  <span className="text-lg font-black text-slate-900">Menú</span>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Navegación</span>
-                </div>
+              {/* Drag Handle Area (Right edge) */}
+              <div 
+                className="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing z-50"
+                style={{ touchAction: 'none' }}
+                onPointerDown={(e) => dragControls.start(e)}
+              >
+                <div className="w-1.5 h-12 bg-slate-200 rounded-full" />
+              </div>
+
+              <div className="p-6 flex justify-end">
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 bg-slate-100 rounded-full active:scale-95 transition-all"
+                  className="p-3 bg-slate-100 text-slate-400 hover:text-slate-900 rounded-full active:scale-95 transition-all relative z-[60]"
                 >
-                  <X className="w-5 h-5 text-slate-600" />
+                  <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 mt-4">
                 {visibleNavItems.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={({ isActive }) => cn(
-                      "flex items-center gap-4 p-4 rounded-2xl transition-all active:scale-[0.98]",
-                      isActive 
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
-                        : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                  <div key={item.path} className="flex flex-col gap-6">
+                    {item.label === 'Disponibilidad' ? (
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setIsAvailabilityOpen(true);
+                        }}
+                        className="flex items-center gap-5 px-2 py-2 transition-all text-black active:scale-[0.98] rounded-2xl w-full text-left"
+                      >
+                        <item.icon className="w-8 h-8 shrink-0 text-black" />
+                        <span className="text-3xl font-black tracking-tighter">{item.label}</span>
+                      </button>
+                    ) : (
+                      <NavLink
+                        to={item.path}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-5 px-2 py-2 transition-all text-black active:scale-[0.98] rounded-2xl"
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <item.icon className={cn("w-8 h-8 shrink-0", isActive ? "text-blue-600" : "text-black")} />
+                            <span className="text-3xl font-black tracking-tighter">{item.label}</span>
+                          </>
+                        )}
+                      </NavLink>
                     )}
-                  >
-                    <item.icon className={cn("w-5 h-5", "opacity-80")} />
-                    <span className="font-black text-[15px]">{item.label}</span>
-                  </NavLink>
+
+                    {item.label === 'Agenda' && onCalendarClick && (
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          onCalendarClick();
+                        }}
+                        className="flex items-center gap-5 px-2 py-2 transition-all text-black active:scale-[0.98] rounded-2xl text-left"
+                      >
+                        <CalendarDays className="w-8 h-8 shrink-0 text-black" />
+                        <span className="text-3xl font-black tracking-tighter">Calendario</span>
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
 
               <div className="p-6 border-t border-slate-50 bg-slate-50/50">
                 <div className="flex items-center gap-3 mb-6 p-2">
                   <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden">
-                    <User className="w-5 h-5 text-slate-400" />
+                    <User className="w-5 h-5 text-black" />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-black text-slate-900 truncate">
+                    <span className="text-sm font-black text-black truncate">
                       {activeProfile ? activeProfile.name : (business.name || 'Mi Negocio')}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-black uppercase tracking-widest">
                       {isActuallyEmployee ? 'Staff Mode' : 'Administrador'}
                     </span>
                   </div>
@@ -290,6 +337,12 @@ export default function Layout({
       <main className={cn(maxWidth, "mx-auto px-4 lg:pt-6 pb-24 lg:pb-12", !hideMobileHeader ? "pt-1" : "pt-0")}>
         {children}
       </main>
+
+      {/* Drawer de Disponibilidad (Mobile) */}
+      <AvailabilityDrawer 
+        isOpen={isAvailabilityOpen} 
+        onClose={() => setIsAvailabilityOpen(false)} 
+      />
     </div>
   )
 }
