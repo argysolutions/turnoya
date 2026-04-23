@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import Layout from '@/components/shared/Layout'
 import LockScreen from '@/components/shared/LockScreen'
 import { useAuth } from '@/context/AuthContext'
@@ -22,7 +22,7 @@ import {
   ChevronLeft, ChevronRight, CreditCard, Wallet, ArrowLeftRight,
   HelpCircle, Eye, EyeOff, PlusCircle, X, Unlock,
   Share2, Search, FileText, Download,
-  Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff,
+  Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff, MoreVertical
 } from 'lucide-react'
 import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
 
@@ -786,7 +786,7 @@ export default function CajaPage() {
                   onClick={() => setShowManagementDrawer(true)}
                   className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-100 transition-all lg:hidden shrink-0"
                 >
-                  <Menu className="w-4.5 h-4.5" />
+                  <MoreVertical className="w-5 h-5" />
                 </button>
               ) : (
                 <div className="w-9 h-9 shrink-0 lg:hidden" />
