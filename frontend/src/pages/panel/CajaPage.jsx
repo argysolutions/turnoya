@@ -253,14 +253,14 @@ function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
               type="text"
               inputMode="numeric"
               placeholder="0"
-              className="w-full h-12 rounded-2xl border border-amber-200 bg-white px-4 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              className="w-full h-14 rounded-2xl border border-amber-200 bg-white px-4 text-xl font-black focus:ring-2 focus:ring-amber-500 focus:outline-none"
               value={amount}
               onChange={e => setAmount(fmtNumericInput(e.target.value))}
               autoFocus
             />
             <div className="flex gap-2">
-              <Button onClick={() => setFormOpen(false)} variant="ghost" className="flex-1 h-10 text-[10px] font-black uppercase tracking-widest">Cancelar</Button>
-              <Button onClick={handleOpen} disabled={saving} className="flex-[2] h-10 bg-amber-900 text-white font-black uppercase text-[10px] rounded-xl tracking-widest">{saving ? 'Abriendo...' : 'Confirmar'}</Button>
+              <Button onClick={() => setFormOpen(false)} variant="ghost" className="flex-1 h-12 text-xs font-black uppercase tracking-widest">Cancelar</Button>
+              <Button onClick={handleOpen} disabled={saving} className="flex-[2] h-12 bg-amber-900 text-white font-black uppercase text-xs rounded-xl tracking-widest">{saving ? 'Abriendo...' : 'Confirmar'}</Button>
             </div>
           </div>
         )}
@@ -317,19 +317,19 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] uppercase font-black text-slate-400 px-1">Efectivo contado físico</label>
+          <div className="space-y-2">
+            <label className="text-[11px] uppercase font-black text-slate-400 px-1 tracking-tighter">Efectivo contado físico</label>
             <input
               type="text"
               inputMode="numeric"
               value={counted}
               autoFocus
               onChange={e => setCounted(fmtNumericInput(e.target.value))}
-              className="w-full h-12 rounded-2xl border border-slate-200 px-4 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              className="w-full h-14 rounded-2xl border border-slate-200 px-4 text-2xl font-black focus:ring-2 focus:ring-blue-600 focus:outline-none"
               placeholder="0"
             />
           </div>
-          <Button onClick={handleClose} disabled={saving} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white uppercase font-black text-xs tracking-widest rounded-2xl shadow-lg shadow-blue-600/20">
+          <Button onClick={handleClose} disabled={saving} className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white uppercase font-black text-sm tracking-widest rounded-2xl shadow-lg shadow-blue-600/20">
             {saving ? 'Cerrando...' : 'Confirmar Cierre y Guardar'}
           </Button>
         </div>
@@ -349,18 +349,24 @@ function SaleDetailDrawer({ sale, onClose }) {
           <h2 className="text-sm font-black uppercase tracking-widest">Detalle de Cobro</h2>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-xl"><X className="w-4 h-4" /></Button>
         </div>
-        <div className="bg-slate-900 text-white p-6 rounded-[2rem] shadow-xl">
-          <p className="text-[10px] uppercase font-black text-slate-400 mb-1">Monto total</p>
-          <p className="text-4xl font-black">{fmt(sale.amount)}</p>
-          <div className="mt-4 flex gap-2">
-            <Badge className="bg-white/10 text-white border-none">{sale.payment_method}</Badge>
-            {sale.professional_name && <Badge variant="outline" className="border-white/20 text-white">{sale.professional_name}</Badge>}
+        <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-xl">
+          <p className="text-[11px] uppercase font-black text-slate-500 mb-1 tracking-tighter">Monto total</p>
+          <p className="text-5xl font-black tracking-tighter leading-none mb-4">{fmt(sale.amount)}</p>
+          <div className="flex gap-2">
+            <Badge className="bg-white/10 text-white border-none font-bold">{sale.payment_method}</Badge>
+            {sale.professional_name && <Badge variant="outline" className="border-white/20 text-white font-bold">{sale.professional_name}</Badge>}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto space-y-4">
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-            <div className="flex justify-between text-xs"><span className="text-slate-400">Cliente</span><span className="font-bold">{sale.client_name || '—'}</span></div>
-            <div className="flex justify-between text-xs"><span className="text-slate-400">Fecha/Hora</span><span className="font-bold">{fmtTime(sale.created_at)} hs</span></div>
+          <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-5">
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] uppercase font-black text-slate-400 tracking-tighter">Cliente</span>
+              <span className="text-xl font-black text-slate-900">{sale.client_name || 'Venta Minorista'}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] uppercase font-black text-slate-400 tracking-tighter">Fecha y Hora</span>
+              <span className="text-xl font-black text-slate-900">{fmtTime(sale.created_at)} hs</span>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -1271,7 +1277,7 @@ function ExpenseModal({ onClose, onSaved, categories }) {
           <input
             placeholder="Descripción..."
             autoFocus
-            className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+            className="w-full h-14 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-lg font-black focus:outline-none focus:ring-2 focus:ring-slate-200"
             value={form.description}
             onChange={e => setForm({ ...form, description: e.target.value })}
           />
@@ -1279,18 +1285,18 @@ function ExpenseModal({ onClose, onSaved, categories }) {
             type="text"
             inputMode="numeric"
             placeholder="Monto"
-            className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+            className="w-full h-14 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-2xl font-black focus:outline-none focus:ring-2 focus:ring-slate-200"
             value={form.amount}
             onChange={e => setForm({ ...form, amount: fmtNumericInput(e.target.value) })}
           />
           <select
-            className="w-full h-12 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm focus:outline-none"
+            className="w-full h-14 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-lg font-black focus:outline-none"
             value={form.category}
             onChange={e => setForm({ ...form, category: e.target.value })}
           >
             {cats.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <Button type="submit" disabled={saving} className="w-full h-12 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest">
+          <Button type="submit" disabled={saving} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase text-sm tracking-widest shadow-xl active:scale-[0.98] transition-all">
             {saving ? 'Guardando...' : 'Guardar Gasto'}
           </Button>
         </form>
