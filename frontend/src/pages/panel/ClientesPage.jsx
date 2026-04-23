@@ -81,15 +81,15 @@ export default function ClientesPage() {
           <div>
             <div className="flex items-center gap-2">
               <Users className="w-6 h-6 text-slate-900" />
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gestión de Clientes</h1>
+              <h1 className="text-3xl md:text-2xl font-black text-slate-900 tracking-tight">Gestión de Clientes</h1>
             </div>
-            <p className="text-sm text-slate-500 leading-tight">
+            <p className="text-lg md:text-sm font-bold md:font-normal text-slate-500 leading-tight">
               Administrá la base de datos de tus clientes y sus notas personalizadas.
             </p>
           </div>
           <Button 
             onClick={() => setShowForm(!showForm)}
-            className="rounded-xl font-bold gap-2"
+            className="h-14 md:h-10 text-xl md:text-sm font-black md:font-bold rounded-2xl md:rounded-xl gap-2 w-full sm:w-auto mt-2 sm:mt-0"
           >
             {showForm ? <Plus className="w-4 h-4 rotate-45 transition-transform" /> : <Plus className="w-4 h-4" />}
             {showForm ? 'Cerrar' : 'Nuevo Cliente'}
@@ -107,10 +107,10 @@ export default function ClientesPage() {
 
         <section className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 md:h-4 md:w-4 text-slate-400" />
             <Input 
               placeholder="Buscar por nombre, teléfono o email..."
-              className="pl-10 h-11 border-slate-200 shadow-sm rounded-xl"
+              className="pl-12 md:pl-10 h-14 md:h-11 text-lg md:text-sm font-bold md:font-normal border-slate-200 shadow-sm rounded-2xl md:rounded-xl"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -128,9 +128,9 @@ export default function ClientesPage() {
               <p>Error: {isError}</p>
             </div>
           ) : !filteredClientes.length ? (
-            <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 italic text-slate-400">
-              <Users className="h-10 w-10 mx-auto mb-2 opacity-20" />
-              <p>No se encontraron clientes.</p>
+            <div className="text-center py-20 bg-slate-50 rounded-[2rem] md:rounded-2xl border-2 border-dashed border-slate-200 italic text-slate-400 px-4">
+              <Users className="h-14 w-14 md:h-10 md:w-10 mx-auto mb-4 md:mb-2 opacity-20" />
+              <p className="text-xl md:text-base font-black md:font-normal text-slate-400">No se encontraron clientes.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -138,58 +138,58 @@ export default function ClientesPage() {
                 <Card key={cliente.id} className="group hover:shadow-lg transition-all border-slate-100 rounded-2xl overflow-hidden">
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                      <div className="flex items-center gap-4 md:gap-3">
+                        <div className="w-14 h-14 md:w-10 md:h-10 bg-indigo-50 rounded-2xl md:rounded-xl flex items-center justify-center text-indigo-600 text-xl md:text-base font-black md:font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300 shrink-0">
                           {cliente.nombre.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <h3 className="font-bold text-slate-900">{cliente.nombre}</h3>
-                          <div className="flex items-center text-xs text-slate-400 gap-1.5 mt-0.5">
-                            <Calendar className="h-3 w-3" /> {new Date(cliente.created_at).toLocaleDateString()}
+                        <div className="min-w-0">
+                          <h3 className="text-2xl md:text-base font-black md:font-bold text-slate-900 truncate">{cliente.nombre}</h3>
+                          <div className="flex items-center text-sm md:text-xs font-bold md:font-normal text-slate-400 gap-1.5 mt-0.5">
+                            <Calendar className="h-4 w-4 md:h-3 md:w-3" /> {new Date(cliente.created_at).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-2 md:gap-1">
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                          className="h-12 w-12 md:h-8 md:w-8 rounded-xl md:rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0"
                           onClick={() => {
                             setEditingClient(cliente)
                             setShowForm(true)
                             window.scrollTo({ top: 0, behavior: 'smooth' })
                           }}
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-5 w-5 md:h-4 md:w-4" />
                         </Button>
                         {isOwner && (
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
+                            className="h-12 w-12 md:h-8 md:w-8 rounded-xl md:rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 shrink-0"
                             onClick={() => handleDelete(cliente.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5 md:h-4 md:w-4" />
                           </Button>
                         )}
                       </div>
                     </div>
 
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center text-sm text-slate-600 gap-2">
-                        <Phone className="h-3.5 w-3.5 text-slate-400" /> {cliente.telefono}
+                    <div className="mt-5 md:mt-4 space-y-3 md:space-y-2">
+                      <div className="flex items-center text-lg md:text-sm font-bold md:font-normal text-slate-600 gap-3 md:gap-2">
+                        <Phone className="h-5 w-5 md:h-3.5 md:w-3.5 text-slate-400" /> {cliente.telefono}
                       </div>
                       {cliente.email && (
-                        <div className="flex items-center text-sm text-slate-600 gap-2">
-                          <Mail className="h-3.5 w-3.5 text-slate-400" /> {cliente.email}
+                        <div className="flex items-center text-lg md:text-sm font-bold md:font-normal text-slate-600 gap-3 md:gap-2">
+                          <Mail className="h-5 w-5 md:h-3.5 md:w-3.5 text-slate-400" /> {cliente.email}
                         </div>
                       )}
                     </div>
 
                     {cliente.notas_internas && (
-                      <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
-                        <p className="text-[11px] font-bold text-amber-600 uppercase tracking-tight mb-1">Notas Internas</p>
-                        <p className="text-xs text-amber-800 line-clamp-3">{cliente.notas_internas}</p>
+                      <div className="mt-5 md:mt-4 p-4 md:p-3 bg-amber-50 rounded-2xl md:rounded-xl border border-amber-100">
+                        <p className="text-sm md:text-[11px] font-black md:font-bold text-amber-600 uppercase tracking-tighter md:tracking-tight mb-1">Notas Internas</p>
+                        <p className="text-base md:text-xs font-bold md:font-normal text-amber-800 line-clamp-3">{cliente.notas_internas}</p>
                       </div>
                     )}
                   </CardContent>

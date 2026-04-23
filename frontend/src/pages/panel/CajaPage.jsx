@@ -722,10 +722,10 @@ export default function CajaPage() {
               {/* Título CAJA + Privacy Toggle */}
               <div className="flex items-center gap-2 shrink-0">
                 <div className="flex flex-col">
-                  <h1 className="text-xl font-semibold text-slate-900">
+                  <h1 className="text-3xl md:text-xl font-black md:font-semibold text-slate-900 tracking-tight md:tracking-normal">
                     {String(role).toLowerCase() === 'employee' ? 'Mis Ingresos' : 'Caja'}
                   </h1>
-                  <p className="text-[10px] text-slate-500 font-medium hidden sm:block">
+                  <p className="text-sm md:text-[10px] text-slate-500 font-bold md:font-medium hidden sm:block">
                     {String(role).toLowerCase() === 'employee' ? 'Resumen de tus cobros' : 'Control de ventas y gastos'}
                   </p>
                 </div>
@@ -763,7 +763,7 @@ export default function CajaPage() {
                   <button
                     id="date-picker-trigger"
                     onClick={() => setIsCalendarExpanded(true)}
-                    className="px-3 text-[10px] font-black uppercase tracking-tight text-slate-700 min-w-[64px] text-center hover:text-slate-900 transition-colors"
+                    className="px-4 md:px-3 text-sm md:text-[10px] font-black uppercase tracking-tight text-slate-700 min-w-[80px] md:min-w-[64px] text-center hover:text-slate-900 transition-colors"
                   >
                     {isToday ? 'HOY' : fmtDateShort(date)}
                   </button>
@@ -818,7 +818,7 @@ export default function CajaPage() {
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
                   </div>
-                  <p className="text-[2rem] font-semibold text-slate-900 tracking-tight leading-none mb-3">
+                  <p className="text-5xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none mb-3 mt-1">
                     {display(digitalTotal)}
                   </p>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-semibold text-slate-400">
@@ -845,7 +845,7 @@ export default function CajaPage() {
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
                   </div>
-                  <p className="text-[2rem] font-semibold text-slate-900 tracking-tight leading-none mb-3">
+                  <p className="text-5xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none mb-3 mt-1">
                     {display(efectivoTotal)}
                   </p>
                   {session?.status === 'open' && (
@@ -864,7 +864,7 @@ export default function CajaPage() {
                 <button
                   id="detail-expand-toggle"
                   onClick={() => setIsDetailExpanded(!isDetailExpanded)}
-                  className="w-full px-5 py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors"
+                  className="w-full h-14 md:h-auto px-5 py-3 flex items-center justify-center gap-2 text-sm md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors"
                 >
                   <span>Ver detalle</span>
                   <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${isDetailExpanded ? 'rotate-90' : ''}`} />
@@ -882,16 +882,16 @@ export default function CajaPage() {
                       <div className="px-5 pb-5 grid grid-cols-3 gap-3 border-t border-slate-50">
                         <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100/60 mt-4">
                           <p className="text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
-                          <p className="text-lg font-semibold text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
+                          <p className="text-2xl md:text-lg font-black md:font-semibold text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
                         </div>
                         <div className="text-center p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/40 mt-4">
                           <p className="text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
-                          <p className="text-lg font-semibold text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
+                          <p className="text-2xl md:text-lg font-black md:font-semibold text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
                           <p className="text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
                         </div>
                         <div className="text-center p-4 rounded-2xl bg-red-50/50 border border-red-100/30 mt-4">
                           <p className="text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos Totales</p>
-                          <p className="text-lg font-semibold text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
+                          <p className="text-2xl md:text-lg font-black md:font-semibold text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
                           <p className="text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
                         </div>
                       </div>
@@ -916,7 +916,7 @@ export default function CajaPage() {
                     placeholder="Buscar por cliente..."
                     value={ledgerFilter}
                     onChange={e => setLedgerFilter(e.target.value)}
-                    className="flex-1 bg-transparent text-sm font-medium focus:outline-none placeholder:text-slate-300 placeholder:font-normal text-slate-700"
+                    className="flex-1 bg-transparent h-12 md:h-auto text-lg md:text-sm font-bold md:font-medium focus:outline-none placeholder:text-slate-300 placeholder:font-normal text-slate-700"
                   />
                   {ledgerFilter && (
                     <button
@@ -958,7 +958,7 @@ export default function CajaPage() {
                           }`} />
 
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-800 truncate leading-snug">
+                            <p className="text-xl md:text-sm font-black md:font-semibold text-slate-800 truncate leading-snug">
                               {entry.description}
                             </p>
                             <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 mt-0.5">
@@ -991,7 +991,7 @@ export default function CajaPage() {
                         </div>
 
                         {/* Right: amount */}
-                        <span className={`text-sm font-black tabular-nums shrink-0 ml-4 ${
+                        <span className={`text-2xl md:text-sm font-black tabular-nums shrink-0 ml-4 tracking-tighter md:tracking-normal ${
                           entry.type === 'income' ? 'text-emerald-600' : 'text-red-500'
                         }`}>
                           <span className={hidden ? 'blur-md select-none' : ''}>

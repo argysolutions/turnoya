@@ -57,25 +57,25 @@ export default function ClientesForm({ onSubmit, initialData = null }) {
             ) : (
               <UserPlus className="w-5 h-5 text-indigo-600" />
             )}
-            <h3 className="text-lg font-bold text-slate-900 line-tight">
+            <h3 className="text-2xl md:text-lg font-black md:font-bold text-slate-900 line-tight">
               {initialData ? 'Editar Cliente' : 'Nuevo Cliente'}
             </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre Completo</Label>
+              <Label htmlFor="nombre" className="text-lg md:text-sm font-black md:font-medium">Nombre Completo</Label>
               <Input
                 id="nombre"
                 placeholder="Ej: Juan Pérez"
                 value={formData.nombre}
                 onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
                 required
-                className="focus-visible:ring-indigo-500 rounded-xl h-11"
+                className="focus-visible:ring-indigo-500 rounded-2xl md:rounded-xl h-14 md:h-11 text-lg md:text-sm font-bold md:font-normal"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="telefono">Teléfono</Label>
+              <Label htmlFor="telefono" className="text-lg md:text-sm font-black md:font-medium">Teléfono</Label>
               <Input
                 id="telefono"
                 type="tel"
@@ -83,31 +83,31 @@ export default function ClientesForm({ onSubmit, initialData = null }) {
                 value={formData.telefono}
                 onChange={(e) => setFormData(prev => ({ ...prev, telefono: e.target.value }))}
                 required
-                className="focus-visible:ring-indigo-500 rounded-xl h-11"
+                className="focus-visible:ring-indigo-500 rounded-2xl md:rounded-xl h-14 md:h-11 text-lg md:text-sm font-bold md:font-normal"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email (Opcional)</Label>
+            <Label htmlFor="email" className="text-lg md:text-sm font-black md:font-medium">Email (Opcional)</Label>
             <Input
               id="email"
               type="email"
               placeholder="Ej: cliente@email.com"
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              className="focus-visible:ring-indigo-500 rounded-xl h-11"
+              className="focus-visible:ring-indigo-500 rounded-2xl md:rounded-xl h-14 md:h-11 text-lg md:text-sm font-bold md:font-normal"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notas_internas">Notas Internas</Label>
+            <Label htmlFor="notas_internas" className="text-lg md:text-sm font-black md:font-medium">Notas Internas</Label>
             <textarea
               id="notas_internas"
               placeholder="Información privada, preferencias, alergias, etc..."
               value={formData.notas_internas}
               onChange={(e) => setFormData(prev => ({ ...prev, notas_internas: e.target.value }))}
-              className="flex min-h-[100px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none focus-visible:ring-indigo-500"
+              className="flex min-h-[120px] md:min-h-[100px] w-full rounded-2xl md:rounded-xl border border-input bg-background px-4 md:px-3 py-3 md:py-2 text-lg md:text-sm font-bold md:font-normal ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none focus-visible:ring-indigo-500"
               rows={3}
             />
           </div>
@@ -115,7 +115,7 @@ export default function ClientesForm({ onSubmit, initialData = null }) {
           <Button 
             type="submit" 
             disabled={loading} 
-            className="w-full font-bold h-12 rounded-xl transition-all active:scale-[0.98]"
+            className="w-full text-xl md:text-base font-black md:font-bold h-14 md:h-12 rounded-2xl md:rounded-xl transition-all active:scale-[0.98]"
           >
             {loading ? (
               <>
