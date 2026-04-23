@@ -830,7 +830,7 @@ export default function CajaPage() {
                       onClick={() => setHidden(!hidden)}
                       className={cn(
                         "w-10 h-10 md:w-7 md:h-7 rounded-xl md:rounded-lg flex items-center justify-center transition-all",
-                        hidden ? "bg-blue-50 text-blue-500 ring-1 ring-blue-100" : "text-slate-200 hover:text-slate-400"
+                        hidden ? "bg-slate-100 text-slate-900 ring-1 ring-slate-200" : "text-slate-300 hover:text-slate-900"
                       )}
                     >
                       {hidden ? <EyeOff className="w-5 h-5 md:w-3.5 md:h-3.5" /> : <Eye className="w-5 h-5 md:w-3.5 md:h-3.5" />}
@@ -868,7 +868,7 @@ export default function CajaPage() {
                       onClick={() => setHidden(!hidden)}
                       className={cn(
                         "w-10 h-10 md:w-7 md:h-7 rounded-xl md:rounded-lg flex items-center justify-center transition-all",
-                        hidden ? "bg-blue-50 text-blue-600 ring-1 ring-blue-100" : "text-slate-200 hover:text-slate-400"
+                        hidden ? "bg-slate-100 text-slate-900 ring-1 ring-slate-200" : "text-slate-300 hover:text-slate-900"
                       )}
                     >
                       {hidden ? <EyeOff className="w-5 h-5 md:w-3.5 md:h-3.5" /> : <Eye className="w-5 h-5 md:w-3.5 md:h-3.5" />}
