@@ -731,7 +731,7 @@ export default function CajaPage() {
             En desktop: w-3/4 Ledger + w-1/4 Sidebar fijo.
             En mobile: columna única.
           */}
-        <TooltipProvider>
+
           {/* 1. MASTER HEADER MÓVIL (Pattern AgendaPage) */}
           <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 h-16 flex items-center justify-between relative">
             {/* Left: Menu Icon */}
