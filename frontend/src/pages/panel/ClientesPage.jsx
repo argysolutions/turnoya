@@ -13,8 +13,10 @@ import {
   Plus, 
   User,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Menu
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import Layout from '@/components/shared/Layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +38,7 @@ export default function ClientesPage() {
 
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [editingClient, setEditingClient] = useState(null)
 
   useEffect(() => {
@@ -75,21 +78,55 @@ export default function ClientesPage() {
   )
 
   return (
-    <Layout>
+    <Layout 
+      maxWidth="max-w-7xl"
+      hideMobileHeader={true}
+      mobileMenuState={[isMenuOpen, setIsMenuOpen]}
+    >
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        
+        {/* 1. MASTER HEADER MÓVIL (Pattern AgendaPage) */}
+        <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 h-16 flex items-center justify-between relative">
+          {/* Left: Menu Icon */}
+          <div className="min-w-[48px]">
+            <button onClick={() => setIsMenuOpen(true)} className="w-12 h-12 flex items-center justify-center text-black">
+              <Menu className="w-8 h-8" />
+            </button>
+          </div>
+
+          {/* Center: Title */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="text-3xl font-black text-black tracking-tighter">Clientes</span>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-1 min-w-[48px] justify-end">
+            <button 
+              onClick={() => setShowForm(!showForm)} 
+              className={cn(
+                "w-12 h-12 flex items-center justify-center transition-all rounded-full",
+                showForm ? "bg-black text-white" : "text-blue-600"
+              )}
+            >
+              {showForm ? <Plus className="w-7 h-7 rotate-45 transition-transform" /> : <Plus className="w-7 h-7" />}
+            </button>
+          </div>
+        </div>
+
+        {/* ── HEADER DESKTOP ─────────────────────── */}
+        <header className="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <Users className="w-6 h-6 text-slate-900" />
-              <h1 className="text-3xl md:text-2xl font-black text-slate-900 tracking-tight">Gestión de Clientes</h1>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Gestión de Clientes</h1>
             </div>
-            <p className="text-lg md:text-sm font-bold md:font-normal text-slate-500 leading-tight">
+            <p className="text-sm font-normal text-slate-500 leading-tight">
               Administrá la base de datos de tus clientes y sus notas personalizadas.
             </p>
           </div>
           <Button 
             onClick={() => setShowForm(!showForm)}
-            className="h-14 md:h-10 text-xl md:text-sm font-black md:font-bold rounded-2xl md:rounded-xl gap-2 w-full sm:w-auto mt-2 sm:mt-0"
+            className="h-10 text-sm font-bold rounded-xl gap-2 w-full sm:w-auto mt-2 sm:mt-0"
           >
             {showForm ? <Plus className="w-4 h-4 rotate-45 transition-transform" /> : <Plus className="w-4 h-4" />}
             {showForm ? 'Cerrar' : 'Nuevo Cliente'}

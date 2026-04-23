@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Menu } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const emptyForm = { name: '', duration: '', price: '', description: '' }
 
@@ -15,6 +17,7 @@ export default function ServicesPage() {
   const [form, setForm] = useState(emptyForm)
   const [editing, setEditing] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const fetchServices = async () => {
     try {
@@ -77,10 +80,32 @@ export default function ServicesPage() {
   }
 
   return (
-    <Layout>
-      <div className="mb-6 lg:mb-8">
-        <h1 className="text-3xl lg:text-xl font-black text-slate-900 tracking-tighter">Servicios</h1>
-        <p className="text-lg lg:text-sm font-bold lg:font-normal text-slate-500 mt-1 lg:mt-0.5">Administrá los servicios que ofrecés</p>
+    <Layout 
+      maxWidth="max-w-7xl"
+      hideMobileHeader={true}
+      mobileMenuState={[isMenuOpen, setIsMenuOpen]}
+    >
+      {/* 1. MASTER HEADER MÓVIL (Pattern AgendaPage) */}
+      <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 h-16 flex items-center justify-between relative mb-6">
+        {/* Left: Menu Icon */}
+        <div className="min-w-[48px]">
+          <button onClick={() => setIsMenuOpen(true)} className="w-12 h-12 flex items-center justify-center text-black">
+            <Menu className="w-8 h-8" />
+          </button>
+        </div>
+
+        {/* Center: Title */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="text-3xl font-black text-black tracking-tighter">Servicios</span>
+        </div>
+
+        {/* Right: Actions (Empty for now or add a Plus icon) */}
+        <div className="min-w-[48px]" />
+      </div>
+
+      <div className="hidden lg:block mb-6 lg:mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Servicios</h1>
+        <p className="text-sm font-normal text-slate-500 mt-0.5">Administrá los servicios que ofrecés</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

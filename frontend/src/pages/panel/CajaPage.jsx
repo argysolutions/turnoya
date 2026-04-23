@@ -715,8 +715,15 @@ export default function CajaPage() {
   const changeDate = (delta) =>
     setDate(fnsAddDays(new Date(date + 'T12:00:00'), delta).toISOString().split('T')[0])
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  
+  // ... rest of logic
   return (
-    <Layout>
+    <Layout 
+      maxWidth="max-w-7xl"
+      hideMobileHeader={true}
+      mobileMenuState={[isMenuOpen, setIsMenuOpen]}
+    >
       <div className={`transition-all duration-700 ${isOwner && !activeProfile ? 'blur-3xl grayscale-[0.2] brightness-95 opacity-80 pointer-events-none select-none' : ''}`}>
         <TooltipProvider>
           {/*
@@ -724,93 +731,100 @@ export default function CajaPage() {
             En desktop: w-3/4 Ledger + w-1/4 Sidebar fijo.
             En mobile: columna única.
           */}
-          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto">
-
-
-          {/* ═══════════════════════════════════════════
-              COLUMNA LEDGER (3/4 desktop, full mobile)
-          ══════════════════════════════════════════════ */}
-          <div className="flex-1 min-w-0 flex flex-col gap-4 pb-10">
-
-            {/* ── HEADER ─────────────────────────────── */}
-            <div className="flex items-center gap-3 sticky top-[41px] lg:top-14 z-40 bg-white -mx-4 px-4 pt-1 pb-2 border-b border-slate-100/80 mb-0">
-
-              {/* Título CAJA + Privacy Toggle */}
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="flex flex-col">
-                  <h1 className="text-3xl md:text-xl font-black md:font-semibold text-slate-900 tracking-tight md:tracking-normal">
-                    {String(role).toLowerCase() === 'employee' ? 'Mis Ingresos' : 'Caja'}
-                  </h1>
-                  <p className="text-sm md:text-[10px] text-slate-500 font-bold md:font-medium hidden sm:block">
-                    {String(role).toLowerCase() === 'employee' ? 'Resumen de tus cobros' : 'Control de ventas y gastos'}
-                  </p>
-                </div>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      id="privacy-toggle"
-                      onClick={() => setHidden(!hidden)}
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
-                        hidden
-                          ? 'bg-blue-50 text-blue-500 ring-1 ring-blue-100'
-                          : 'text-slate-300 hover:text-slate-500 hover:bg-white'
-                      }`}
-                    >
-                      {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-[10px]">
-                    {hidden ? 'Mostrar montos' : 'Ocultar montos'}
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-
-              {/* Selector de fecha centrado */}
-              <div className="flex-1 flex justify-center">
-                <div className="flex items-center gap-1 bg-white border border-slate-100 rounded-xl p-0.5 shadow-sm">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700"
-                    onClick={() => changeDate(-1)}
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </Button>
-                  <button
-                    id="date-picker-trigger"
-                    onClick={() => setIsCalendarExpanded(true)}
-                    className="px-4 md:px-3 text-sm md:text-[10px] font-black uppercase tracking-tight text-slate-700 min-w-[80px] md:min-w-[64px] text-center hover:text-slate-900 transition-colors"
-                  >
-                    {isToday ? 'HOY' : fmtDateShort(date)}
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700"
-                    onClick={() => changeDate(1)}
-                    disabled={isToday}
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Hamburger (solo en mobile, solo para dueño que tiene el panel de gestión) */}
-              {isOwner ? (
-                <button
-                  id="management-drawer-trigger"
-                  onClick={() => setShowManagementDrawer(true)}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-100 transition-all lg:hidden shrink-0"
-                >
-                  <MoreVertical className="w-5 h-5" />
-                </button>
-              ) : (
-                <div className="w-9 h-9 shrink-0 lg:hidden" />
-              )}
-
-              {/* Spacer invisible para desktop (mantiene la fecha centrada) */}
-              <div className="hidden lg:block w-[36px] shrink-0" />
+        <TooltipProvider>
+          {/* 1. MASTER HEADER MÓVIL (Pattern AgendaPage) */}
+          <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 h-16 flex items-center justify-between relative">
+            {/* Left: Menu Icon */}
+            <div className="min-w-[48px]">
+              <button onClick={() => setIsMenuOpen(true)} className="w-12 h-12 flex items-center justify-center text-black">
+                <Menu className="w-8 h-8" />
+              </button>
             </div>
+
+            {/* Center: Title */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-3xl font-black text-black tracking-tighter">Caja</span>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-1 min-w-[48px] justify-end">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setHidden(!hidden)}
+                    className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                      hidden ? "bg-blue-50 text-blue-600" : "text-slate-400"
+                    )}
+                  >
+                    {hidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Privacidad</TooltipContent>
+              </Tooltip>
+              
+              <button 
+                onClick={() => setIsCalendarExpanded(true)}
+                className="w-10 h-10 flex items-center justify-center text-blue-600"
+              >
+                <Search className="w-6 h-6" />
+              </button>
+
+              {isOwner && (
+                <button 
+                  onClick={() => setShowManagementDrawer(true)}
+                  className="w-10 h-10 flex items-center justify-center text-slate-400"
+                >
+                  <MoreVertical className="w-6 h-6" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto">
+            {/* ═══════════════════════════════════════════
+                COLUMNA LEDGER (3/4 desktop, full mobile)
+            ══════════════════════════════════════════════ */}
+            <div className="flex-1 min-w-0 flex flex-col gap-4 pb-10">
+
+              {/* ── HEADER DESKTOP ─────────────────────── */}
+              <div className="hidden lg:flex items-center gap-3 sticky top-14 z-40 bg-white -mx-4 px-4 pt-1 pb-2 border-b border-slate-100/80 mb-2">
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-col">
+                    <h1 className="text-xl font-semibold text-slate-900">
+                      {String(role).toLowerCase() === 'employee' ? 'Mis Ingresos' : 'Caja'}
+                    </h1>
+                    <p className="text-[10px] text-slate-500 font-medium">
+                      {String(role).toLowerCase() === 'employee' ? 'Resumen de tus cobros' : 'Control de ventas y gastos'}
+                    </p>
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setHidden(!hidden)}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                          hidden ? 'bg-blue-50 text-blue-500 ring-1 ring-blue-100' : 'text-slate-300 hover:text-slate-500 hover:bg-white'
+                        }`}
+                      >
+                        {hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Privacidad</TooltipContent>
+                  </Tooltip>
+                </div>
+
+                <div className="flex-1 flex justify-center">
+                  <div className="flex items-center gap-1 bg-white border border-slate-100 rounded-xl p-0.5 shadow-sm">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-slate-400" onClick={() => changeDate(-1)}><ChevronLeft className="w-3.5 h-3.5" /></Button>
+                    <button onClick={() => setIsCalendarExpanded(true)} className="px-3 text-[10px] font-black uppercase tracking-tight text-slate-700 min-w-[64px] text-center">
+                      {isToday ? 'HOY' : fmtDateShort(date)}
+                    </button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-slate-400" onClick={() => changeDate(1)} disabled={isToday}><ChevronRight className="w-3.5 h-3.5" /></Button>
+                  </div>
+                </div>
+
+                <div className="w-[36px] shrink-0" />
+              </div>
 
             {/* ── SESSION BANNER (Solo Dueño) ───────────── */}
             {String(role).toLowerCase() !== 'employee' && (

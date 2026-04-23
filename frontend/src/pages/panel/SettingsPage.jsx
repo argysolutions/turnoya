@@ -29,24 +29,30 @@ import {
   Key,
   Pencil,
   X,
+  Menu
 } from 'lucide-react'
 
 export default function SettingsPage() {
   const { role, isEmployee, loading } = useAuth()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   if (loading) return null
 
   // Bifurcación: empleados ven su perfil, dueños ven configuración completa
   const isActuallyEmployee = String(role).toLowerCase() === 'employee' || isEmployee
 
-  if (isActuallyEmployee) {
-    return <EmployeeProfile />
-  }
-
-  return <BusinessSettings />
+  return (
+    <Layout 
+      maxWidth="max-w-7xl"
+      hideMobileHeader={true}
+      mobileMenuState={[isMenuOpen, setIsMenuOpen]}
+    >
+      <BusinessSettings isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+    </Layout>
+  )
 }
 
-function BusinessSettings() {
+function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
   const [googleStatus, setGoogleStatus] = useState({ linked: false, updated_at: null })
   const [settings, setSettings] = useState({
     cancellation_policy: '',
@@ -251,7 +257,7 @@ function BusinessSettings() {
   }
 
   return (
-    <Layout>
+    <>
       {isRestricted ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
@@ -262,9 +268,36 @@ function BusinessSettings() {
         </div>
       ) : (
         <>
-          <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between pt-1">
+          {/* 1. MASTER HEADER MÓVIL (Pattern AgendaPage) */}
+          <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 h-16 flex items-center justify-between relative mb-6">
+            {/* Left: Menu Icon */}
+            <div className="min-w-[48px]">
+              <button onClick={() => setIsMenuOpen(true)} className="w-12 h-12 flex items-center justify-center text-black">
+                <Menu className="w-8 h-8" />
+              </button>
+            </div>
+
+            {/* Center: Title */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-3xl font-black text-black tracking-tighter">Configuración</span>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center min-w-[48px] justify-end">
+              <Button 
+                onClick={handleSave} 
+                disabled={saving} 
+                variant="ghost"
+                className="text-blue-600 font-bold"
+              >
+                {saving ? '...' : 'Guardar'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex mb-6 flex-col sm:flex-row gap-4 items-start sm:items-center justify-between pt-1">
             <div>
-              <h1 className="text-xl font-semibold text-slate-900">Configuración</h1>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración</h1>
               <p className="text-sm text-slate-500 mt-0.5">Gestioná las reglas de tu negocio e integraciones.</p>
             </div>
             <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto h-11 sm:h-10 shadow-md">
@@ -687,6 +720,6 @@ function BusinessSettings() {
           </Tabs>
         </>
       )}
-    </Layout>
+    </>
   )
 }
