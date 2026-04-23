@@ -585,9 +585,11 @@ export default function CajaPage() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [businessSettings, setBusinessSettings] = useState(null)
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
+  const [isDetailExpanded, setIsDetailExpanded] = useState(false)
   const [ledgerFilter, setLedgerFilter] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [activeLedgerTab, setActiveLedgerTab] = useState('todos') // todos, ingresos, egresos
+  const [showOpeningModal, setShowOpeningModal] = useState(false)
 
   // Filtrado final de Ledger (Tabs + Search + Roles)
   const ledgerEntries = useMemo(() => {
@@ -642,7 +644,6 @@ export default function CajaPage() {
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showCierreModal, setShowCierreModal] = useState(false)
   const [drawerSale, setDrawerSale] = useState(null)
-  const [isDetailExpanded, setIsDetailExpanded] = useState(false)
 
   // Recuperar privacy_mode desde prefs cifradas apenas la clave esté lista
   useEffect(() => {
@@ -679,10 +680,14 @@ export default function CajaPage() {
       setSales(allSales)
 
       setSession(sessionRes.data.session)
+      // Si la sesión no está abierta, mostramos el modal de apertura
+      if (sessionRes.data.session?.status !== 'open' && isOwner) {
+        setShowOpeningModal(true)
+      }
       setBusinessSettings(settingsRes.data)
       setExpenses(expensesRes.data.expenses || [])
     } finally { setLoading(false); setSessionLoading(false) }
-  }, [date, authLoading, isEmployee, role])
+  }, [date, authLoading, isEmployee, role, isOwner])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -883,17 +888,8 @@ export default function CajaPage() {
                 <div className="w-[36px] shrink-0" />
               </div>
 
-            {/* ── SESSION BANNER (Solo Dueño) ───────────── */}
-            {String(role).toLowerCase() !== 'employee' && (
-              <SessionBanner
-                session={session}
-                loading={sessionLoading}
-                onOpen={handleOpenCaja}
-                onOpenCierre={() => setShowCierreModal(true)}
-                onOpenManagement={() => setShowManagementDrawer(true)}
-                isOwner={isOwner}
-              />
-            )}
+            {/* ── SESSION BANNER ───────────── */}
+            {null}
 
             {/* ── DOS TARJETAS PRINCIPALES (Solo Dueño) ───────────── */}
             {isOwner && (
@@ -1169,6 +1165,57 @@ export default function CajaPage() {
               onClose={() => setShowCierreModal(false)}
               onClosed={s => { setSession(s); fetchData() }}
             />
+          )}
+        </AnimatePresence>
+
+        {/* ── MODAL APERTURA DE CAJA (Emergente) ────── */}
+        <AnimatePresence>
+          {showOpeningModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setShowOpeningModal(false)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="relative bg-white w-full max-w-[340px] rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center text-center overflow-hidden"
+              >
+                {/* Close Button */}
+                <button 
+                  onClick={() => setShowOpeningModal(false)}
+                  className="absolute top-5 right-5 w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="w-20 h-20 rounded-[2rem] bg-blue-50 flex items-center justify-center mb-6">
+                  <Lock className="w-10 h-10 text-blue-600" />
+                </div>
+
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">Caja Cerrada</h3>
+                <p className="text-sm text-slate-500 font-medium mb-8">Para registrar ventas y gastos debés iniciar la sesión del día.</p>
+
+                <Button 
+                  onClick={() => {
+                    handleOpenCaja();
+                    setShowOpeningModal(false);
+                  }} 
+                  className="h-16 w-full rounded-2xl bg-blue-600 text-white text-lg font-black uppercase tracking-widest shadow-xl shadow-blue-200 active:scale-95 transition-all"
+                >
+                  Iniciar Sesión
+                </Button>
+
+                <button 
+                  onClick={() => setShowOpeningModal(false)}
+                  className="mt-6 text-xs font-black uppercase tracking-widest text-slate-300 hover:text-slate-500 transition-colors"
+                >
+                  Ver Movimientos
+                </button>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
