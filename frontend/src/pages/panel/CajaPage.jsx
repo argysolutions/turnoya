@@ -106,7 +106,7 @@ function SessionBanner({ session, onOpen, onOpenCierre, onOpenManagement, loadin
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black uppercase text-emerald-900 tracking-wider">Sesión Abierta</span>
+            <span className="text-xs font-black uppercase text-emerald-900 tracking-wider">Sesión Abierta</span>
           </div>
           <div className="h-3 w-px bg-emerald-200 hidden sm:block" />
           <span className="text-[10px] font-bold text-emerald-600 hidden sm:block">Inicio: {fmt(session.initial_amount)}</span>
@@ -116,15 +116,15 @@ function SessionBanner({ session, onOpen, onOpenCierre, onOpenManagement, loadin
             <Button
               onClick={onOpenCierre}
               variant="ghost"
-              className="h-7 px-2.5 text-[9px] font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
+              className="h-9 px-3 text-xs font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl"
             >
               Cerrar Caja
             </Button>
             <button 
               onClick={onOpenManagement}
-              className="h-7 w-7 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg active:scale-90 transition-transform"
+              className="h-9 w-9 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-xl active:scale-90 transition-transform"
             >
-              <MoreVertical className="w-3.5 h-3.5" />
+              <MoreVertical className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -171,22 +171,22 @@ function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Unlock className="w-3.5 h-3.5 text-amber-600" />
-            <span className="text-[10px] font-black uppercase text-amber-900 tracking-wider">Caja Cerrada</span>
+            <span className="text-xs font-black uppercase text-amber-900 tracking-wider">Caja Cerrada</span>
           </div>
           {!formOpen && (
             <div className="flex items-center gap-2">
               <Button
                 onClick={() => setFormOpen(true)}
                 variant="ghost"
-                className="h-7 px-2.5 text-[9px] font-black uppercase bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg"
+                className="h-9 px-4 text-xs font-black uppercase bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-xl"
               >
                 Abrir Sesión
               </Button>
               <button 
                 onClick={onOpenManagement}
-                className="h-7 w-7 flex items-center justify-center bg-amber-100 text-amber-700 rounded-lg active:scale-90 transition-transform"
+                className="h-9 w-9 flex items-center justify-center bg-amber-100 text-amber-700 rounded-xl active:scale-90 transition-transform"
               >
-                <MoreVertical className="w-3.5 h-3.5" />
+                <MoreVertical className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -733,7 +733,7 @@ export default function CajaPage() {
           <div className="flex-1 min-w-0 flex flex-col gap-4 pb-10">
 
             {/* ── HEADER ─────────────────────────────── */}
-            <div className="flex items-center gap-3 sticky top-14 z-40 bg-white -mx-4 px-4 pt-1 pb-2 border-b border-slate-100/80 mb-2">
+            <div className="flex items-center gap-3 sticky top-[41px] lg:top-14 z-40 bg-white -mx-4 px-4 pt-1 pb-2 border-b border-slate-100/80 mb-0">
 
               {/* Título CAJA + Privacy Toggle */}
               <div className="flex items-center gap-2 shrink-0">
