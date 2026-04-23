@@ -436,7 +436,7 @@ function ManagementContent({
       {/* Operaciones — solo visibles para el dueño */}
       {isOwner && (
         <div>
-          <p className="text-xs md:text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 md:px-3 mb-2 md:mb-1">Operaciones</p>
+          <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-400 px-4 md:px-3 mb-4 md:mb-1">Operaciones</p>
           <div className="space-y-1 md:space-y-0.5">
             <Item icon={PlusCircle} label="Registrar Gasto" onClick={onOpenExpenseModal} />
             {session?.status === 'open' && (
@@ -449,7 +449,7 @@ function ManagementContent({
       {/* Arqueo de Caja */}
       {session?.status === 'open' && (
         <div>
-          <p className="text-xs md:text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 md:px-3 mb-3 md:mb-2">Arqueo de Caja</p>
+          <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-400 px-4 md:px-3 mb-4 md:mb-2">Arqueo de Caja</p>
           <div className="mx-2 md:mx-1 p-5 md:p-4 rounded-3xl md:rounded-2xl bg-blue-950 text-white shadow-lg">
             <div className="flex justify-between items-center">
               <div>
@@ -468,7 +468,7 @@ function ManagementContent({
       {/* Comisiones Staff */}
       {professionals.length > 0 && commissionRate > 0 && (
         <div>
-          <p className="text-xs md:text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 md:px-3 mb-3 md:mb-2">Comisiones Staff ({commissionRate}%)</p>
+          <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-400 px-4 md:px-3 mb-4 md:mb-2">Comisiones Staff ({commissionRate}%)</p>
           <div className="mx-2 md:mx-1 space-y-2 md:space-y-1">
             {professionals.map(p => (
               <div key={p.name} className="flex items-center justify-between p-4 md:p-2 rounded-2xl md:rounded-xl bg-slate-50 border border-slate-100">
@@ -485,7 +485,7 @@ function ManagementContent({
 
       {/* Exportación */}
       <div>
-        <p className="text-xs md:text-[9px] font-black uppercase tracking-widest text-slate-400 px-4 md:px-3 mb-2 md:mb-1">Exportar Cierre</p>
+        <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter md:tracking-widest text-slate-400 px-4 md:px-3 mb-4 md:mb-1">Exportar Cierre</p>
         <div className="space-y-1 md:space-y-0.5">
           <Item icon={Share2} label="Enviar por WhatsApp" onClick={handleWhatsAppExport} />
           <Item icon={FileText} label="Descargar TXT" onClick={handleTXTDownload} />
@@ -823,7 +823,7 @@ export default function CajaPage() {
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
                   </div>
                   <div className="flex items-end gap-3 mb-3 mt-1">
-                    <p className="text-5xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
+                    <p className="text-4xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
                       {display(digitalTotal)}
                     </p>
                     <button
@@ -861,7 +861,7 @@ export default function CajaPage() {
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
                   </div>
                   <div className="flex items-end gap-3 mb-3 mt-1">
-                    <p className="text-5xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
+                    <p className="text-4xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
                       {display(efectivoTotal)}
                     </p>
                     <button
@@ -907,18 +907,18 @@ export default function CajaPage() {
                     >
                       <div className="px-5 pb-5 grid grid-cols-3 gap-3 border-t border-slate-50">
                         <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100/60 mt-4">
-                          <p className="text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
-                          <p className="text-2xl md:text-lg font-black md:font-semibold text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
+                          <p className="text-[10px] md:text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
+                          <p className="text-3xl md:text-lg font-black md:font-semibold text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
                         </div>
                         <div className="text-center p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/40 mt-4">
-                          <p className="text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
-                          <p className="text-2xl md:text-lg font-black md:font-semibold text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
-                          <p className="text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
+                          <p className="text-[10px] md:text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
+                          <p className="text-3xl md:text-lg font-black md:font-semibold text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
+                          <p className="text-xs md:text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
                         </div>
                         <div className="text-center p-4 rounded-2xl bg-red-50/50 border border-red-100/30 mt-4">
-                          <p className="text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos Totales</p>
-                          <p className="text-2xl md:text-lg font-black md:font-semibold text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
-                          <p className="text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
+                          <p className="text-[10px] md:text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos Totales</p>
+                          <p className="text-3xl md:text-lg font-black md:font-semibold text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
+                          <p className="text-xs md:text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
                         </div>
                       </div>
                     </motion.div>
@@ -984,7 +984,7 @@ export default function CajaPage() {
                           }`} />
 
                           <div className="min-w-0">
-                            <p className="text-xl md:text-sm font-black md:font-semibold text-slate-800 truncate leading-snug">
+                            <p className="text-2xl md:text-sm font-black md:font-semibold text-slate-800 truncate leading-snug">
                               {entry.description}
                             </p>
                             <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 mt-0.5">
@@ -1017,7 +1017,7 @@ export default function CajaPage() {
                         </div>
 
                         {/* Right: amount */}
-                        <span className={`text-2xl md:text-sm font-black tabular-nums shrink-0 ml-4 tracking-tighter md:tracking-normal ${
+                        <span className={`text-3xl md:text-sm font-black tabular-nums shrink-0 ml-4 tracking-tighter md:tracking-normal ${
                           entry.type === 'income' ? 'text-emerald-600' : 'text-red-500'
                         }`}>
                           <span className={hidden ? 'blur-md select-none' : ''}>
