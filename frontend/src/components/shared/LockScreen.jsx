@@ -82,7 +82,7 @@ export default function LockScreen({ onUnlock }) {
           professional_name: data.name,
         }
         setActiveProfile(profile)
-        toast.success(`Bienvenido, ${data.name}`)
+
         onUnlock?.(profile)
       }
     } catch (err) {
