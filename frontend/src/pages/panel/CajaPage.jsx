@@ -423,8 +423,6 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
       </DialogContent>
     </Dialog>
   )
-    </Dialog>
-  )
 }
 
 // ─── Sale Detail Drawer ───────────────────────────────────────────────────────
