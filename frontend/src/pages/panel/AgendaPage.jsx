@@ -605,19 +605,19 @@ export default function AgendaPage() {
                     ref={isActive ? activeTabRef : null}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "relative flex-1 flex-shrink-1 snap-center min-w-0 lg:min-w-[118px] whitespace-nowrap flex flex-col items-center justify-center gap-0.5 py-2 rounded-full font-black tracking-tighter z-10 transition-all active:scale-95",
+                      "relative flex-1 flex-shrink-1 snap-center min-w-0 lg:min-w-[130px] whitespace-nowrap flex flex-col items-center justify-center gap-1 py-3 lg:py-4 rounded-full font-black tracking-tighter z-10 transition-all active:scale-95",
                       isActive ? "text-slate-900" : "text-slate-500"
                     )}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="activeTabPill"
-                        className="absolute inset-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] rounded-full -z-10"
+                        className="absolute inset-0 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] rounded-full -z-10"
                         transition={{ type: "spring", stiffness: 400, damping: 35 }}
                       />
                     )}
-                    <Icon className={cn("w-4 h-4", isActive ? tab.color : "opacity-40")} />
-                    <span className="text-sm lg:text-xl font-black uppercase tracking-tighter">{tab.label}</span>
+                    <Icon className={cn("w-5 h-5 lg:w-6 lg:h-6", isActive ? tab.color : "opacity-40")} />
+                    <span className="text-base lg:text-2xl font-black uppercase tracking-tighter">{tab.label}</span>
                   </button>
                 );
               })}
