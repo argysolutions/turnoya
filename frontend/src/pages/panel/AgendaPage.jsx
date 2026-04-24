@@ -613,7 +613,7 @@ export default function AgendaPage() {
                     )}
                   >
                     <Icon className={cn("w-5 h-5 transition-transform duration-300", isActive && "-translate-y-0.5")} />
-                    <span className="text-[10px] uppercase tracking-tighter leading-tight">{tab.label}</span>
+                    <span className="text-xs uppercase tracking-tighter leading-tight">{tab.label}</span>
                   </button>
                 );
               })}
