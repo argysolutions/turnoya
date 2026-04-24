@@ -531,46 +531,50 @@ function ManagementContent({
   )
 }
 
-// ─── Management Drawer (Mobile) ───────────────────────────────────────────────
+// ─── Management Drawer (Mobile Bottom Sheet) ──────────────────────────────────
 function ManagementDrawer({ onClose, ...contentProps }) {
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className="fixed inset-0 z-[100] flex items-end">
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/25 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
       />
       <motion.div
-        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-        className="relative bg-white w-[85vw] max-w-sm border-l border-slate-100 shadow-2xl h-full flex flex-col"
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={{ left: 0, right: 0.3 }}
-        onDragEnd={(_, info) => { if (info.offset.x > 80) onClose() }}
+        initial={{ y: '100%' }} 
+        animate={{ y: 0 }} 
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="relative bg-white w-full rounded-t-[3.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.15)] h-[85vh] flex flex-col overflow-hidden"
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.8 }}
+        onDragEnd={(_, info) => { if (info.offset.y > 150) onClose() }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle visual */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-slate-200 rounded-full -ml-0.5 opacity-60" />
+        <div className="flex justify-center p-4 shrink-0">
+          <div className="w-12 h-1.5 bg-slate-200 rounded-full" />
+        </div>
 
         {/* Header */}
-        <div className="px-5 py-6 md:py-4 border-b border-slate-100 flex items-center gap-4 md:gap-3 shrink-0">
+        <div className="px-8 py-4 border-b border-slate-50 flex items-center justify-between shrink-0">
+          <h2 className="text-xl font-black uppercase tracking-tighter text-slate-800">Gestión y Reportes</h2>
           <button
             onClick={onClose}
-            className="w-12 h-12 md:w-8 md:h-8 rounded-2xl md:rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
           >
-            <ChevronLeft className="w-6 h-6 md:w-5 md:h-5" />
+            <X className="w-6 h-6" />
           </button>
-          <h2 className="text-sm md:text-sm font-black uppercase tracking-tighter md:tracking-widest text-slate-800">Gestión y Reportes</h2>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-4 pb-10 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-6 pb-20 scrollbar-hide">
           <ManagementContent {...contentProps} />
         </div>
 
-        <div className="px-6 py-6 md:py-4 border-t border-slate-100 shrink-0">
-          <Button variant="ghost" className="w-full h-14 md:h-10 uppercase font-black text-xs md:text-[10px] tracking-widest text-slate-400 md:text-slate-300 rounded-2xl md:rounded-xl" onClick={onClose}>Cerrar Panel</Button>
+        <div className="px-8 py-6 border-t border-slate-50 shrink-0 bg-white">
+          <Button variant="ghost" className="w-full h-14 uppercase font-black text-xs tracking-widest text-slate-400 rounded-2xl" onClick={onClose}>Cerrar Panel</Button>
         </div>
       </motion.div>
     </div>
@@ -1175,12 +1179,12 @@ export default function CajaPage() {
               SIDEBAR DERECHO (solo Desktop — 1/4, solo dueño)
           ══════════════════════════════════════════════ */}
           {isOwner && (
-            <aside className="hidden lg:flex flex-col w-[260px] xl:w-[280px] shrink-0">
-              <div className="sticky top-16 bg-white rounded-2xl border border-slate-100 shadow-md overflow-hidden">
-                <div className="px-4 pt-4 pb-2 border-b border-slate-50">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Gestión y Reportes</p>
+            <aside className="hidden lg:flex flex-col w-[280px] xl:w-[320px] shrink-0">
+              <div className="sticky top-16 bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden">
+                <div className="px-6 pt-6 pb-2 border-b border-slate-50">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Gestión y Reportes</p>
                 </div>
-                <div className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-8rem)] scrollbar-hide">
+                <div className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-8rem)] scrollbar-hide">
                   <ManagementContent {...managementProps} />
                 </div>
               </div>
