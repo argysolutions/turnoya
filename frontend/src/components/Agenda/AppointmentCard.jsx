@@ -28,6 +28,8 @@ const getCardColors = (status) => {
     case 'pending_block': 
     case 'rescheduled':
       return 'bg-amber-50/70 border-amber-200/60 text-amber-900';
+    case 'rescheduled_origin':
+      return 'bg-slate-50 border-slate-200 text-slate-400 italic';
     case 'confirmed': 
       return 'bg-emerald-50/70 border-emerald-200/60 text-emerald-900';
     case 'completed': 

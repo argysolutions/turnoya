@@ -53,11 +53,13 @@ const AppointmentDetailDialog = ({ appointment, isOpen, onClose, onUpdateStatus,
                     "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm",
                     appointment.status === 'confirmed' ? "bg-emerald-50 border-emerald-100 text-emerald-600" :
                     appointment.status === 'rescheduled' ? "bg-blue-50 border-blue-100 text-blue-600" :
+                    appointment.status === 'rescheduled_origin' ? "bg-slate-100 border-slate-200 text-slate-500" :
                     appointment.status === 'pending' ? "bg-amber-50 border-amber-100 text-amber-600" :
                     "bg-slate-100 border-slate-200 text-slate-500"
                   )}>
                     {appointment.status === 'confirmed' ? 'Confirmado' : 
                      appointment.status === 'rescheduled' ? 'Reprogramado' : 
+                     appointment.status === 'rescheduled_origin' ? 'Reprogramado (Original)' : 
                      appointment.status === 'pending' ? 'Pendiente' : 
                      appointment.status.toUpperCase()}
                   </span>
