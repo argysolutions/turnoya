@@ -687,6 +687,7 @@ export default function CajaPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [activeLedgerTab, setActiveLedgerTab] = useState('todos') // todos, ingresos, egresos
   const [showOpeningModal, setShowOpeningModal] = useState(false)
+  const [showSubDashboard, setShowSubDashboard] = useState(false)
   const [isIncomeExpanded, setIsIncomeExpanded] = useState(false)
   const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
   const [isNetExpanded, setIsNetExpanded] = useState(false)
@@ -992,6 +993,17 @@ export default function CajaPage() {
                   <div className="bg-slate-950 rounded-[3rem] p-8 shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full -mr-32 -mt-32 blur-[100px] group-hover:bg-blue-500/20 transition-colors duration-1000" />
                     
+                    {/* Trigger Sub-Dashboard */}
+                    <button 
+                      onClick={() => setShowSubDashboard(!showSubDashboard)}
+                      className={cn(
+                        "absolute top-6 right-6 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all z-10",
+                        showSubDashboard && "bg-blue-600 text-white border-blue-500 rotate-90"
+                      )}
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+
                     <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-8">
                       {/* Efectivo */}
                       <div className="flex items-center gap-6">
@@ -1027,143 +1039,156 @@ export default function CajaPage() {
                   </div>
                 )}
 
-                {/* 2. Métricas de Resumen (Bruto, Gastos, Neto) */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="md:col-span-3 bg-white rounded-[3rem] border border-slate-100 p-2 shadow-sm flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center justify-between p-4 gap-6">
-                      {/* Ventas Brutas */}
-                      <div 
-                        className={cn(
-                          "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group",
-                          isIncomeExpanded ? "bg-slate-50 shadow-lg ring-1 ring-slate-100" : "hover:bg-slate-50/50"
-                        )}
-                        onClick={() => { setIsIncomeExpanded(!isIncomeExpanded); setIsExpensesExpanded(false); setIsNetExpanded(false); }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Ventas Brutas</p>
-                          <ChevronRight className={cn("w-3 h-3 text-slate-300 transition-transform", isIncomeExpanded && "rotate-90")} />
-                        </div>
-                        <p className={cn("text-2xl font-black text-slate-900 tracking-tighter", hidden && "blur-md")}>
-                          {display(summary?.totalIncome || 0)}
-                        </p>
-                      </div>
-                      
-                      {/* Gastos Totales */}
-                      <div 
-                        className={cn(
-                          "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group border-l border-slate-50",
-                          isExpensesExpanded ? "bg-rose-50/30 shadow-lg ring-1 ring-rose-100" : "hover:bg-slate-50/50"
-                        )}
-                        onClick={() => { setIsExpensesExpanded(!isExpensesExpanded); setIsIncomeExpanded(false); setIsNetExpanded(false); }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <p className="text-[10px] font-black uppercase text-rose-400 tracking-widest">Gastos Totales</p>
-                          <ChevronRight className={cn("w-3 h-3 text-rose-300 transition-transform", isExpensesExpanded && "rotate-90")} />
-                        </div>
-                        <p className={cn("text-2xl font-black text-rose-600 tracking-tighter", hidden && "blur-md")}>
-                          {display(summary?.totalExpenses || 0)}
-                        </p>
-                      </div>
-
-                      {/* Balance Neto */}
-                      <div 
-                        className={cn(
-                          "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group border-l border-slate-50",
-                          isNetExpanded ? "bg-blue-50 shadow-lg ring-1 ring-blue-100" : "bg-slate-50/50 hover:bg-blue-50/50"
-                        )}
-                        onClick={() => { setIsNetExpanded(!isNetExpanded); setIsIncomeExpanded(false); setIsExpensesExpanded(false); }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest">Balance Neto</p>
-                          <ChevronRight className={cn("w-3 h-3 text-blue-300 transition-transform", isNetExpanded && "rotate-90")} />
-                        </div>
-                        <p className={cn("text-3xl font-black text-blue-600 tracking-tighter", hidden && "blur-md")}>
-                          {display(summary?.netBalance || 0)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                      {isIncomeExpanded && (
-                        <motion.div
-                          key="income-breakdown"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden border-t border-slate-50"
-                        >
-                          <div className="p-4 grid grid-cols-3 gap-3">
-                            {['Efectivo', 'Transferencia', 'Tarjeta'].map(method => {
-                              const data = byMethod[method] || { total: 0 };
-                              return (
-                                <div key={method} className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50 text-center">
-                                  <p className="text-[9px] font-black uppercase text-slate-400 mb-0.5 tracking-tighter">{method}</p>
-                                  <p className={cn("text-sm font-black text-slate-700", hidden && "blur-sm")}>{display(data.total)}</p>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {isExpensesExpanded && (
-                        <motion.div
-                          key="expenses-breakdown"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden border-t border-slate-50"
-                        >
-                          <div className="p-4 flex flex-wrap gap-3">
-                            {Object.entries(
-                              expenses.reduce((acc, e) => {
-                                acc[e.category] = (acc[e.category] || 0) + e.amount
-                                return acc
-                              }, {})
-                            ).map(([cat, total]) => (
-                              <div key={cat} className="flex-1 min-w-[100px] bg-rose-50/30 p-3 rounded-2xl border border-rose-100/30 text-center">
-                                <p className="text-[9px] font-black uppercase text-rose-400 mb-0.5 tracking-tighter">{cat}</p>
-                                <p className={cn("text-sm font-black text-rose-700", hidden && "blur-sm")}>{display(total)}</p>
+                {/* 2. Sub-Dashboard Desplegable (Métricas) */}
+                <AnimatePresence>
+                  {isOwner && showSubDashboard && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0, y: -20 }}
+                      animate={{ height: 'auto', opacity: 1, y: 0 }}
+                      exit={{ height: 0, opacity: 0, y: -20 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pb-4">
+                        <div className="md:col-span-3 bg-white rounded-[3rem] border border-slate-100 p-2 shadow-sm flex flex-col gap-2">
+                          <div className="flex flex-wrap items-center justify-between p-4 gap-6">
+                            {/* Ventas Brutas */}
+                            <div 
+                              className={cn(
+                                "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group",
+                                isIncomeExpanded ? "bg-slate-50 shadow-lg ring-1 ring-slate-100" : "hover:bg-slate-50/50"
+                              )}
+                              onClick={() => { setIsIncomeExpanded(!isIncomeExpanded); setIsExpensesExpanded(false); setIsNetExpanded(false); }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Ventas Brutas</p>
+                                <ChevronRight className={cn("w-3 h-3 text-slate-300 transition-transform", isIncomeExpanded && "rotate-90")} />
                               </div>
-                            ))}
-                            {expenses.length === 0 && (
-                              <p className="w-full text-center py-2 text-[10px] font-bold text-slate-300 uppercase tracking-widest">Sin gastos registrados</p>
+                              <p className={cn("text-2xl font-black text-slate-900 tracking-tighter", hidden && "blur-md")}>
+                                {display(summary?.totalIncome || 0)}
+                              </p>
+                            </div>
+                            
+                            {/* Gastos Totales */}
+                            <div 
+                              className={cn(
+                                "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group border-l border-slate-50",
+                                isExpensesExpanded ? "bg-rose-50/30 shadow-lg ring-1 ring-rose-100" : "hover:bg-slate-50/50"
+                              )}
+                              onClick={() => { setIsExpensesExpanded(!isExpensesExpanded); setIsIncomeExpanded(false); setIsNetExpanded(false); }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <p className="text-[10px] font-black uppercase text-rose-400 tracking-widest">Gastos Totales</p>
+                                <ChevronRight className={cn("w-3 h-3 text-rose-300 transition-transform", isExpensesExpanded && "rotate-90")} />
+                              </div>
+                              <p className={cn("text-2xl font-black text-rose-600 tracking-tighter", hidden && "blur-md")}>
+                                {display(summary?.totalExpenses || 0)}
+                              </p>
+                            </div>
+
+                            {/* Balance Neto */}
+                            <div 
+                              className={cn(
+                                "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group border-l border-slate-50",
+                                isNetExpanded ? "bg-blue-50 shadow-lg ring-1 ring-blue-100" : "bg-slate-50/50 hover:bg-blue-50/50"
+                              )}
+                              onClick={() => { setIsNetExpanded(!isNetExpanded); setIsIncomeExpanded(false); setIsExpensesExpanded(false); }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest">Balance Neto</p>
+                                <ChevronRight className={cn("w-3 h-3 text-blue-300 transition-transform", isNetExpanded && "rotate-90")} />
+                              </div>
+                              <p className={cn("text-3xl font-black text-blue-600 tracking-tighter", hidden && "blur-md")}>
+                                {display(summary?.netBalance || 0)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <AnimatePresence mode="wait">
+                            {isIncomeExpanded && (
+                              <motion.div
+                                key="income-breakdown"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden border-t border-slate-50"
+                              >
+                                <div className="p-4 grid grid-cols-3 gap-3">
+                                  {['Efectivo', 'Transferencia', 'Tarjeta'].map(method => {
+                                    const data = byMethod[method] || { total: 0 };
+                                    return (
+                                      <div key={method} className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50 text-center">
+                                        <p className="text-[9px] font-black uppercase text-slate-400 mb-0.5 tracking-tighter">{method}</p>
+                                        <p className={cn("text-sm font-black text-slate-700", hidden && "blur-sm")}>{display(data.total)}</p>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </motion.div>
                             )}
-                          </div>
-                        </motion.div>
-                      )}
 
-                      {isNetExpanded && (
-                        <motion.div
-                          key="net-breakdown"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden border-t border-slate-50"
-                        >
-                          <div className="p-6 flex items-center justify-around gap-4 bg-blue-50/20">
-                            <div className="text-center">
-                              <p className="text-[9px] font-black uppercase text-emerald-500 mb-1">Ingresos</p>
-                              <p className={cn("text-xl font-black text-emerald-600", hidden && "blur-md")}>+ {display(summary?.totalIncome)}</p>
-                            </div>
-                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black">−</div>
-                            <div className="text-center">
-                              <p className="text-[9px] font-black uppercase text-rose-500 mb-1">Egresos</p>
-                              <p className={cn("text-xl font-black text-rose-600", hidden && "blur-md")}>- {display(summary?.totalExpenses)}</p>
-                            </div>
-                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-black">=</div>
-                            <div className="text-center">
-                              <p className="text-[9px] font-black uppercase text-blue-600 mb-1">Total Neto</p>
-                              <p className={cn("text-xl font-black text-blue-700", hidden && "blur-md")}>{display(summary?.netBalance)}</p>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                            {isExpensesExpanded && (
+                              <motion.div
+                                key="expenses-breakdown"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden border-t border-slate-50"
+                              >
+                                <div className="p-4 flex flex-wrap gap-3">
+                                  {Object.entries(
+                                    expenses.reduce((acc, e) => {
+                                      acc[e.category] = (acc[e.category] || 0) + e.amount
+                                      return acc
+                                    }, {})
+                                  ).map(([cat, total]) => (
+                                    <div key={cat} className="flex-1 min-w-[100px] bg-rose-50/30 p-3 rounded-2xl border border-rose-100/30 text-center">
+                                      <p className="text-[9px] font-black uppercase text-rose-400 mb-0.5 tracking-tighter">{cat}</p>
+                                      <p className={cn("text-sm font-black text-rose-700", hidden && "blur-sm")}>{display(total)}</p>
+                                    </div>
+                                  ))}
+                                  {expenses.length === 0 && (
+                                    <p className="w-full text-center py-2 text-[10px] font-bold text-slate-300 uppercase tracking-widest">Sin gastos registrados</p>
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
 
-                  {/* Operaciones Rápidas */}
-                  <div className="bg-slate-50 rounded-[3rem] p-3 flex gap-2">
+                            {isNetExpanded && (
+                              <motion.div
+                                key="net-breakdown"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden border-t border-slate-50"
+                              >
+                                <div className="p-6 flex items-center justify-around gap-4 bg-blue-50/20">
+                                  <div className="text-center">
+                                    <p className="text-[9px] font-black uppercase text-emerald-500 mb-1">Ingresos</p>
+                                    <p className={cn("text-xl font-black text-emerald-600", hidden && "blur-md")}>+ {display(summary?.totalIncome)}</p>
+                                  </div>
+                                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black">−</div>
+                                  <div className="text-center">
+                                    <p className="text-[9px] font-black uppercase text-rose-500 mb-1">Egresos</p>
+                                    <p className={cn("text-xl font-black text-rose-600", hidden && "blur-md")}>- {display(summary?.totalExpenses)}</p>
+                                  </div>
+                                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-black">=</div>
+                                  <div className="text-center">
+                                    <p className="text-[9px] font-black uppercase text-blue-600 mb-1">Total Neto</p>
+                                    <p className={cn("text-xl font-black text-blue-700", hidden && "blur-md")}>{display(summary?.netBalance)}</p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* 3. Operaciones Rápidas */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="md:col-span-4 bg-slate-50 rounded-[3rem] p-3 flex gap-2">
                     <Button 
                       onClick={() => setIsCalendarExpanded(true)}
                       className="w-16 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-blue-600 shadow-sm hover:bg-blue-50 transition-all active:scale-95 shrink-0"
