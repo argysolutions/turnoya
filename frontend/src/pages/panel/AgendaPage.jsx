@@ -589,7 +589,7 @@ export default function AgendaPage() {
               duration: 0.25,
               ease: [0.4, 0, 0.2, 1]
             }}
-            className="flex overflow-x-auto hide-scrollbar snap-x w-screen -ml-4 px-1 py-3 relative z-20"
+            className="flex overflow-x-auto hide-scrollbar snap-x w-screen -ml-4 px-1 py-3 mt-6 relative z-20"
           >
             <div className="relative flex w-full gap-2 px-1">
               {[
