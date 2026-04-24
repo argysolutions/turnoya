@@ -1100,55 +1100,73 @@ export default function CajaPage() {
                 ) : (
                   <div className="p-2 space-y-3">
                     {ledgerEntries.map((entry) => (
-                      <button
-                        key={entry.id}
-                        onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
-                        className={cn(
-                          "w-full text-left p-4 rounded-[1.5rem] flex items-center justify-between transition-all active:scale-[0.98] border border-slate-100",
-                          entry.type === 'income' ? "bg-white shadow-sm" : "bg-slate-50/50 border-dashed"
-                        )}
-                      >
-                        {/* Left: Info */}
-                        <div className="flex items-center gap-4 min-w-0">
-                          {/* Indicator */}
-                          <div className={cn(
-                            "w-1.5 h-12 rounded-full shrink-0",
-                            entry.type === 'income' ? "bg-emerald-500" : "bg-rose-500"
-                          )} />
-
-                          <div className="min-w-0">
-                            <p className="text-2xl md:text-sm font-black text-slate-900 truncate leading-tight mb-1">
-                              {entry.description}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                              <span className="text-sm font-black uppercase text-slate-400 tracking-tighter">{fmtTime(entry.time)}</span>
-                              {entry.method && (
-                                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold text-[10px] flex items-center gap-1">
-                                  {METHOD_ICON[entry.method]}
-                                  {entry.method}
-                                </span>
-                              )}
-                              {isOwner && entry.raw?.professional_name && (
-                                <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px]">
-                                  {entry.raw.professional_name}
-                                </span>
-                              )}
-                            </div>
+                      <div key={entry.id} className="relative overflow-hidden rounded-[2.5rem]">
+                        {/* Background Action (Reveal on drag) */}
+                        <div className="absolute inset-0 bg-blue-600 flex items-center justify-end px-8 rounded-[2.5rem]">
+                          <div className="flex flex-col items-center text-white">
+                            <Eye className="w-6 h-6 mb-1" />
+                            <span className="text-[10px] font-black uppercase">Ver</span>
                           </div>
                         </div>
 
-                        {/* Right: Amount */}
-                        <div className="text-right ml-4 shrink-0">
-                          <p className={cn(
-                            "text-3xl md:text-sm font-black tabular-nums tracking-tighter md:tracking-normal",
-                            entry.type === 'income' ? "text-emerald-600" : "text-rose-600"
-                          )}>
-                            <span className={hidden ? 'blur-md select-none' : ''}>
-                              {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
-                            </span>
-                          </p>
-                        </div>
-                      </button>
+                        <motion.button
+                          drag="x"
+                          dragConstraints={{ left: -100, right: 0 }}
+                          dragElastic={0.1}
+                          onDragEnd={(_, info) => {
+                            if (info.offset.x < -60) {
+                              if (entry.type === 'income' && entry.raw) setDrawerSale(entry.raw)
+                            }
+                          }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
+                          className={cn(
+                            "relative z-10 w-full text-left p-6 rounded-[2.5rem] flex items-center justify-between transition-all border border-slate-100",
+                            entry.type === 'income' ? "bg-white shadow-sm" : "bg-slate-50/80 border-dashed"
+                          )}
+                        >
+                          {/* Left: Info */}
+                          <div className="flex items-center gap-5 min-w-0">
+                            {/* Indicator */}
+                            <div className={cn(
+                              "w-2 h-14 rounded-full shrink-0",
+                              entry.type === 'income' ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]" : "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.3)]"
+                            )} />
+
+                            <div className="min-w-0">
+                              <p className="text-2xl font-black text-slate-900 truncate leading-tight mb-1.5 tracking-tighter">
+                                {entry.description}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <span className="text-sm font-black uppercase text-slate-400 tracking-tighter">{fmtTime(entry.time)}</span>
+                                {entry.method && (
+                                  <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-bold text-[10px] flex items-center gap-1 uppercase tracking-tighter">
+                                    {METHOD_ICON[entry.method]}
+                                    {entry.method}
+                                  </span>
+                                )}
+                                {isOwner && entry.raw?.professional_name && (
+                                  <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] uppercase tracking-tighter">
+                                    {entry.raw.professional_name}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Amount */}
+                          <div className="text-right ml-4 shrink-0">
+                            <p className={cn(
+                              "text-3xl font-black tabular-nums tracking-tighter",
+                              entry.type === 'income' ? "text-emerald-600" : "text-rose-600"
+                            )}>
+                              <span className={hidden ? 'blur-md select-none' : ''}>
+                                {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
+                              </span>
+                            </p>
+                          </div>
+                        </motion.button>
+                      </div>
                     ))}
                   </div>
                 )}
