@@ -1030,6 +1030,7 @@ export default function CajaPage() {
                 {/* 2. Métricas de Resumen (Bruto, Gastos, Neto) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-3 bg-white rounded-[3rem] border border-slate-100 p-2 shadow-sm flex flex-col gap-2">
+                    <div className="flex flex-wrap items-center justify-between p-4 gap-6">
                       {/* Ventas Brutas */}
                       <div 
                         className={cn(
