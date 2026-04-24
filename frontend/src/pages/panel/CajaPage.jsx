@@ -151,6 +151,7 @@ function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
   const [amount, setAmount] = useState('')
   const [formOpen, setFormOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showValue, setShowValue] = useState(false)
 
   const handleOpen = async () => {
     const v = parseFormattedNumber(amount)
@@ -249,15 +250,26 @@ function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
           <Button onClick={() => setFormOpen(true)} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl shadow-lg shadow-blue-600/10 transition-all active:scale-[0.98]">Configurar Apertura</Button>
         ) : (
           <div className="flex flex-col w-full gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="0"
-              className="w-full h-14 rounded-2xl border border-amber-200 bg-white px-4 text-xl font-black focus:ring-2 focus:ring-amber-500 focus:outline-none"
-              value={amount}
-              onChange={e => setAmount(fmtNumericInput(e.target.value))}
-              autoFocus
-            />
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="0"
+                className="w-full h-14 rounded-2xl border border-amber-200 bg-white pl-4 pr-12 text-xl font-black focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                value={amount}
+                onChange={e => setAmount(fmtNumericInput(e.target.value))}
+                autoComplete="off"
+                style={{ WebkitTextSecurity: showValue ? 'none' : 'disc' }}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowValue(!showValue)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 hover:text-amber-600 transition-colors"
+              >
+                {showValue ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
             <div className="flex gap-2">
               <Button onClick={() => setFormOpen(false)} variant="ghost" className="flex-1 h-12 text-xs font-black uppercase tracking-widest">Cancelar</Button>
               <Button onClick={handleOpen} disabled={saving} className="flex-[2] h-12 bg-amber-900 text-white font-black uppercase text-xs rounded-xl tracking-widest">{saving ? 'Abriendo...' : 'Confirmar'}</Button>
@@ -273,6 +285,7 @@ function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
 function CierreCajaModal({ session, summary, onClose, onClosed }) {
   const [counted, setCounted] = useState('')
   const [saving, setSaving] = useState(false)
+  const [showValue, setShowValue] = useState(false)
 
   const handleClose = async () => {
     const v = parseFormattedNumber(counted)
@@ -319,15 +332,26 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
 
           <div className="space-y-2">
             <label className="text-[11px] uppercase font-black text-slate-400 px-1 tracking-tighter">Efectivo contado físico</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={counted}
-              autoFocus
-              onChange={e => setCounted(fmtNumericInput(e.target.value))}
-              className="w-full h-14 rounded-2xl border border-slate-200 px-4 text-2xl font-black focus:ring-2 focus:ring-blue-600 focus:outline-none"
-              placeholder="0"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={counted}
+                autoFocus
+                onChange={e => setCounted(fmtNumericInput(e.target.value))}
+                autoComplete="off"
+                style={{ WebkitTextSecurity: showValue ? 'none' : 'disc' }}
+                className="w-full h-14 rounded-2xl border border-slate-200 pl-4 pr-12 text-2xl font-black focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                placeholder="0"
+              />
+              <button
+                type="button"
+                onClick={() => setShowValue(!showValue)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600 transition-colors"
+              >
+                {showValue ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
           <Button onClick={handleClose} disabled={saving} className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white uppercase font-black text-sm tracking-widest rounded-2xl shadow-lg shadow-blue-600/20">
             {saving ? 'Cerrando...' : 'Confirmar Cierre y Guardar'}
@@ -1254,6 +1278,7 @@ function ExpenseModal({ onClose, onSaved, categories }) {
   const cats = categories?.length > 0 ? categories : EXPENSE_CATEGORIES
   const [form, setForm] = useState({ description: '', amount: '', category: cats[0], created_at: today() })
   const [saving, setSaving] = useState(false)
+  const [showAmount, setShowAmount] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -1281,14 +1306,25 @@ function ExpenseModal({ onClose, onSaved, categories }) {
             value={form.description}
             onChange={e => setForm({ ...form, description: e.target.value })}
           />
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="Monto"
-            className="w-full h-14 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-2xl font-black focus:outline-none focus:ring-2 focus:ring-slate-200"
-            value={form.amount}
-            onChange={e => setForm({ ...form, amount: fmtNumericInput(e.target.value) })}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Monto"
+              className="w-full h-14 rounded-2xl border border-slate-100 bg-slate-50 pl-4 pr-12 text-2xl font-black focus:outline-none focus:ring-2 focus:ring-slate-200"
+              value={form.amount}
+              onChange={e => setForm({ ...form, amount: fmtNumericInput(e.target.value) })}
+              autoComplete="off"
+              style={{ WebkitTextSecurity: showAmount ? 'none' : 'disc' }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowAmount(!showAmount)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600 transition-colors"
+            >
+              {showAmount ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+            </button>
+          </div>
           <select
             className="w-full h-14 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-lg font-black focus:outline-none"
             value={form.category}
