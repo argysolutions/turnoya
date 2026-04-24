@@ -1434,21 +1434,21 @@ export default function CajaPage() {
         {/* ── CALENDAR PICKER (MODAL) ──────────────────────── */}
         <AnimatePresence>
           {isCalendarExpanded && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pt-20">
+            <div className="fixed inset-0 z-[100] flex items-end lg:items-center justify-center p-4 lg:p-6 pb-10 lg:pb-6">
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 onClick={() => setIsCalendarExpanded(false)}
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
               />
               <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 40 }}
+                initial={{ scale: 0.9, opacity: 0, y: 100 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 40 }}
+                exit={{ scale: 0.9, opacity: 0, y: 100 }}
                 layout
-                className="relative bg-white w-full max-w-[480px] rounded-[3rem] overflow-hidden shadow-2xl"
+                className="relative bg-white w-full max-w-[480px] rounded-[3rem] overflow-hidden shadow-2xl mb-2 lg:mb-0"
               >
                 {/* Header */}
-                <div className="p-8 bg-white text-slate-900 flex items-start justify-between">
+                <div className="p-8 pb-4 bg-white text-slate-900 flex items-start justify-between">
                   <div>
                     <h3 className="text-3xl font-black text-black tracking-tight">Seleccionar Fecha</h3>
                     <p className="text-lg text-slate-600 font-bold mt-2">Navegá por el historial de caja.</p>
@@ -1461,7 +1461,7 @@ export default function CajaPage() {
                   </button>
                 </div>
 
-                <div className="p-4">
+                <div className="p-4 pt-2">
                   <ShadcnCalendar
                     mode="single"
                     locale={es}
@@ -1478,12 +1478,12 @@ export default function CajaPage() {
                   />
                 </div>
 
-                <AnimatePresence>
+                <AnimatePresence mode="popLayout">
                   {date !== today() && (
                     <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      initial={{ height: 0, opacity: 0, y: 20 }}
+                      animate={{ height: 'auto', opacity: 1, y: 0 }}
+                      exit={{ height: 0, opacity: 0, y: 20 }}
                       className="overflow-hidden"
                     >
                       <div className="p-6 bg-white flex justify-center border-t border-slate-50">
