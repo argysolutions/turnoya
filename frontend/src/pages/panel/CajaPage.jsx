@@ -688,8 +688,6 @@ export default function CajaPage() {
   const [activeLedgerTab, setActiveLedgerTab] = useState('todos') // todos, ingresos, egresos
   const [showOpeningModal, setShowOpeningModal] = useState(false)
   const [showSubDashboard, setShowSubDashboard] = useState(false)
-  const [hasClickedSubDashboard, setHasClickedSubDashboard] = useState(false)
-  const [hasClickedHidden, setHasClickedHidden] = useState(false)
   const [isIncomeExpanded, setIsIncomeExpanded] = useState(false)
   const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
   const [isNetExpanded, setIsNetExpanded] = useState(false)
@@ -967,14 +965,11 @@ export default function CajaPage() {
                     
                     {/* Trigger Sub-Dashboard */}
                     <button 
-                      onClick={() => {
-                        setShowSubDashboard(!showSubDashboard);
-                        setHasClickedSubDashboard(true);
-                      }}
+                      onClick={() => setShowSubDashboard(!showSubDashboard)}
                       className={cn(
                         "absolute top-6 right-6 w-12 h-12 rounded-2xl transition-all z-10 flex items-center justify-center",
-                        hasClickedSubDashboard 
-                          ? "bg-blue-600 text-white border border-blue-700" 
+                        showSubDashboard 
+                          ? "bg-blue-600 text-white border border-blue-700 shadow-lg shadow-blue-600/20" 
                           : "bg-slate-50 border border-slate-100 text-black hover:bg-slate-100"
                       )}
                     >
@@ -994,13 +989,10 @@ export default function CajaPage() {
                               {display(session.expected_cash)}
                             </p>
                             <button 
-                              onClick={() => {
-                                setHidden(!hidden);
-                                setHasClickedHidden(true);
-                              }} 
+                              onClick={() => setHidden(!hidden)} 
                               className={cn(
-                                "w-10 h-10 rounded-2xl flex items-center justify-center transition-colors",
-                                hasClickedHidden 
+                                "w-10 h-10 rounded-2xl flex items-center justify-center transition-colors shadow-sm",
+                                hidden 
                                   ? "bg-blue-600 text-white" 
                                   : "bg-slate-50 border border-slate-100 text-black hover:text-blue-600"
                               )}
