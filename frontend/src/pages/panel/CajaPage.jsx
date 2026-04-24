@@ -1216,7 +1216,7 @@ export default function CajaPage() {
 
                 <button 
                   onClick={() => setShowOpeningModal(false)}
-                  className="mt-8 text-sm font-black uppercase tracking-widest text-slate-300 hover:text-slate-600 transition-colors"
+                  className="mt-8 text-sm font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-colors"
                 >
                   Continuar sin iniciar
                 </button>
