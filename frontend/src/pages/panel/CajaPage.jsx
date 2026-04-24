@@ -687,6 +687,7 @@ export default function CajaPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [activeLedgerTab, setActiveLedgerTab] = useState('todos') // todos, ingresos, egresos
   const [showOpeningModal, setShowOpeningModal] = useState(false)
+  const [isIncomeExpanded, setIsIncomeExpanded] = useState(false)
 
   // Filtrado final de Ledger (Tabs + Search + Roles)
   const ledgerEntries = useMemo(() => {
@@ -1026,36 +1027,58 @@ export default function CajaPage() {
 
                 {/* 2. Métricas de Resumen (Bruto, Gastos, Neto) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {/* Resumen Métricas */}
-                  <div className="md:col-span-3 bg-white rounded-[3rem] border border-slate-100 p-6 shadow-sm flex flex-wrap items-center justify-between gap-6">
-                    <div className="flex-1 min-w-[120px]">
-                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Ventas Brutas</p>
-                      <p className={cn("text-2xl font-black text-slate-900 tracking-tighter", hidden && "blur-md")}>
-                        {display(summary?.totalIncome || 0)}
-                      </p>
-                    </div>
-                    
-                    <div className="flex-1 min-w-[120px] px-6 border-l border-slate-100">
-                      <p className="text-[10px] font-black uppercase text-rose-400 tracking-widest mb-1">Gastos Totales</p>
-                      <p className={cn("text-2xl font-black text-rose-600 tracking-tighter", hidden && "blur-md")}>
-                        {display(summary?.totalExpenses || 0)}
-                      </p>
+                  <div className="md:col-span-3 bg-white rounded-[3rem] border border-slate-100 p-2 shadow-sm flex flex-col gap-2">
+                    <div className="flex flex-wrap items-center justify-between p-4 gap-6">
+                      <div 
+                        className="flex-1 min-w-[120px] cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-colors group"
+                        onClick={() => setIsIncomeExpanded(!isIncomeExpanded)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Ventas Brutas</p>
+                          <ChevronRight className={cn("w-3 h-3 text-slate-300 transition-transform", isIncomeExpanded && "rotate-90")} />
+                        </div>
+                        <p className={cn("text-2xl font-black text-slate-900 tracking-tighter", hidden && "blur-md")}>
+                          {display(summary?.totalIncome || 0)}
+                        </p>
+                      </div>
+                      
+                      <div className="flex-1 min-w-[120px] px-6 border-l border-slate-100">
+                        <p className="text-[10px] font-black uppercase text-rose-400 tracking-widest mb-1">Gastos Totales</p>
+                        <p className={cn("text-2xl font-black text-rose-600 tracking-tighter", hidden && "blur-md")}>
+                          {display(summary?.totalExpenses || 0)}
+                        </p>
+                      </div>
+
+                      <div className="flex-1 min-w-[120px] px-6 border-l border-slate-100 bg-slate-50/50 rounded-[2rem] py-3">
+                        <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">Balance Neto</p>
+                        <p className={cn("text-3xl font-black text-blue-600 tracking-tighter", hidden && "blur-md")}>
+                          {display(summary?.netBalance || 0)}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex-1 min-w-[120px] px-6 border-l border-slate-100 bg-slate-50/50 rounded-[2rem] py-3">
-                      <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">Balance Neto</p>
-                      <p className={cn("text-3xl font-black text-blue-600 tracking-tighter", hidden && "blur-md")}>
-                        {display(summary?.netBalance || 0)}
-                      </p>
-                    </div>
-
-                    <button 
-                      onClick={() => setShowManagementDrawer(true)}
-                      className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95"
-                      title="Ver detalle por métodos"
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
+                    <AnimatePresence>
+                      {isIncomeExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t border-slate-50"
+                        >
+                          <div className="p-4 grid grid-cols-3 gap-3">
+                            {['Efectivo', 'Transferencia', 'Tarjeta'].map(method => {
+                              const data = byMethod[method] || { total: 0 };
+                              return (
+                                <div key={method} className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50 text-center">
+                                  <p className="text-[9px] font-black uppercase text-slate-400 mb-0.5 tracking-tighter">{method}</p>
+                                  <p className={cn("text-sm font-black text-slate-700", hidden && "blur-sm")}>{display(data.total)}</p>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Operaciones Rápidas */}
