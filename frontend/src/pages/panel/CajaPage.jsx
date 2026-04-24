@@ -923,33 +923,6 @@ export default function CajaPage() {
             )}
           </AnimatePresence>
 
-          {/* 1.2 NAVEGACIÓN POR PILLS (Pattern AgendaPage) */}
-          <div className="lg:hidden flex overflow-x-auto hide-scrollbar w-screen -ml-4 px-4 py-3 bg-white border-b border-slate-100 sticky top-16 z-[60]">
-            <div className="flex gap-2">
-              {[
-                { id: 'todos', label: 'Todos', icon: FileText, color: 'text-slate-600', bg: 'bg-slate-100' },
-                { id: 'ingresos', label: 'Ingresos', icon: Banknote, color: 'text-emerald-600', bg: 'bg-emerald-100' },
-                { id: 'egresos', label: 'Egresos', icon: Wallet, color: 'text-rose-600', bg: 'bg-rose-100' }
-              ].map(tab => {
-                const isActive = activeLedgerTab === tab.id;
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveLedgerTab(tab.id)}
-                    className={cn(
-                      "relative flex items-center gap-2 px-6 py-2.5 rounded-full font-black uppercase text-sm tracking-tighter transition-all active:scale-95",
-                      isActive ? "bg-slate-900 text-white shadow-lg" : "bg-slate-50 text-slate-400"
-                    )}
-                  >
-                    <Icon className={cn("w-4 h-4", isActive ? "" : "opacity-40")} />
-                    <span>{tab.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
           <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto">
             {/* ═══════════════════════════════════════════
                 COLUMNA LEDGER (3/4 desktop, full mobile)
@@ -1209,114 +1182,128 @@ export default function CajaPage() {
           )}
 
             {/* ════════════════════════════════════════
-                LIBRO MAYOR (LEDGER)
+                MOVIMIENTOS (LEDGER)
             ════════════════════════════════════════ */}
-            <div className="flex-1 flex flex-col min-h-0">
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-
-                {/* Buscador (Solo Desktop) */}
-                <div className="hidden lg:flex px-4 py-3 border-b border-slate-50 items-center gap-3 bg-white sticky top-0">
-                  <Search className="w-4 h-4 text-slate-300 shrink-0" />
-                  <input
-                    id="ledger-search"
-                    type="text"
-                    placeholder="Buscar por cliente..."
-                    value={ledgerFilter}
-                    onChange={e => setLedgerFilter(e.target.value)}
-                    className="flex-1 bg-transparent h-12 md:h-auto text-lg md:text-sm font-bold md:font-medium focus:outline-none placeholder:text-slate-300 placeholder:font-normal text-slate-700"
-                  />
-                  {ledgerFilter && (
-                    <button
-                      onClick={() => setLedgerFilter('')}
-                      className="text-slate-300 hover:text-slate-500 transition-colors"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+            <div className="flex-1 flex flex-col min-h-0 bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+              {/* Header con Filtros */}
+              <div className="px-6 py-5 border-b border-slate-50 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-black uppercase tracking-tight text-slate-900">Movimientos</h2>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      {isToday ? 'Viendo el día de hoy' : `Viendo el ${fmtDateShort(date)}`}
+                    </p>
+                  </div>
+                  <Search className="w-5 h-5 text-slate-300" />
                 </div>
 
-                {/* Entries */}
+                <div className="flex gap-2">
+                  {[
+                    { id: 'todos', label: 'Todos' },
+                    { id: 'ingresos', label: 'Ingresos' },
+                    { id: 'egresos', label: 'Egresos' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveLedgerTab(tab.id)}
+                      className={cn(
+                        "flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95",
+                        activeLedgerTab === tab.id 
+                          ? "bg-slate-900 text-white shadow-lg shadow-slate-200" 
+                          : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                      )}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Entries con Swipe */}
+              <div className="flex-1 relative overflow-hidden bg-slate-50/30">
                 {loading ? (
                   <div className="py-20 text-center">
-                    <div className="w-5 h-5 border-2 border-slate-100 border-t-slate-400 rounded-full animate-spin mx-auto" />
+                    <div className="w-8 h-8 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin mx-auto" />
                   </div>
                 ) : ledgerEntries.length === 0 ? (
                   <div className="py-20 text-center px-6">
-                    <p className="text-sm md:text-xs font-black text-slate-300 uppercase tracking-tighter mb-2">Sin movimientos</p>
-                    <p className="text-[11px] text-slate-400">Finalizá turnos o agregá gastos para verlos aquí.</p>
+                    <div className="w-16 h-16 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-sm">
+                      <FileText className="w-8 h-8 text-slate-200" />
+                    </div>
+                    <p className="text-sm font-black text-slate-300 uppercase tracking-tighter">Sin movimientos</p>
                   </div>
                 ) : (
-                  <div className="p-2 space-y-3">
+                  <motion.div 
+                    key={activeLedgerTab}
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -20, opacity: 0 }}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    onDragEnd={(_, info) => {
+                      const tabs = ['todos', 'ingresos', 'egresos'];
+                      const currentIdx = tabs.indexOf(activeLedgerTab);
+                      if (info.offset.x < -100 && currentIdx < tabs.length - 1) {
+                        setActiveLedgerTab(tabs[currentIdx + 1]);
+                      } else if (info.offset.x > 100 && currentIdx > 0) {
+                        setActiveLedgerTab(tabs[currentIdx - 1]);
+                      }
+                    }}
+                    className="p-4 space-y-4 h-full overflow-y-auto scrollbar-hide"
+                  >
                     {ledgerEntries.map((entry) => (
-                      <div key={entry.id} className="relative overflow-hidden rounded-[2.5rem]">
-                        {/* Background Action (Reveal on drag) */}
-                        <div className="absolute inset-0 bg-blue-600 flex items-center justify-end px-8 rounded-[2.5rem]">
-                          <div className="flex flex-col items-center text-white">
-                            <Eye className="w-6 h-6 mb-1" />
-                            <span className="text-[10px] font-black uppercase">Ver</span>
+                      <motion.button
+                        key={entry.id}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
+                        className={cn(
+                          "w-full bg-white p-5 rounded-[2.5rem] flex items-center justify-between border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden",
+                          entry.type === 'expense' && "bg-slate-50/50 border-dashed"
+                        )}
+                      >
+                        {/* Glow effect on hover */}
+                        <div className={cn(
+                          "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                          entry.type === 'income' ? "bg-emerald-500/5" : "bg-rose-500/5"
+                        )} />
+
+                        <div className="flex items-center gap-4 relative z-10">
+                          <div className={cn(
+                            "w-12 h-12 rounded-[1.5rem] flex items-center justify-center shadow-sm shrink-0",
+                            entry.type === 'income' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                          )}>
+                            {entry.type === 'income' ? <PlusCircle className="w-6 h-6" /> : <PlusCircle className="w-6 h-6 rotate-45" />}
+                          </div>
+                          <div className="text-left min-w-0">
+                            <p className="text-lg font-black text-slate-900 truncate tracking-tight leading-tight mb-1">
+                              {entry.description}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{fmtTime(entry.time)}</span>
+                              {entry.method && (
+                                <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 font-bold text-[9px] uppercase tracking-tighter">
+                                  {entry.method}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        <motion.button
-                          drag="x"
-                          dragConstraints={{ left: -100, right: 0 }}
-                          dragElastic={0.1}
-                          onDragEnd={(_, info) => {
-                            if (info.offset.x < -60) {
-                              if (entry.type === 'income' && entry.raw) setDrawerSale(entry.raw)
-                            }
-                          }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
-                          className={cn(
-                            "relative z-10 w-full text-left p-6 rounded-[2.5rem] flex items-center justify-between transition-all border border-slate-100",
-                            entry.type === 'income' ? "bg-white shadow-sm" : "bg-slate-50/80 border-dashed"
-                          )}
-                        >
-                          {/* Left: Info */}
-                          <div className="flex items-center gap-5 min-w-0">
-                            {/* Indicator */}
-                            <div className={cn(
-                              "w-2 h-14 rounded-full shrink-0",
-                              entry.type === 'income' ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]" : "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.3)]"
-                            )} />
-
-                            <div className="min-w-0">
-                              <p className="text-2xl font-black text-slate-900 truncate leading-tight mb-1.5 tracking-tighter">
-                                {entry.description}
-                              </p>
-                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                <span className="text-sm font-black uppercase text-slate-400 tracking-tighter">{fmtTime(entry.time)}</span>
-                                {entry.method && (
-                                  <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-bold text-[10px] flex items-center gap-1 uppercase tracking-tighter">
-                                    {METHOD_ICON[entry.method]}
-                                    {entry.method}
-                                  </span>
-                                )}
-                                {isOwner && entry.raw?.professional_name && (
-                                  <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-[10px] uppercase tracking-tighter">
-                                    {entry.raw.professional_name}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Right: Amount */}
-                          <div className="text-right ml-4 shrink-0">
-                            <p className={cn(
-                              "text-3xl font-black tabular-nums tracking-tighter",
-                              entry.type === 'income' ? "text-emerald-600" : "text-rose-600"
-                            )}>
-                              <span className={hidden ? 'blur-md select-none' : ''}>
-                                {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
-                              </span>
-                            </p>
-                          </div>
-                        </motion.button>
-                      </div>
+                        <div className="text-right shrink-0 relative z-10">
+                          <p className={cn(
+                            "text-2xl font-black tabular-nums tracking-tighter",
+                            entry.type === 'income' ? "text-emerald-600" : "text-rose-600"
+                          )}>
+                            <span className={hidden ? 'blur-md' : ''}>
+                              {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
+                            </span>
+                          </p>
+                        </div>
+                      </motion.button>
                     ))}
-                  </div>
+                    {/* Padding bottom to allow scroll over sticky items */}
+                    <div className="h-20" />
+                  </motion.div>
                 )}
               </div>
             </div>
