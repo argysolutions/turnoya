@@ -22,7 +22,8 @@ import {
   ChevronLeft, ChevronRight, CreditCard, Wallet, ArrowLeftRight,
   HelpCircle, Eye, EyeOff, PlusCircle, X, Unlock,
   Share2, Search, FileText, Download, CalendarDays,
-  Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff, MoreVertical
+  Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff, MoreVertical,
+  Clock, ShieldCheck
 } from 'lucide-react'
 import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
 import { cn } from '@/lib/utils'
@@ -269,37 +270,30 @@ function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
                 onClick={() => setShowValue(!showValue)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 hover:text-amber-600 transition-colors"
               >
-                {showValue ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={() => setFormOpen(false)} variant="ghost" className="flex-1 h-12 text-xs font-black uppercase tracking-widest">Cancelar</Button>
-              <Button onClick={handleOpen} disabled={saving} className="flex-[2] h-12 bg-amber-900 text-white font-black uppercase text-xs rounded-xl tracking-widest">{saving ? 'Abriendo...' : 'Confirmar'}</Button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ─── Cierre de Caja Modal ────────────────────────────────────────────────────
+                {showValue ? <EyeOff classN// ─── Cierre de Caja Modal ────────────────────────────────────────────────────
 function CierreCajaModal({ session, summary, onClose, onClosed }) {
+  const [step, setStep] = useState(1) // 1: Select type, 2: Details & PIN
+  const [closeType, setCloseType] = useState(null) // 'partial' or 'final'
   const [counted, setCounted] = useState('')
+  const [pin, setPin] = useState('')
+  const [showCounted, setShowCounted] = useState(false)
+  const [showPin, setShowPin] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [showValue, setShowValue] = useState(false)
 
-  const handleClose = async () => {
+  const handleConfirm = async () => {
+    if (!pin) return toast.error('Debes ingresar el PIN')
     const v = parseFormattedNumber(counted)
-    if (isNaN(v) || v < 0) return toast.error('Monto inválido')
+    if (isNaN(v) || v < 0) return toast.error('Monto contado inválido')
+    
     setSaving(true)
     try {
-      const { data } = await closeCashSession(v)
-      toast.success('Caja cerrada')
+      // Por ahora llamamos a la misma función, pero indicando el tipo si el backend lo soporta
+      const { data } = await closeCashSession(v, { type: closeType, pin })
+      toast.success(closeType === 'final' ? 'Cierre Definitivo realizado' : 'Cierre parcial guardado')
       onClosed(data.session)
       onClose()
     } catch (err) {
-      toast.error(err?.response?.data?.error || 'Error')
+      toast.error(err?.response?.data?.error || 'PIN incorrecto o error al cerrar')
     } finally {
       setSaving(false)
     }
@@ -307,61 +301,114 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-sm rounded-[2.5rem]">
-        <DialogHeader><DialogTitle className="uppercase tracking-widest text-[10px] font-black text-slate-400">Resumen de Cierre</DialogTitle></DialogHeader>
-        <div className="space-y-6 py-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-              <span className="text-[8px] font-black uppercase text-emerald-600 block mb-1">Ventas Brutas</span>
-              <span className="text-sm font-black text-emerald-900">{fmt(summary?.totalIncome)}</span>
-            </div>
-            <div className="p-4 rounded-2xl bg-red-50 border border-red-100">
-              <span className="text-[8px] font-black uppercase text-red-600 block mb-1">Egresos Totales</span>
-              <span className="text-sm font-black text-red-900">{fmt(summary?.totalExpenses)}</span>
-            </div>
-          </div>
+      <DialogContent className="sm:max-w-md rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
+        <AnimatePresence mode="wait">
+          {step === 1 ? (
+            <motion.div 
+              key="step1"
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              className="p-8 space-y-8"
+            >
+              <div className="text-center space-y-2">
+                <div className="w-20 h-20 rounded-[2.5rem] bg-blue-50 flex items-center justify-center mx-auto mb-4">
+                  <Lock className="w-10 h-10 text-blue-600" />
+                </div>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Cierre de Caja</h2>
+                <p className="text-sm text-slate-500 font-medium px-4">Selecciona el tipo de cierre que deseas realizar para la sesión actual</p>
+              </div>
 
-          <div className="bg-blue-950 text-white p-5 rounded-2xl shadow-xl flex justify-between items-center">
-            <div>
-              <p className="text-[8px] uppercase font-black text-blue-300 mb-0.5">Efectivo Esperado</p>
-              <p className="text-xl font-black">{fmt(session?.expected_cash)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[8px] uppercase font-black text-blue-300 mb-0.5">Cant. Cobros</p>
-              <p className="text-xl font-black">{summary?.salesCount || 0}</p>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 gap-3">
+                <button 
+                  onClick={() => { setCloseType('partial'); setStep(2) }}
+                  className="group flex items-center justify-between p-6 rounded-[2rem] bg-white border-2 border-slate-100 hover:border-blue-600 hover:bg-blue-50/50 transition-all active:scale-95 text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      <Clock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-black text-slate-900">Cierre</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Provisorio / Por turno</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-300" />
+                </button>
 
-          <div className="space-y-2">
-            <label className="text-[11px] uppercase font-black text-slate-400 px-1 tracking-tighter">Efectivo contado físico</label>
-            <div className="relative">
-              <input
-                type="text"
-                inputMode="numeric"
-                value={counted}
-                autoFocus
-                onChange={e => setCounted(fmtNumericInput(e.target.value))}
-                autoComplete="off"
-                className={cn(
-                  "w-full h-14 rounded-2xl border border-slate-200 pl-4 pr-12 text-2xl font-black focus:ring-2 focus:ring-blue-600 focus:outline-none",
-                  showValue ? "mask-none" : "mask-security"
-                )}
-                placeholder="0"
-              />
-              <button
-                type="button"
-                onClick={() => setShowValue(!showValue)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600 transition-colors"
-              >
-                {showValue ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
-              </button>
-            </div>
-          </div>
-          <Button onClick={handleClose} disabled={saving} className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white uppercase font-black text-sm tracking-widest rounded-2xl shadow-lg shadow-blue-600/20">
-            {saving ? 'Cerrando...' : 'Confirmar Cierre y Guardar'}
-          </Button>
-        </div>
+                <button 
+                  onClick={() => { setCloseType('final'); setStep(2) }}
+                  className="group flex items-center justify-between p-6 rounded-[2rem] bg-slate-900 border-2 border-slate-900 hover:bg-black transition-all active:scale-95 text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-black text-white">Cierre Definitivo</p>
+                      <p className="text-[10px] font-bold text-blue-400 uppercase tracking-tighter">Final del día / Bloqueo</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-blue-400" />
+                </button>
+              </div>
+
+              <Button variant="ghost" onClick={onClose} className="w-full h-14 rounded-2xl font-black uppercase text-xs tracking-widest text-slate-400">Cancelar</Button>
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="step2"
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              className="p-8 space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-2">
+                <button onClick={() => setStep(1)} className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-all"><ChevronLeft className="w-6 h-6" /></button>
+                <h3 className="text-xl font-black text-slate-900 tracking-tighter">Confirmar {closeType === 'final' ? 'Definitivo' : 'Parcial'}</h3>
+              </div>
+
+              <div className="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Efectivo Esperado</span>
+                  <span className="text-xl font-black text-slate-900">{fmt(session?.expected_cash)}</span>
+                </div>
+                <div className="h-px bg-slate-200" />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-500 px-1">Efectivo Contado</label>
+                    <div className="relative">
+                      <input 
+                        type="text" inputMode="numeric" value={counted} onChange={e => setCounted(fmtNumericInput(e.target.value))}
+                        className={cn("w-full h-14 rounded-2xl border-2 border-slate-200 bg-white px-4 text-xl font-black focus:border-blue-600 focus:outline-none", !showCounted && "mask-security")}
+                        placeholder="0"
+                      />
+                      <button onClick={() => setShowCounted(!showCounted)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600"><Eye className="w-5 h-5" /></button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-blue-600 px-1">PIN de Seguridad</label>
+                    <div className="relative">
+                      <input 
+                        type="text" inputMode="numeric" value={pin} onChange={e => setPin(e.target.value)} maxLength={4}
+                        className={cn("w-full h-14 rounded-2xl border-2 border-blue-100 bg-blue-50/30 px-4 text-xl font-black text-blue-600 focus:border-blue-600 focus:outline-none", !showPin && "mask-security")}
+                        placeholder="PIN"
+                      />
+                      <button onClick={() => setShowPin(!showPin)} className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300 hover:text-blue-600"><Eye className="w-5 h-5" /></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="ghost" onClick={onClose} className="flex-1 h-16 rounded-[1.8rem] font-black uppercase text-xs tracking-widest text-slate-400">Cancelar</Button>
+                <Button onClick={handleConfirm} disabled={saving} className="flex-[2] h-16 rounded-[1.8rem] bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-sm tracking-widest shadow-lg shadow-blue-600/20">
+                  {saving ? 'Cerrando...' : 'Confirmar'}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DialogContent>
+    </Dialog>
+  )
     </Dialog>
   )
 }
