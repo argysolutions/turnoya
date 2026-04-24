@@ -1088,17 +1088,21 @@ export default function AgendaPage() {
                 <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto" />
               </div>
               {/* Header */}
-              <div className="px-6 py-4 flex items-center justify-between border-b border-slate-50 shrink-0">
-                <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Calendario</h3>
+              <div className="px-8 pt-8 pb-4 flex items-start justify-between bg-white">
+                <div>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight">Calendario</h3>
+                  <p className="text-lg text-slate-500 font-bold mt-2">Seleccioná una fecha para ver turnos.</p>
+                </div>
                 <button 
                   onClick={() => setIsMobileCalendarOpen(false)}
-                  className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-black active:scale-90 transition-transform"
+                  className="p-2 hover:bg-slate-100 rounded-full text-black transition-colors"
                 >
-                  <Plus className="w-6 h-6 rotate-45" />
+                  <X className="w-6 h-6" />
                 </button>
               </div>
+
               <div 
-                className="p-1 flex flex-col items-center"
+                className="px-4 py-2 flex flex-col items-center"
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
@@ -1127,14 +1131,16 @@ export default function AgendaPage() {
                   }}
                 />
               </div>
-              <div className="px-6 pb-6">
+
+              <div className="px-8 pb-10 pt-4 bg-white">
                 <button 
                   onClick={() => {
                     const today = new Date();
                     setDate(today);
                     setCurrentMonth(today);
+                    setIsMobileCalendarOpen(false);
                   }}
-                  className="w-full mt-2 py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 active:scale-95 transition-all text-lg"
+                  className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-blue-100 active:scale-95 transition-all"
                 >
                   Volver a Hoy
                 </button>
