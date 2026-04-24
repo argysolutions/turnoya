@@ -1220,93 +1220,95 @@ export default function CajaPage() {
               </div>
 
               {/* Entries con Swipe */}
-              <div className="flex-1 relative overflow-hidden bg-slate-50/30">
-                {loading ? (
-                  <div className="py-20 text-center">
-                    <div className="w-8 h-8 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin mx-auto" />
-                  </div>
-                ) : ledgerEntries.length === 0 ? (
-                  <div className="py-20 text-center px-6">
-                    <div className="w-16 h-16 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-sm">
-                      <FileText className="w-8 h-8 text-slate-200" />
+              <div className="flex-1 relative bg-slate-50/30 min-h-[60vh] flex flex-col">
+                <motion.div 
+                  key={activeLedgerTab}
+                  initial={{ x: 30, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -30, opacity: 0 }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.05}
+                  onDragEnd={(_, info) => {
+                    const tabs = ['todos', 'ingresos', 'egresos'];
+                    const currentIdx = tabs.indexOf(activeLedgerTab);
+                    if (info.offset.x < -40 && currentIdx < tabs.length - 1) {
+                      setActiveLedgerTab(tabs[currentIdx + 1]);
+                    } else if (info.offset.x > 40 && currentIdx > 0) {
+                      setActiveLedgerTab(tabs[currentIdx - 1]);
+                    }
+                  }}
+                  className="flex-1 p-4 space-y-4 overflow-y-auto scrollbar-hide flex flex-col"
+                >
+                  {loading ? (
+                    <div className="flex-1 flex items-center justify-center py-20">
+                      <div className="w-10 h-10 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin" />
                     </div>
-                    <p className="text-sm font-black text-slate-300 uppercase tracking-tighter">Sin movimientos</p>
-                  </div>
-                ) : (
-                  <motion.div 
-                    key={activeLedgerTab}
-                    initial={{ x: 50, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -50, opacity: 0 }}
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.1}
-                    onDragEnd={(_, info) => {
-                      const tabs = ['todos', 'ingresos', 'egresos'];
-                      const currentIdx = tabs.indexOf(activeLedgerTab);
-                      // Umbral más sensible (50px) y chequeo de velocidad opcional
-                      if (info.offset.x < -50 && currentIdx < tabs.length - 1) {
-                        setActiveLedgerTab(tabs[currentIdx + 1]);
-                      } else if (info.offset.x > 50 && currentIdx > 0) {
-                        setActiveLedgerTab(tabs[currentIdx - 1]);
-                      }
-                    }}
-                    className="p-4 space-y-4 h-full overflow-y-auto scrollbar-hide"
-                  >
-                    {ledgerEntries.map((entry) => (
-                      <motion.button
-                        key={entry.id}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
-                        className={cn(
-                          "w-full bg-white p-5 rounded-[2.5rem] flex items-center justify-between border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden",
-                          entry.type === 'expense' && "bg-slate-50/50 border-dashed"
-                        )}
-                      >
-                        {/* Glow effect on hover */}
-                        <div className={cn(
-                          "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                          entry.type === 'income' ? "bg-emerald-500/5" : "bg-rose-500/5"
-                        )} />
-
-                        <div className="flex items-center gap-4 relative z-10">
+                  ) : ledgerEntries.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center py-20 text-center px-6">
+                      <div className="w-20 h-20 bg-white rounded-[2.5rem] flex items-center justify-center mb-6 shadow-sm">
+                        <FileText className="w-10 h-10 text-slate-200" />
+                      </div>
+                      <p className="text-lg font-black text-slate-300 uppercase tracking-tighter mb-1">Sin movimientos</p>
+                      <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">Desliza para cambiar de filtro</p>
+                    </div>
+                  ) : (
+                    <>
+                      {ledgerEntries.map((entry) => (
+                        <motion.button
+                          key={entry.id}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => entry.type === 'income' && entry.raw ? setDrawerSale(entry.raw) : null}
+                          className={cn(
+                            "w-full bg-white p-5 rounded-[2.5rem] flex items-center justify-between border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden shrink-0",
+                            entry.type === 'expense' && "bg-slate-50/50 border-dashed"
+                          )}
+                        >
+                          {/* Glow effect on hover */}
                           <div className={cn(
-                            "w-12 h-12 rounded-[1.5rem] flex items-center justify-center shadow-sm shrink-0",
-                            entry.type === 'income' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
-                          )}>
-                            {entry.type === 'income' ? <PlusCircle className="w-6 h-6" /> : <PlusCircle className="w-6 h-6 rotate-45" />}
-                          </div>
-                          <div className="text-left min-w-0">
-                            <p className="text-lg font-black text-slate-900 truncate tracking-tight leading-tight mb-1">
-                              {entry.description}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{fmtTime(entry.time)}</span>
-                              {entry.method && (
-                                <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 font-bold text-[9px] uppercase tracking-tighter">
-                                  {entry.method}
-                                </span>
-                              )}
+                            "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                            entry.type === 'income' ? "bg-emerald-500/5" : "bg-rose-500/5"
+                          )} />
+
+                          <div className="flex items-center gap-4 relative z-10">
+                            <div className={cn(
+                              "w-12 h-12 rounded-[1.5rem] flex items-center justify-center shadow-sm shrink-0",
+                              entry.type === 'income' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                            )}>
+                              {entry.type === 'income' ? <PlusCircle className="w-6 h-6" /> : <PlusCircle className="w-6 h-6 rotate-45" />}
+                            </div>
+                            <div className="text-left min-w-0">
+                              <p className="text-lg font-black text-slate-900 truncate tracking-tight leading-tight mb-1">
+                                {entry.description}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{fmtTime(entry.time)}</span>
+                                {entry.method && (
+                                  <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 font-bold text-[9px] uppercase tracking-tighter">
+                                    {entry.method}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="text-right shrink-0 relative z-10">
-                          <p className={cn(
-                            "text-2xl font-black tabular-nums tracking-tighter",
-                            entry.type === 'income' ? "text-emerald-600" : "text-rose-600"
-                          )}>
-                            <span className={hidden ? 'blur-md' : ''}>
-                              {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
-                            </span>
-                          </p>
-                        </div>
-                      </motion.button>
-                    ))}
-                    {/* Padding bottom to allow scroll over sticky items */}
-                    <div className="h-20" />
-                  </motion.div>
-                )}
+                          <div className="text-right shrink-0 relative z-10">
+                            <p className={cn(
+                              "text-2xl font-black tabular-nums tracking-tighter",
+                              entry.type === 'income' ? "text-emerald-600" : "text-rose-600"
+                            )}>
+                              <span className={hidden ? 'blur-md' : ''}>
+                                {entry.type === 'expense' ? '−' : '+'} {fmt(entry.amount)}
+                              </span>
+                            </p>
+                          </div>
+                        </motion.button>
+                      ))}
+                      {/* Padding bottom */}
+                      <div className="h-10 shrink-0" />
+                    </>
+                  )}
+                </motion.div>
               </div>
             </div>
 
