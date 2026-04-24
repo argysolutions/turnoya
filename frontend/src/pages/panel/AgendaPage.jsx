@@ -29,7 +29,8 @@ import {
   User,
   MapPin,
   MessageSquare,
-  Menu
+  Menu,
+  UserX
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -592,10 +593,10 @@ export default function AgendaPage() {
           >
             <div className="relative flex w-full gap-2 px-2">
               {[
-                { id: 'pendientes', label: 'Pendientes', icon: Clock, count: pendientes.length, color: 'text-amber-500', bg: 'bg-amber-100' },
-                { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, count: confirmados.length, color: 'text-emerald-500', bg: 'bg-emerald-100' },
-                { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, count: finalizados.length, color: 'text-blue-500', bg: 'bg-blue-100' },
-                { id: 'cancelados', label: 'Cancelados', icon: XCircle, count: canceladosAusentes.length, color: 'text-rose-500', bg: 'bg-rose-100' }
+                { id: 'pendientes', label: 'Pendientes', icon: Clock, bgActive: 'bg-amber-500' },
+                { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, bgActive: 'bg-emerald-600' },
+                { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, bgActive: 'bg-blue-600' },
+                { id: 'cancelados', label: 'Cancelados', icon: XCircle, bgActive: 'bg-rose-600' }
               ].map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -605,19 +606,14 @@ export default function AgendaPage() {
                     ref={isActive ? activeTabRef : null}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "relative flex-1 flex-shrink-1 snap-center min-w-0 lg:min-w-[130px] whitespace-nowrap flex flex-col items-center justify-center gap-1 py-3 lg:py-4 rounded-full font-black tracking-tighter z-10 transition-all active:scale-95",
-                      isActive ? "text-slate-900" : "text-slate-500"
+                      "relative flex-1 flex-shrink-1 snap-center min-w-[85px] flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl font-black transition-all active:scale-95 z-10",
+                      isActive 
+                        ? `${tab.bgActive} text-white shadow-xl shadow-slate-200` 
+                        : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                     )}
                   >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeTabPill"
-                        className="absolute inset-0 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] rounded-full -z-10"
-                        transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                      />
-                    )}
-                    <Icon className={cn("w-5 h-5 lg:w-6 lg:h-6", isActive ? tab.color : "opacity-40")} />
-                    <span className="text-base lg:text-2xl font-black uppercase tracking-tighter">{tab.label}</span>
+                    <Icon className={cn("w-5 h-5 transition-transform duration-300", isActive && "-translate-y-0.5")} />
+                    <span className="text-[10px] uppercase tracking-tighter leading-tight">{tab.label}</span>
                   </button>
                 );
               })}
