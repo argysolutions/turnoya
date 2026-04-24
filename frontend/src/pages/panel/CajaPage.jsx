@@ -1425,21 +1425,66 @@ export default function CajaPage() {
           )}
         </AnimatePresence>
 
-        {/* ── CALENDAR PICKER ──────────────────────── */}
-        <Dialog open={isCalendarExpanded} onOpenChange={setIsCalendarExpanded}>
-          <DialogContent className="sm:max-w-sm rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
-            <DialogHeader className="p-6 bg-slate-900 text-white">
-              <DialogTitle className="text-center font-black uppercase tracking-widest text-xs">Fijar Fecha Base</DialogTitle>
-            </DialogHeader>
-            <div className="p-4">
-              <ShadcnCalendar
-                mode="single" locale={es} selected={new Date(date + 'T12:00:00')}
-                onSelect={d => { if (d) { setDate(d.toISOString().split('T')[0]); setIsCalendarExpanded(false) } }}
-                className="rounded-2xl border-none" disabled={d => d > new Date()}
+        {/* ── CALENDAR PICKER (MODAL) ──────────────────────── */}
+        <AnimatePresence>
+          {isCalendarExpanded && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setIsCalendarExpanded(false)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
               />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="relative bg-white w-full max-w-[400px] rounded-[3rem] overflow-hidden shadow-2xl"
+              >
+                {/* Header */}
+                <div className="p-8 bg-slate-900 text-white flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-black uppercase tracking-tighter">Seleccionar Fecha</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Navegar por el historial</p>
+                  </div>
+                  <button 
+                    onClick={() => setIsCalendarExpanded(false)}
+                    className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="p-6">
+                  <ShadcnCalendar
+                    mode="single"
+                    locale={es}
+                    selected={new Date(date + 'T12:00:00')}
+                    onSelect={d => {
+                      if (d) {
+                        setDate(d.toISOString().split('T')[0]);
+                        setIsCalendarExpanded(false);
+                      }
+                    }}
+                    className="rounded-2xl border-none"
+                    disabled={d => d > new Date()}
+                  />
+                </div>
+
+                <div className="p-6 bg-slate-50 flex justify-center">
+                  <button 
+                    onClick={() => {
+                      setDate(today());
+                      setIsCalendarExpanded(false);
+                    }}
+                    className="text-xs font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    Volver a Hoy
+                  </button>
+                </div>
+              </motion.div>
             </div>
-          </DialogContent>
-        </Dialog>
+          )}
+        </AnimatePresence>
 
         </TooltipProvider>
       </div>
