@@ -606,14 +606,14 @@ export default function AgendaPage() {
                     ref={isActive ? activeTabRef : null}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "relative flex-1 flex-shrink-1 snap-center min-w-[95px] flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl font-black transition-all active:scale-95 z-10",
+                      "relative flex-1 flex-shrink-1 snap-center min-w-[140px] flex items-center justify-center gap-2 py-4 rounded-2xl font-black transition-all active:scale-95 z-10",
                       isActive 
                         ? `${tab.bgActive} text-white shadow-xl shadow-slate-200` 
                         : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                     )}
                   >
-                    <Icon className={cn("w-6 h-6 transition-transform duration-300", isActive && "-translate-y-0.5")} />
-                    <span className="text-sm uppercase tracking-tighter leading-tight">{tab.label}</span>
+                    <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-slate-400")} />
+                    <span className="text-base uppercase tracking-tighter leading-tight">{tab.label}</span>
                   </button>
                 );
               })}
