@@ -25,8 +25,8 @@ function Calendar({
         month_caption: "flex justify-center relative items-center h-10 w-full mb-6",
         caption_label: "text-3xl md:text-2xl font-black tracking-tighter text-slate-900 capitalize",
         nav: "flex items-center",
-        button_previous: "h-8 w-8 bg-slate-100 text-slate-900 rounded-full hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center p-0 absolute left-2 top-5 -translate-y-1/2 z-10",
-        button_next: "h-8 w-8 bg-slate-100 text-slate-900 rounded-full hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center p-0 absolute right-2 top-5 -translate-y-1/2 z-10",
+        button_previous: "h-12 w-12 bg-slate-100 text-slate-900 rounded-full hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center p-0 absolute left-2 top-5 -translate-y-1/2 z-10 shadow-sm active:scale-90",
+        button_next: "h-12 w-12 bg-slate-100 text-slate-900 rounded-full hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center p-0 absolute right-2 top-5 -translate-y-1/2 z-10 shadow-sm active:scale-90",
         month_grid: "w-full border-collapse",
         weekdays: "grid grid-cols-7 mb-4",
         weekday: "text-slate-500 font-black text-base md:text-sm uppercase tracking-tighter text-center flex items-center justify-center h-12 md:h-10",
@@ -46,8 +46,8 @@ function Calendar({
       }}
       components={{
         Chevron: ({ ...props }) => {
-          if (props.orientation === 'left') return <ChevronLeftIcon className="h-3 w-3 stroke-[3]" />
-          return <ChevronRightIcon className="h-3 w-3 stroke-[3]" />
+          if (props.orientation === 'left') return <ChevronLeftIcon className="h-5 w-5 stroke-[3]" />
+          return <ChevronRightIcon className="h-5 w-5 stroke-[3]" />
         }
       }}
       {...props}
