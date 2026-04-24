@@ -591,14 +591,13 @@ export default function AgendaPage() {
             }}
             className="flex overflow-x-auto hide-scrollbar snap-x w-screen -ml-4 px-1 py-3 relative z-20"
           >
-            <div className="relative flex w-full gap-0.5 px-0.5">
+            <div className="relative flex w-full gap-2 px-1">
               {[
-                { id: 'pendientes', label: 'Pendientes', icon: Clock, bgActive: 'bg-amber-500', flex: 'flex-[0.9]' },
-                { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, bgActive: 'bg-emerald-600', flex: 'flex-[1.15]' },
-                { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, bgActive: 'bg-blue-600', flex: 'flex-[1.05]' },
-                { id: 'cancelados', label: 'Cancelados', icon: XCircle, bgActive: 'bg-rose-600', flex: 'flex-[0.9]' }
+                { id: 'pendientes', label: 'Pendientes', bgActive: 'bg-amber-500' },
+                { id: 'confirmados', label: 'Confirmados', bgActive: 'bg-emerald-600' },
+                { id: 'finalizados', label: 'Finalizados', bgActive: 'bg-blue-600' },
+                { id: 'cancelados', label: 'Cancelados', bgActive: 'bg-rose-600' }
               ].map(tab => {
-                const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
                 return (
                   <button
@@ -606,14 +605,12 @@ export default function AgendaPage() {
                     ref={isActive ? activeTabRef : null}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "relative flex-shrink-1 snap-center min-w-0 flex items-center justify-center gap-0.5 py-4 rounded-2xl font-black transition-all active:scale-95 z-10 px-0",
-                      tab.flex,
+                      "relative flex-1 flex items-center justify-center py-4 rounded-2xl font-black transition-all active:scale-95 z-10 min-w-0",
                       isActive 
                         ? `${tab.bgActive} text-white shadow-xl shadow-slate-200` 
                         : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                     )}
                   >
-                    <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-slate-400")} />
                     <span className="text-base uppercase tracking-tighter leading-tight">{tab.label}</span>
                   </button>
                 );
