@@ -1214,7 +1214,6 @@ export default function CajaPage() {
                 </div>
 
               </div>
-            </div>
           )}
 
             {/* ════════════════════════════════════════
