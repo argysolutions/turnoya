@@ -874,13 +874,10 @@ export default function CajaPage() {
             {/* Right: Actions */}
             <div className="flex items-center gap-1 min-w-[48px] justify-end">
               <button 
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={cn(
-                  "w-12 h-12 flex items-center justify-center transition-all",
-                  isSearchOpen ? "text-blue-600" : "text-slate-400"
-                )}
+                onClick={() => setIsCalendarExpanded(true)}
+                className="w-12 h-12 flex items-center justify-center text-blue-600"
               >
-                <Search className="w-7 h-7" />
+                <CalendarDays className="w-7 h-7" />
               </button>
 
               {isOwner && (
@@ -1178,7 +1175,7 @@ export default function CajaPage() {
             {/* ════════════════════════════════════════
                 MOVIMIENTOS (LEDGER)
             ════════════════════════════════════════ */}
-            <div className="flex-1 flex flex-col min-h-0 bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden -mt-2">
+            <div className="flex-1 flex flex-col min-h-0 bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden -mt-5 relative z-20">
               {/* Header con Filtros */}
               <div className="px-6 py-5 border-b border-slate-50 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
@@ -1189,10 +1186,13 @@ export default function CajaPage() {
                     </p>
                   </div>
                   <button 
-                    onClick={() => setIsCalendarExpanded(true)}
-                    className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-colors shadow-sm border border-slate-100"
+                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                    className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-sm border border-slate-100",
+                      isSearchOpen ? "bg-blue-600 text-white border-blue-700" : "bg-slate-50 text-slate-400 border-slate-100"
+                    )}
                   >
-                    <CalendarDays className="w-5 h-5" />
+                    <Search className="w-5 h-5" />
                   </button>
                 </div>
 
