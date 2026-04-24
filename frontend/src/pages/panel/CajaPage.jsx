@@ -1156,19 +1156,6 @@ export default function CajaPage() {
                   )}
                 </AnimatePresence>
 
-                {/* 3. Operaciones Rápidas */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="md:col-span-4 bg-slate-50 rounded-[3rem] p-3 flex gap-2">
-                    <Button 
-                      onClick={() => setShowExpenseModal(true)}
-                      className="flex-1 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-slate-900 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
-                    >
-                      <PlusCircle className="w-4 h-4 mr-2" />
-                      Registrar Gasto
-                    </Button>
-                  </div>
-                </div>
-
               </div>
           )}
 
