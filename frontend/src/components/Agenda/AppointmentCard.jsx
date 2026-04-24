@@ -49,21 +49,27 @@ export const AppointmentCard = React.memo(({ appointment, onClick }) => {
     <div 
       onClick={() => onClick?.(appointment)}
       className={cn(
-        "group relative flex items-center p-5 md:p-3 border rounded-[2rem] md:rounded-2xl transition-all cursor-pointer hover:shadow-xl active:scale-[0.98] shadow-sm w-full h-auto min-h-[100px] md:min-h-0 select-none",
+        "group relative flex items-center p-5 md:p-3 border rounded-[2rem] md:rounded-2xl transition-all cursor-pointer hover:shadow-xl active:scale-[0.98] shadow-sm w-full h-[120px] md:h-auto select-none overflow-hidden",
         getCardColors(status)
       )}
     >
-      <div className="flex items-center gap-4 md:gap-3 w-full">
+      {/* Status Indicator Dot (Mobile - Absolute to save space) */}
+      <div className={cn(
+        "md:hidden absolute top-6 right-6 w-3 h-3 rounded-full shadow-sm",
+        statusStyles[status]?.split(' ')[0] || 'bg-slate-400'
+      )} />
+
+      <div className="flex items-center gap-4 md:gap-3 w-full h-full">
         {/* TIME PILL */}
-        <div className="flex flex-col items-center justify-center min-w-[6.5rem] md:min-w-[3.5rem] bg-white/50 backdrop-blur-sm rounded-2xl md:rounded-xl py-4 md:py-1 px-1 border border-current/5 shadow-inner">
+        <div className="flex flex-col items-center justify-center min-w-[6.5rem] md:min-w-[3.5rem] h-full bg-white/50 backdrop-blur-sm rounded-2xl md:rounded-xl py-1 px-1 border border-current/5 shadow-inner shrink-0">
           <span className="text-3xl md:text-lg font-black text-slate-900 leading-none">{startTime}</span>
         </div>
 
         {/* CONTENT BLOCK */}
-        <div className="flex flex-col border-l-2 md:border-l border-slate-200/50 pl-4 md:pl-3 flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-2xl md:text-sm font-black text-slate-900 truncate">
+        <div className="flex flex-col border-l-2 md:border-l border-slate-200/50 pl-4 md:pl-3 flex-1 min-w-0 justify-center h-full">
+          <div className="flex items-center pr-8 md:pr-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-[22px] md:text-sm font-black text-slate-900 truncate block w-full">
                 {client_name || 'Sin nombre'}
               </span>
               {is_frequent && (
@@ -72,21 +78,15 @@ export const AppointmentCard = React.memo(({ appointment, onClick }) => {
                 </div>
               )}
             </div>
-            {/* Status Indicator Dot (Mobile) */}
-            <div className={cn(
-              "md:hidden w-2.5 h-2.5 rounded-full",
-              statusStyles[status]?.split(' ')[0] || 'bg-slate-400'
-            )} />
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 md:mt-1 text-lg md:text-[11px] text-slate-500 font-bold overflow-hidden">
-            <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+          <div className="flex items-center gap-x-3 mt-1 md:mt-1 text-lg md:text-[11px] text-slate-500 font-bold overflow-hidden">
+            <div className="flex items-center gap-1.5 min-w-0 max-w-[60%]">
               <Scissors className="w-5 h-5 md:w-3 md:h-3 text-slate-400 shrink-0" /> 
               <span className="truncate whitespace-nowrap">{service_name || 'Servicio'}</span>
             </div>
             {phone && (
-              <div className="flex items-center gap-1.5 ml-auto md:ml-0">
-                <span className="hidden md:inline opacity-30 text-slate-400">•</span>
+              <div className="flex items-center gap-1.5 ml-auto">
                 <span className="text-xl md:text-[12px] text-black font-black select-text whitespace-nowrap">{phone}</span>
                 <a 
                   href={`https://wa.me/${phone.replace(/\D/g, '')}`}
