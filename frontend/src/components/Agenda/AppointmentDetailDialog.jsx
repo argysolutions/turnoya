@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Clock, User, Scissors, Trash2, CheckCircle, XCircle, X } from 'lucide-react'
+import { Clock, User, Scissors, CheckCircle, XCircle, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -133,16 +133,6 @@ const AppointmentDetailDialog = ({ appointment, isOpen, onClose, onUpdateStatus,
                 </Button>
               )}
             </div>
-
-            <Button 
-              variant="ghost" 
-              onClick={() => handleAction(onDelete, appointment.id)}
-              disabled={loading}
-              className="w-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 font-bold rounded-2xl h-14 active:scale-95 transition-all uppercase tracking-widest text-[10px]"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Eliminar Permanentemente
-            </Button>
           </div>
         </div>
       </div>
