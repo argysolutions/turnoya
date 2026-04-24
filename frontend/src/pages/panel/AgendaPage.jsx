@@ -591,7 +591,7 @@ export default function AgendaPage() {
             }}
             className="flex overflow-x-auto hide-scrollbar snap-x w-screen -ml-4 px-1 py-3 relative z-20"
           >
-            <div className="relative flex w-full justify-between gap-1 px-1">
+            <div className="relative flex w-full gap-1 px-1">
               {[
                 { id: 'pendientes', label: 'Pendientes', icon: Clock, bgActive: 'bg-amber-500' },
                 { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, bgActive: 'bg-emerald-600' },
@@ -606,14 +606,14 @@ export default function AgendaPage() {
                     ref={isActive ? activeTabRef : null}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "relative flex-none snap-center min-w-0 flex items-center justify-center gap-1.5 py-4 px-4 rounded-2xl font-black transition-all active:scale-95 z-10",
+                      "relative flex-1 flex flex-col items-center justify-center gap-1 py-3.5 rounded-2xl font-black transition-all active:scale-95 z-10 min-w-0",
                       isActive 
                         ? `${tab.bgActive} text-white shadow-xl shadow-slate-200` 
                         : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                     )}
                   >
                     <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-slate-400")} />
-                    <span className="text-base uppercase tracking-tighter leading-tight">{tab.label}</span>
+                    <span className="text-[11px] lg:text-base uppercase tracking-tighter leading-tight text-center">{tab.label}</span>
                   </button>
                 );
               })}
