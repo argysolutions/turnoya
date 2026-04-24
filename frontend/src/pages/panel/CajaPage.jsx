@@ -1448,10 +1448,10 @@ export default function CajaPage() {
                 className="relative bg-white w-full max-w-[480px] rounded-[3rem] overflow-hidden shadow-2xl mb-2 lg:mb-0"
               >
                 {/* Header */}
-                <div className="p-8 pb-4 bg-white text-slate-900 flex items-start justify-between">
+                <div className="px-8 pt-8 pb-4 flex items-start justify-between bg-white">
                   <div>
-                    <h3 className="text-3xl font-black text-black tracking-tight">Seleccionar Fecha</h3>
-                    <p className="text-lg text-slate-600 font-bold mt-2">Navegá por el historial de caja.</p>
+                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Calendario</h3>
+                    <p className="text-lg text-slate-500 font-bold mt-2">Navegá por el historial de caja.</p>
                   </div>
                   <button 
                     onClick={() => setIsCalendarExpanded(false)}
@@ -1461,7 +1461,7 @@ export default function CajaPage() {
                   </button>
                 </div>
 
-                <div className="p-4 pt-2">
+                <div className="px-4 py-2 flex flex-col items-center">
                   <ShadcnCalendar
                     mode="single"
                     locale={es}
@@ -1486,7 +1486,7 @@ export default function CajaPage() {
                       exit={{ height: 0, opacity: 0, y: 20 }}
                       className="overflow-hidden"
                     >
-                      <div className="p-6 bg-white flex justify-center border-t border-slate-50">
+                      <div className="px-8 pb-10 pt-4 bg-white border-t border-slate-50">
                         <button 
                           onClick={() => {
                             setDate(today());
