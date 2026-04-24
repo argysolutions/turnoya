@@ -275,7 +275,7 @@ export default function AgendaPage() {
     // Esperamos a que loading sea false y que tengamos turnos para decidir la pestaña principal
     if (!loading && appointments && appointments.length > 0 && !hasInitializedTab) {
       const sections = {
-        pendiente: appointments.filter(a => a.status === 'pending' || a.status === 'pending_block'),
+        pendiente: appointments.filter(a => ['pending', 'pending_block', 'rescheduled'].includes(a.status)),
         confirmado: appointments.filter(a => a.status === 'confirmed'),
         finalizado: appointments.filter(a => a.status === 'completed'),
         canceladoAusente: appointments.filter(a => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(a.status)),
@@ -295,7 +295,7 @@ export default function AgendaPage() {
       // 1. Actualización de Estado Local (Optimistic UI)
       setAppointments(prevAppointments => 
         prevAppointments.map(turno => 
-          turno.status === 'pending' || turno.status === 'pending_block'
+          ['pending', 'pending_block', 'rescheduled'].includes(turno.status)
             ? { ...turno, status: 'confirmed' } 
             : turno
         )
@@ -327,7 +327,7 @@ export default function AgendaPage() {
     )
 
     return {
-      pendiente: list.filter(a => a.status === 'pending' || a.status === 'pending_block'),
+      pendiente: list.filter(a => ['pending', 'pending_block', 'rescheduled'].includes(a.status)),
       confirmado: list.filter(a => a.status === 'confirmed'),
       finalizado: list.filter(a => a.status === 'completed'),
       canceladoAusente: list.filter(a => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(a.status)),
@@ -387,7 +387,7 @@ export default function AgendaPage() {
 
     return {
       all: baseList.length,
-      pendientes: baseList.filter(app => ['pending', 'pending_block'].includes(app.status)).length,
+      pendientes: baseList.filter(app => ['pending', 'pending_block', 'rescheduled'].includes(app.status)).length,
       confirmados: baseList.filter(app => app.status === 'confirmed').length,
       finalizados: baseList.filter(app => app.status === 'completed').length,
       cancelados: baseList.filter(app => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(app.status)).length,

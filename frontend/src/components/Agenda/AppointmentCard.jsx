@@ -1,7 +1,7 @@
 import React from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, User, Scissors, Info as InfoIcon, Star, ChevronRight, MessageCircle, Phone } from 'lucide-react'
+import { Clock, User, Scissors, Info as InfoIcon, Star, ChevronRight, MessageCircle, Phone, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const statusStyles = {
@@ -26,6 +26,7 @@ const getCardColors = (status) => {
   switch (status) {
     case 'pending':
     case 'pending_block': 
+    case 'rescheduled':
       return 'bg-amber-50/70 border-amber-200/60 text-amber-900';
     case 'confirmed': 
       return 'bg-emerald-50/70 border-emerald-200/60 text-emerald-900';
@@ -88,6 +89,11 @@ export const AppointmentCard = React.memo(({ appointment, onClick }) => {
             {phone && (
               <div className="flex items-center gap-1 ml-auto">
                 <div className="flex items-center gap-1 ml-1">
+                  {status === 'rescheduled' && (
+                    <div className="flex items-center justify-center p-3 md:p-2 bg-blue-50 text-blue-600 rounded-xl md:rounded-lg mr-1 border border-blue-100 shadow-sm">
+                      <History className="w-6 h-6 md:w-5 md:h-5" />
+                    </div>
+                  )}
                   <a 
                     href={`tel:${phone.replace(/\D/g, '')}`}
                     onClick={(e) => e.stopPropagation()}

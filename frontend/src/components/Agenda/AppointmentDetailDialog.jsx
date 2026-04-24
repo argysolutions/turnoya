@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Clock, User, Scissors, CheckCircle, XCircle, X, ChevronLeft, ChevronRight, UserX } from 'lucide-react'
+import { Clock, User, Scissors, CheckCircle, XCircle, X, ChevronLeft, ChevronRight, UserX, History } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -52,12 +52,14 @@ const AppointmentDetailDialog = ({ appointment, isOpen, onClose, onUpdateStatus,
                   <span className={cn(
                     "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm",
                     appointment.status === 'confirmed' ? "bg-emerald-50 border-emerald-100 text-emerald-600" :
+                    appointment.status === 'rescheduled' ? "bg-blue-50 border-blue-100 text-blue-600" :
                     appointment.status === 'pending' ? "bg-amber-50 border-amber-100 text-amber-600" :
                     "bg-slate-100 border-slate-200 text-slate-500"
                   )}>
                     {appointment.status === 'confirmed' ? 'Confirmado' : 
-                    appointment.status === 'pending' ? 'Pendiente' : 
-                    appointment.status.toUpperCase()}
+                     appointment.status === 'rescheduled' ? 'Reprogramado' : 
+                     appointment.status === 'pending' ? 'Pendiente' : 
+                     appointment.status.toUpperCase()}
                   </span>
                 </div>
                 <h2 className="text-3xl font-black text-slate-900 tracking-tighter truncate leading-tight">
@@ -218,16 +220,12 @@ const AppointmentDetailDialog = ({ appointment, isOpen, onClose, onUpdateStatus,
               <div className="my-2 h-[1px] bg-slate-100 w-full" />
 
               <button 
-                onClick={() => {
-                  // This would trigger the rescheduling logic
-                  onClose();
-                  toast.success("Redirigiendo a reprogramación...");
-                }}
+                onClick={() => handleAction(onUpdateStatus, appointment.id, 'rescheduled')}
                 className="w-full flex items-center justify-between p-5 bg-blue-600 text-white rounded-[2rem] shadow-xl shadow-blue-100 active:scale-[0.98] transition-all"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white">
-                    <Clock className="w-6 h-6" />
+                    <History className="w-6 h-6" />
                   </div>
                   <div className="text-left">
                     <p className="text-xl font-black tracking-tighter uppercase leading-none">Reprogramar Turno</p>
