@@ -1471,6 +1471,7 @@ export default function CajaPage() {
                         setIsCalendarExpanded(false);
                       }
                     }}
+                    fixedWeeks
                     className="w-full p-2"
                     classNames={{
                       months: "w-full relative",
