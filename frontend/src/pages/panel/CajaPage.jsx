@@ -1200,15 +1200,7 @@ export default function CajaPage() {
                       className="flex-1 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-slate-900 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
                     >
                       <PlusCircle className="w-4 h-4 mr-2" />
-                      Gasto
-                    </Button>
-                    <Button 
-                      onClick={() => setShowCierreModal(true)}
-                      disabled={session?.status !== 'open'}
-                      className="flex-1 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-rose-600 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 disabled:opacity-30"
-                    >
-                      <Lock className="w-4 h-4 mr-2" />
-                      Cierre
+                      Registrar Gasto
                     </Button>
                   </div>
                 </div>
