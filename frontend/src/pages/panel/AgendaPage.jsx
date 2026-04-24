@@ -525,7 +525,7 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-widest animate-pulse">HOY</span>
+                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-tighter">HOY</span>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -535,7 +535,7 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-2xl lg:text-xl font-black text-blue-600 uppercase tracking-widest whitespace-nowrap animate-pulse">
+                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-tighter whitespace-nowrap">
                       {format(date, "EEE dd - MM", { locale: es }).replace('.', '').toUpperCase()}
                     </span>
                   </motion.div>
