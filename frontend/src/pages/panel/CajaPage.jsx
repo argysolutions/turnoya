@@ -926,7 +926,7 @@ export default function CajaPage() {
             )}
           </AnimatePresence>
 
-          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto pt-6 px-0 md:px-0 overflow-hidden">
+          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto pt-6 px-0 md:px-0">
             {/* ═══════════════════════════════════════════
                 COLUMNA LEDGER (3/4 desktop, full mobile)
             ══════════════════════════════════════════════ */}
@@ -966,7 +966,7 @@ export default function CajaPage() {
               <div className="space-y-4 mb-6">
                 {/* 1. Arqueo y Disponible (Fila Principal) */}
                 {session?.status === 'open' && (
-                  <div className="bg-white rounded-[3rem] px-5 py-8 sm:p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden group border-2 border-blue-600/10 -mx-3.5 sm:mx-0">
+                  <div className="bg-white rounded-[3rem] px-5 py-8 sm:p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden group border-2 border-blue-600/10 -mx-2 sm:mx-0">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full -mr-32 -mt-32 blur-[100px] group-hover:bg-blue-600/10 transition-colors duration-1000" />
                     
                     {/* Trigger Sub-Dashboard */}
@@ -1178,7 +1178,7 @@ export default function CajaPage() {
             {/* ════════════════════════════════════════
                 MOVIMIENTOS (LEDGER)
             ════════════════════════════════════════ */}
-            <div className="flex-1 flex flex-col min-h-0 bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden -mt-5 relative z-20 -mx-3.5 sm:mx-0">
+            <div className="flex-1 flex flex-col min-h-0 bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden -mt-5 relative z-20 -mx-2 sm:mx-0">
               {/* Header con Filtros */}
               <div className="px-6 py-5 border-b border-slate-50 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
