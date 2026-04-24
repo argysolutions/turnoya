@@ -1187,38 +1187,38 @@ export default function CajaPage() {
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className="relative bg-white w-full max-w-[340px] rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center text-center overflow-hidden"
+                className="relative bg-white w-full max-w-[420px] rounded-[3rem] p-10 shadow-2xl flex flex-col items-center text-center overflow-hidden"
               >
                 {/* Close Button */}
                 <button 
                   onClick={() => setShowOpeningModal(false)}
-                  className="absolute top-5 right-5 w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
+                  className="absolute top-6 right-6 w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-6 h-6" />
                 </button>
 
-                <div className="w-20 h-20 rounded-[2rem] bg-blue-50 flex items-center justify-center mb-6">
-                  <Lock className="w-10 h-10 text-blue-600" />
+                <div className="w-24 h-24 rounded-[2.5rem] bg-blue-50 flex items-center justify-center mb-8 shadow-inner">
+                  <Lock className="w-12 h-12 text-blue-600" />
                 </div>
 
-                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-2">Caja Cerrada</h3>
-                <p className="text-sm text-slate-500 font-medium mb-8">Para registrar ventas y gastos debés iniciar la sesión del día.</p>
+                <h3 className="text-4xl font-black text-slate-900 uppercase tracking-tighter mb-3 leading-tight">Caja Cerrada</h3>
+                <p className="text-xl text-slate-500 font-bold mb-10 leading-snug">Para registrar ventas y gastos debés iniciar la sesión del día.</p>
 
                 <Button 
                   onClick={() => {
                     handleOpenCaja();
                     setShowOpeningModal(false);
                   }} 
-                  className="h-16 w-full rounded-2xl bg-blue-600 text-white text-lg font-black uppercase tracking-widest shadow-xl shadow-blue-200 active:scale-95 transition-all"
+                  className="h-20 w-full rounded-[2rem] bg-blue-600 text-white text-xl font-black uppercase tracking-widest shadow-2xl shadow-blue-200 active:scale-95 transition-all"
                 >
                   Iniciar Sesión
                 </Button>
 
                 <button 
                   onClick={() => setShowOpeningModal(false)}
-                  className="mt-6 text-xs font-black uppercase tracking-widest text-slate-300 hover:text-slate-500 transition-colors"
+                  className="mt-8 text-sm font-black uppercase tracking-widest text-slate-300 hover:text-slate-600 transition-colors"
                 >
-                  Ver Movimientos
+                  Continuar sin iniciar
                 </button>
               </motion.div>
             </div>
