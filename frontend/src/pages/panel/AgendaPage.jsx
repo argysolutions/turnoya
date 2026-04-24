@@ -593,10 +593,10 @@ export default function AgendaPage() {
           >
             <div className="relative flex w-full gap-0.5 px-0.5">
               {[
-                { id: 'pendientes', label: 'Pendientes', icon: Clock, bgActive: 'bg-amber-500' },
-                { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, bgActive: 'bg-emerald-600' },
-                { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, bgActive: 'bg-blue-600' },
-                { id: 'cancelados', label: 'Cancelados', icon: XCircle, bgActive: 'bg-rose-600' }
+                { id: 'pendientes', label: 'Pendientes', icon: Clock, bgActive: 'bg-amber-500', flex: 'flex-[0.9]' },
+                { id: 'confirmados', label: 'Confirmados', icon: CheckCircle, bgActive: 'bg-emerald-600', flex: 'flex-[1.15]' },
+                { id: 'finalizados', label: 'Finalizados', icon: CalendarCheck, bgActive: 'bg-blue-600', flex: 'flex-[1.05]' },
+                { id: 'cancelados', label: 'Cancelados', icon: XCircle, bgActive: 'bg-rose-600', flex: 'flex-[0.9]' }
               ].map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -606,7 +606,8 @@ export default function AgendaPage() {
                     ref={isActive ? activeTabRef : null}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "relative flex-1 flex-shrink-1 snap-center min-w-0 flex items-center justify-center gap-0.5 py-4 rounded-2xl font-black transition-all active:scale-95 z-10 px-0",
+                      "relative flex-shrink-1 snap-center min-w-0 flex items-center justify-center gap-0.5 py-4 rounded-2xl font-black transition-all active:scale-95 z-10 px-0",
+                      tab.flex,
                       isActive 
                         ? `${tab.bgActive} text-white shadow-xl shadow-slate-200` 
                         : "bg-slate-50 text-slate-500 hover:bg-slate-100"
