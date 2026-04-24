@@ -515,6 +515,13 @@ export default function AgendaPage() {
               <CalendarDays className="w-4 h-4 text-blue-500" />
               Volver a hoy
             </button>
+            <button 
+              onClick={() => setShowBlockModal(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors shadow-sm"
+            >
+              <Lock className="w-4 h-4 text-amber-500" />
+              Bloquear Horario
+            </button>
             <Button onClick={() => setShowDialog(true)} className="rounded-xl font-bold gap-2 bg-slate-900 hover:bg-blue-600 transition-all">
               <Plus className="w-4 h-4" /> Nuevo Turno
             </Button>
@@ -584,7 +591,14 @@ export default function AgendaPage() {
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-0.5 min-w-[100px] justify-end">
+            <div className="flex items-center gap-0.5 min-w-[120px] justify-end">
+              <button 
+                onClick={() => setShowBlockModal(true)} 
+                className="w-12 h-12 flex items-center justify-center text-blue-600 active:scale-95 transition-transform"
+                title="Bloquear Horario"
+              >
+                <Lock className="w-7 h-7" />
+              </button>
               <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("w-12 h-12 flex items-center justify-center transition-colors rounded-full", isSearchOpen ? "bg-black text-white" : "text-blue-600")}>
                 <Search className="w-7 h-7" />
               </button>
@@ -1144,14 +1158,25 @@ export default function AgendaPage() {
                     onMonthChange={setCurrentMonth}
                     fixedWeeks
                     className="w-full p-2"
-                    modifiers={{ blocked: blockedDates }}
+                    modifiers={{ 
+                      blockedFull: blockedDates?.full || [],
+                      blockedPartial: blockedDates?.partial || []
+                    }}
                     modifiersStyles={{ 
-                      blocked: { 
+                      blockedFull: { 
                         backgroundColor: '#fee2e2', 
                         color: '#dc2626', 
                         fontWeight: 'bold',
-                        borderRadius: '0.5rem'
-                      } 
+                        borderRadius: '0.5rem',
+                        border: '2px solid #ef4444'
+                      },
+                      blockedPartial: {
+                        backgroundColor: '#ffedd5',
+                        color: '#ea580c',
+                        fontWeight: 'bold',
+                        borderRadius: '0.5rem',
+                        border: '2px solid #f97316'
+                      }
                     }}
                   />
                 </div>
@@ -1192,6 +1217,13 @@ export default function AgendaPage() {
         isOpen={showDialog}
         onClose={() => setShowDialog(false)}
         onConfirm={handleConfirmAdd}
+        initialDate={date}
+      />
+
+      <BlockTimeModal
+        isOpen={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        onConfirm={addBlock}
         initialDate={date}
       />
 

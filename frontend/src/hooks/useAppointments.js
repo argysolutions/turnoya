@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 export const useAppointments = (initialDate = new Date()) => {
   const [date, setDate] = useState(initialDate)
   const [appointments, setAppointments] = useState([])
-  const [blockedDates, setBlockedDates] = useState([])
+  const [blockedDates, setBlockedDates] = useState({ full: [], partial: [] })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -103,13 +103,27 @@ export const useAppointments = (initialDate = new Date()) => {
   const fetchBlockedDates = useCallback(async (year, month) => {
     try {
       const { data } = await getBlockedDates({ year, month })
-      // Map strings "YYYY-MM-DD" or full ISO to safe local Date objects
-      const dates = data.map(dateStr => {
-        const justDate = dateStr.split('T')[0]
-        const [y, m, d] = justDate.split('-').map(Number)
-        return new Date(y, m - 1, d) // Local day without time shifting
+      
+      const full = []
+      const partial = []
+
+      data.forEach(block => {
+        const start = new Date(block.start_at)
+        const end = new Date(block.end_at)
+        const diffMs = end - start
+        const diffHours = diffMs / (1000 * 60 * 60)
+        
+        // Map to a clean local Date object for the calendar component
+        const dateKey = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+
+        if (diffHours >= 23) {
+          full.push(dateKey)
+        } else {
+          partial.push(dateKey)
+        }
       })
-      setBlockedDates(dates)
+
+      setBlockedDates({ full, partial })
     } catch (err) {
       console.error('Error fetching blocked dates:', err)
     }

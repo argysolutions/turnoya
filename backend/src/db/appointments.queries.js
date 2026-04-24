@@ -109,16 +109,16 @@ export const getPendingBlocks = async (businessId) => {
  */
 export const getBlockedDates = async (businessId, year, month) => {
   const result = await pool.query(
-    `SELECT DISTINCT start_at::date as blocked_date
+    `SELECT start_at, end_at
      FROM appointments
      WHERE business_id = $1
        AND status = 'blocked'
        AND EXTRACT(YEAR FROM start_at) = $2
        AND EXTRACT(MONTH FROM start_at) = $3
-     ORDER BY blocked_date ASC`,
+     ORDER BY start_at ASC`,
     [businessId, year, month]
   )
-  return result.rows.map(r => r.blocked_date)
+  return result.rows
 }
 
 export const updateAppointmentStatus = async (id, businessId, status, paymentInfo = null, staffContext = null) => {
