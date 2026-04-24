@@ -868,7 +868,7 @@ export default function CajaPage() {
 
             {/* Center: Title */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-3xl font-black text-black tracking-tighter">Caja</span>
+              <span className="text-2xl font-black text-black uppercase tracking-tighter">Caja</span>
             </div>
 
             {/* Right: Actions */}
