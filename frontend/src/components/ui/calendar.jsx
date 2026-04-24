@@ -25,8 +25,8 @@ function Calendar({
         month_caption: "flex justify-center relative items-center h-10 w-full mb-6",
         caption_label: "text-3xl md:text-2xl font-black tracking-tighter text-slate-900 capitalize",
         nav: "flex items-center",
-        button_previous: "h-8 w-8 bg-slate-900 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center p-0 absolute left-2 top-5 -translate-y-1/2 z-10",
-        button_next: "h-8 w-8 bg-slate-900 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center p-0 absolute right-2 top-5 -translate-y-1/2 z-10",
+        button_previous: "h-8 w-8 bg-slate-100 text-slate-900 rounded-full hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center p-0 absolute left-2 top-5 -translate-y-1/2 z-10",
+        button_next: "h-8 w-8 bg-slate-100 text-slate-900 rounded-full hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center p-0 absolute right-2 top-5 -translate-y-1/2 z-10",
         month_grid: "w-full border-collapse",
         weekdays: "grid grid-cols-7 mb-4",
         weekday: "text-slate-500 font-black text-base md:text-sm uppercase tracking-tighter text-center flex items-center justify-center h-12 md:h-10",
@@ -35,10 +35,10 @@ function Calendar({
         day: "h-12 md:h-10 w-full flex items-center justify-center p-0 relative focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-12 w-12 md:h-10 md:w-10 p-0 text-2xl md:text-xl font-black tracking-tighter transition-all cursor-pointer rounded-xl flex items-center justify-center hover:bg-blue-50 hover:text-blue-700"
+          "h-12 w-12 md:h-10 md:w-10 p-0 text-2xl md:text-xl font-black tracking-tighter transition-all cursor-pointer rounded-2xl flex items-center justify-center hover:bg-blue-50 hover:text-blue-700"
         ),
-        selected: "[&_button]:bg-slate-900 [&_button]:text-white [&_button]:font-black [&_button]:opacity-100 [&_button]:hover:bg-blue-600 [&_button]:hover:text-white [&_button]:transition-colors", 
-        today: "[&_button]:border-2 [&_button]:border-slate-200 [&_button]:text-slate-900 [&_button]:font-black",
+        selected: "[&_button]:bg-blue-600 [&_button]:text-white [&_button]:font-black [&_button]:opacity-100 [&_button]:hover:bg-blue-700 [&_button]:hover:text-white [&_button]:transition-colors [&_button]:shadow-lg [&_button]:shadow-blue-200", 
+        today: "[&_button]:bg-slate-100 [&_button]:text-blue-600 [&_button]:font-black",
         outside: "day-outside text-slate-300 opacity-30",
         disabled: "text-slate-300 opacity-20",
         hidden: "invisible",

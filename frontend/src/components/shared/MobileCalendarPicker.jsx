@@ -109,26 +109,6 @@ export const MobileCalendarPicker = ({ isOpen, onClose, value, onSelect, title =
                 }}
                 fixedWeeks
                 className="w-full p-2"
-                classNames={{
-                  months: "w-full relative",
-                  month: "w-full space-y-6 relative",
-                  caption: "flex justify-center relative items-center w-full mb-4 h-10",
-                  caption_label: "text-lg font-black text-slate-900 capitalize",
-                  nav: "absolute top-0 left-0 right-0 flex justify-between items-center h-10 px-10 z-20",
-                  nav_button: cn(
-                    "h-10 w-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
-                  ),
-                  nav_button_previous: "",
-                  nav_button_next: "",
-                  table: "w-full border-collapse",
-                  head_row: "flex w-full justify-between mb-2",
-                  head_cell: "text-slate-400 font-bold text-[10px] flex-1 text-center uppercase tracking-widest",
-                  row: "flex w-full mt-2 justify-between",
-                  cell: "flex-1 text-center p-0.5 relative focus-within:relative focus-within:z-20",
-                  day: cn(
-                    "h-14 w-full p-0 font-black text-base aria-selected:opacity-100 flex items-center justify-center rounded-2xl transition-all"
-                  ),
-                }}
               />
             </div>
 

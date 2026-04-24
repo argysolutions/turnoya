@@ -1473,20 +1473,6 @@ export default function CajaPage() {
                     }}
                     fixedWeeks
                     className="w-full p-2"
-                    classNames={{
-                      months: "w-full relative",
-                      month: "w-full space-y-6 relative",
-                      table: "w-full border-collapse",
-                      head_row: "flex w-full justify-between mb-2",
-                      head_cell: "text-slate-400 font-bold text-[10px] flex-1 text-center uppercase tracking-widest",
-                      row: "flex w-full mt-2 justify-between",
-                      cell: "flex-1 text-center p-0.5 relative focus-within:relative focus-within:z-20",
-                      day: cn(
-                        "h-12 w-full p-0 font-black text-sm aria-selected:opacity-100 flex items-center justify-center rounded-2xl transition-all hover:bg-slate-50"
-                      ),
-                      day_selected: "bg-blue-600 text-white hover:bg-blue-700",
-                      day_today: "bg-slate-100 text-blue-600",
-                    }}
                     disabled={d => d > new Date()}
                   />
                 </div>
