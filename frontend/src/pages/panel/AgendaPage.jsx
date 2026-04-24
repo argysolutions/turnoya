@@ -525,18 +525,7 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-tighter flex">
-                      {"HOY".split("").map((char, i) => (
-                        <motion.span
-                          key={i}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.1, duration: 0.2 }}
-                        >
-                          {char}
-                        </motion.span>
-                      ))}
-                    </span>
+                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-tighter">HOY</span>
                   </motion.div>
                 ) : (
                   <motion.div
