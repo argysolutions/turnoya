@@ -1209,9 +1209,9 @@ export default function CajaPage() {
                       key={tab.id}
                       onClick={() => setActiveLedgerTab(tab.id)}
                       className={cn(
-                        "flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95",
+                        "flex-1 py-4 rounded-2xl text-base font-black uppercase tracking-tighter transition-all active:scale-95",
                         activeLedgerTab === tab.id 
-                          ? "bg-slate-900 text-white shadow-lg shadow-slate-200" 
+                          ? "bg-slate-900 text-white shadow-xl shadow-slate-200" 
                           : "bg-slate-50 text-slate-400 hover:bg-slate-100"
                       )}
                     >
