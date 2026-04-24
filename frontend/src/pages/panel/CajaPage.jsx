@@ -925,80 +925,76 @@ export default function CajaPage() {
             {/* ── SESSION BANNER ───────────── */}
             {null}
 
-            {/* ── DASHBOARD DE GESTIÓN (Pattern Sidebar/Drawer) ── */}
+            {/* ── DASHBOARD DE GESTIÓN UNIFICADO (Pattern Premium) ── */}
             {isOwner && (
-              <div className="lg:hidden space-y-6 mb-8 px-1">
-                {/* 1. Arqueo de Caja (Card Principal) */}
+              <div className="space-y-4 mb-6">
+                {/* 1. Arqueo y Balance (Compacto) */}
                 {session?.status === 'open' && (
-                  <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl shadow-slate-200 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -mr-16 -mt-16 blur-3xl" />
-                    <div className="relative flex justify-between items-start">
-                      <div>
-                        <p className="text-[11px] font-black uppercase tracking-tighter text-slate-400 mb-2">Efectivo Esperado</p>
-                        <div className="flex items-center gap-3">
-                          <p className={cn("text-5xl font-black tracking-tighter text-white transition-all duration-500", hidden && "blur-xl select-none")}>
-                            {display(session.expected_cash)}
-                          </p>
-                          <button
-                            onClick={() => setHidden(!hidden)}
-                            className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
-                          >
-                            {hidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                          </button>
+                  <div className="bg-slate-950 rounded-[3rem] p-6 shadow-xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full -mr-24 -mt-24 blur-3xl group-hover:bg-blue-500/20 transition-colors duration-500" />
+                    <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-[2rem] bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40 shrink-0">
+                          <Banknote className="w-7 h-7 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Efectivo en Caja</p>
+                          <div className="flex items-center gap-3">
+                            <p className={cn("text-4xl font-black tracking-tighter text-white transition-all duration-500", hidden && "blur-xl select-none")}>
+                              {display(session.expected_cash)}
+                            </p>
+                            <button
+                              onClick={() => setHidden(!hidden)}
+                              className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+                            >
+                              {hidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <div className="w-14 h-14 rounded-3xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40">
-                        <Banknote className="w-7 h-7 text-white" />
-                      </div>
-                    </div>
-                    
-                    <div className="mt-8 pt-6 border-t border-white/10 flex justify-between">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-1">Monto Inicial</p>
-                        <p className="text-xl font-black text-white/80">{display(session.initial_amount)}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-1">Ventas Digitales</p>
-                        <p className="text-xl font-black text-white/80">{display(digitalTotal)}</p>
+                      
+                      <div className="flex gap-6 sm:gap-10 px-2 sm:px-6 sm:border-l border-white/10">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-0.5">Ventas Digitales</p>
+                          <p className={cn("text-xl font-black text-white/90 tracking-tight", hidden && "blur-md")}>{display(digitalTotal)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-0.5">Inicial</p>
+                          <p className="text-xl font-black text-white/70 tracking-tight">{display(session.initial_amount)}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* 2. Métodos de Pago y Operaciones */}
-                <div className="grid grid-cols-1 gap-4">
-                  {/* Resumen por Métodos */}
-                  <div className="bg-white rounded-[2.5rem] border border-slate-100 p-6 shadow-sm">
-                    <p className="text-[11px] font-black uppercase tracking-tighter text-slate-400 mb-4 px-2">Resumen por Métodos</p>
-                    <div className="space-y-2">
-                      {['Efectivo', 'Transferencia', 'Tarjeta'].map(method => {
-                        const data = byMethod[method] || { total: 0, count: 0 };
-                        const Icon = method === 'Efectivo' ? Banknote : method === 'Tarjeta' ? CreditCard : ArrowLeftRight;
-                        return (
-                          <div key={method} className="flex items-center justify-between p-4 rounded-[1.5rem] hover:bg-slate-50 transition-colors">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500">
-                                <Icon className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-black text-slate-800">{method}</p>
-                                <p className="text-[10px] font-bold text-slate-400">{data.count} movimientos</p>
-                              </div>
-                            </div>
+                {/* 2. Grid de Resumen y Acciones (Horizontal) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Resumen por Métodos (Más compacto) */}
+                  <div className="md:col-span-2 bg-white rounded-[3rem] border border-slate-100 p-5 shadow-sm flex items-center overflow-x-auto hide-scrollbar gap-4">
+                    {['Efectivo', 'Transferencia', 'Tarjeta'].map(method => {
+                      const data = byMethod[method] || { total: 0, count: 0 };
+                      const Icon = method === 'Efectivo' ? Banknote : method === 'Tarjeta' ? CreditCard : ArrowLeftRight;
+                      return (
+                        <div key={method} className="flex items-center gap-3 min-w-[160px] p-2 rounded-2xl hover:bg-slate-50 transition-colors shrink-0">
+                          <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400">
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">{method}</p>
                             <p className={cn("text-lg font-black text-slate-900 tracking-tighter transition-all", hidden && "blur-md")}>
                               {display(data.total)}
                             </p>
                           </div>
-                        )
-                      })}
-                    </div>
+                        </div>
+                      )
+                    })}
                   </div>
 
-                  {/* Operaciones Rápidas */}
-                  <div className="bg-slate-50 rounded-[2.5rem] p-6 flex flex-wrap gap-3">
+                  {/* Operaciones (Botones estilizados) */}
+                  <div className="bg-slate-50 rounded-[3rem] p-3 flex gap-2">
                     <Button 
                       onClick={() => setShowExpenseModal(true)}
-                      className="flex-1 min-w-[140px] h-16 rounded-2xl bg-white border border-slate-100 text-slate-900 font-black uppercase text-xs tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
+                      className="flex-1 h-14 rounded-[2rem] bg-white border border-slate-200/50 text-slate-900 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
                     >
                       <PlusCircle className="w-4 h-4 mr-2" />
                       Gasto
@@ -1006,7 +1002,7 @@ export default function CajaPage() {
                     <Button 
                       onClick={() => setShowCierreModal(true)}
                       disabled={session?.status !== 'open'}
-                      className="flex-1 min-w-[140px] h-16 rounded-2xl bg-white border border-slate-100 text-rose-600 font-black uppercase text-xs tracking-widest shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 disabled:opacity-30"
+                      className="flex-1 h-14 rounded-[2rem] bg-white border border-slate-200/50 text-rose-600 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 disabled:opacity-30"
                     >
                       <Lock className="w-4 h-4 mr-2" />
                       Cierre
