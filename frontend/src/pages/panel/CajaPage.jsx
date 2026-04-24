@@ -1163,12 +1163,6 @@ export default function CajaPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-4 bg-slate-50 rounded-[3rem] p-3 flex gap-2">
                     <Button 
-                      onClick={() => setIsCalendarExpanded(true)}
-                      className="w-16 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-blue-600 shadow-sm hover:bg-blue-50 transition-all active:scale-95 shrink-0"
-                    >
-                      <CalendarDays className="w-6 h-6" />
-                    </Button>
-                    <Button 
                       onClick={() => setShowExpenseModal(true)}
                       className="flex-1 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-slate-900 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
                     >
@@ -1184,7 +1178,7 @@ export default function CajaPage() {
             {/* ════════════════════════════════════════
                 MOVIMIENTOS (LEDGER)
             ════════════════════════════════════════ */}
-            <div className="flex-1 flex flex-col min-h-0 bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0 bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden -mt-2">
               {/* Header con Filtros */}
               <div className="px-6 py-5 border-b border-slate-50 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
@@ -1194,7 +1188,12 @@ export default function CajaPage() {
                       {isToday ? 'Viendo el día de hoy' : `Viendo el ${fmtDateShort(date)}`}
                     </p>
                   </div>
-                  <Search className="w-5 h-5 text-slate-300" />
+                  <button 
+                    onClick={() => setIsCalendarExpanded(true)}
+                    className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-colors shadow-sm border border-slate-100"
+                  >
+                    <CalendarDays className="w-5 h-5" />
+                  </button>
                 </div>
 
                 <div className="flex gap-2">
