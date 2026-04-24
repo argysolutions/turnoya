@@ -1235,17 +1235,19 @@ export default function CajaPage() {
                 ) : (
                   <motion.div 
                     key={activeLedgerTab}
-                    initial={{ x: 20, opacity: 0 }}
+                    initial={{ x: 50, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -20, opacity: 0 }}
+                    exit={{ x: -50, opacity: 0 }}
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.1}
                     onDragEnd={(_, info) => {
                       const tabs = ['todos', 'ingresos', 'egresos'];
                       const currentIdx = tabs.indexOf(activeLedgerTab);
-                      if (info.offset.x < -100 && currentIdx < tabs.length - 1) {
+                      // Umbral más sensible (50px) y chequeo de velocidad opcional
+                      if (info.offset.x < -50 && currentIdx < tabs.length - 1) {
                         setActiveLedgerTab(tabs[currentIdx + 1]);
-                      } else if (info.offset.x > 100 && currentIdx > 0) {
+                      } else if (info.offset.x > 50 && currentIdx > 0) {
                         setActiveLedgerTab(tabs[currentIdx - 1]);
                       }
                     }}
