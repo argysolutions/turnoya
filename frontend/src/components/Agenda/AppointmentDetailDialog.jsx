@@ -133,45 +133,40 @@ const AppointmentDetailDialog = ({ appointment, isOpen, onClose, onUpdateStatus,
   )
 
   return (
-    <>
-      <div className="hidden md:block">
-        <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-[425px] p-0 overflow-hidden bg-white border-none shadow-2xl rounded-[2rem]">
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
+          {/* Backdrop */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+          />
+          
+          {/* Modal/Drawer Container */}
+          <motion.div
+            initial={window.innerWidth < 768 ? { y: "100%" } : { opacity: 0, scale: 0.9, y: 20 }}
+            animate={window.innerWidth < 768 ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={window.innerWidth < 768 ? { y: "100%" } : { opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            drag={window.innerWidth < 768 ? "y" : false}
+            dragConstraints={{ top: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(e, info) => {
+              if (window.innerWidth < 768 && info.offset.y > 100) onClose()
+            }}
+            className={cn(
+              "relative w-full bg-white shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto hide-scrollbar",
+              "rounded-t-[2.5rem] md:rounded-[2rem] md:max-w-[500px] md:mb-0"
+            )}
+          >
             {renderContent()}
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <AnimatePresence>
-        {isOpen && (
-          <div className="md:hidden fixed inset-0 z-[100] flex items-end justify-center">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            />
-            
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              drag="y"
-              dragConstraints={{ top: 0 }}
-              dragElastic={0.1}
-              onDragEnd={(e, info) => {
-                if (info.offset.y > 100) onClose()
-              }}
-              className="relative w-full bg-white rounded-t-[2.5rem] shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto hide-scrollbar"
-            >
-              {renderContent()}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }
 
