@@ -87,7 +87,6 @@ export const AppointmentCard = React.memo(({ appointment, onClick }) => {
             </div>
             {phone && (
               <div className="flex items-center gap-1 ml-auto">
-                <span className="text-xl md:text-[12px] text-black font-black select-text whitespace-nowrap">{phone}</span>
                 <div className="flex items-center gap-1 ml-1">
                   <a 
                     href={`tel:${phone.replace(/\D/g, '')}`}
