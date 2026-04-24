@@ -23,7 +23,7 @@ import {
   HelpCircle, Eye, EyeOff, PlusCircle, X, Unlock,
   Share2, Search, FileText, Download, CalendarDays,
   Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff, Key,
-  Clock, ShieldCheck
+  Clock, ShieldCheck, ArrowUp, ArrowDown
 } from 'lucide-react'
 import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
 import { cn } from '@/lib/utils'
@@ -1201,20 +1201,21 @@ export default function CajaPage() {
 
                 <div className="flex gap-2">
                   {[
-                    { id: 'todos', label: 'Todos' },
-                    { id: 'ingresos', label: 'Ingresos' },
-                    { id: 'egresos', label: 'Egresos' }
+                    { id: 'todos', label: 'Todos', color: 'bg-blue-600', icon: null },
+                    { id: 'ingresos', label: 'Ingresos', color: 'bg-emerald-600', icon: ArrowUp },
+                    { id: 'egresos', label: 'Egresos', color: 'bg-rose-600', icon: ArrowDown }
                   ].map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveLedgerTab(tab.id)}
                       className={cn(
-                        "flex-1 py-4 rounded-2xl text-base font-black uppercase tracking-tighter transition-all active:scale-95",
+                        "flex-1 py-4 rounded-2xl text-base font-black uppercase tracking-tighter transition-all active:scale-95 flex items-center justify-center gap-2",
                         activeLedgerTab === tab.id 
-                          ? "bg-slate-900 text-white shadow-xl shadow-slate-200" 
+                          ? `${tab.color} text-white shadow-xl shadow-slate-200` 
                           : "bg-slate-50 text-slate-400 hover:bg-slate-100"
                       )}
                     >
+                      {tab.icon && <tab.icon className="w-5 h-5" />}
                       {tab.label}
                     </button>
                   ))}
