@@ -1030,10 +1030,12 @@ export default function CajaPage() {
                 {/* 2. Métricas de Resumen (Bruto, Gastos, Neto) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-3 bg-white rounded-[3rem] border border-slate-100 p-2 shadow-sm flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center justify-between p-4 gap-6">
                       {/* Ventas Brutas */}
                       <div 
-                        className="flex-1 min-w-[120px] cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-colors group"
+                        className={cn(
+                          "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group",
+                          isIncomeExpanded ? "bg-slate-50 shadow-lg ring-1 ring-slate-100" : "hover:bg-slate-50/50"
+                        )}
                         onClick={() => { setIsIncomeExpanded(!isIncomeExpanded); setIsExpensesExpanded(false); setIsNetExpanded(false); }}
                       >
                         <div className="flex items-center gap-2">
@@ -1047,7 +1049,10 @@ export default function CajaPage() {
                       
                       {/* Gastos Totales */}
                       <div 
-                        className="flex-1 min-w-[120px] px-6 border-l border-slate-100 cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-colors group"
+                        className={cn(
+                          "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group border-l border-slate-50",
+                          isExpensesExpanded ? "bg-rose-50/30 shadow-lg ring-1 ring-rose-100" : "hover:bg-slate-50/50"
+                        )}
                         onClick={() => { setIsExpensesExpanded(!isExpensesExpanded); setIsIncomeExpanded(false); setIsNetExpanded(false); }}
                       >
                         <div className="flex items-center gap-2">
@@ -1061,7 +1066,10 @@ export default function CajaPage() {
 
                       {/* Balance Neto */}
                       <div 
-                        className="flex-1 min-w-[120px] px-6 border-l border-slate-100 bg-slate-50/50 rounded-[2rem] py-3 cursor-pointer hover:bg-blue-50 transition-colors group"
+                        className={cn(
+                          "flex-1 min-w-[120px] cursor-pointer p-4 rounded-[2rem] transition-all duration-300 group border-l border-slate-50",
+                          isNetExpanded ? "bg-blue-50 shadow-lg ring-1 ring-blue-100" : "bg-slate-50/50 hover:bg-blue-50/50"
+                        )}
                         onClick={() => { setIsNetExpanded(!isNetExpanded); setIsIncomeExpanded(false); setIsExpensesExpanded(false); }}
                       >
                         <div className="flex items-center gap-2">
