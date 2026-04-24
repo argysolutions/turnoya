@@ -1484,13 +1484,13 @@ export default function CajaPage() {
                   />
                 </div>
 
-                <div className="p-6 bg-slate-50 flex justify-center border-t border-slate-100">
+                <div className="p-6 bg-white flex justify-center border-t border-slate-50">
                   <button 
                     onClick={() => {
                       setDate(today());
                       setIsCalendarExpanded(false);
                     }}
-                    className="text-xs font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors"
+                    className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-blue-100 active:scale-95 transition-all"
                   >
                     Volver a Hoy
                   </button>
