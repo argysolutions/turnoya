@@ -926,7 +926,7 @@ export default function CajaPage() {
             )}
           </AnimatePresence>
 
-          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto pt-6 px-4 md:px-0">
+          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto pt-6 px-1 md:px-0">
             {/* ═══════════════════════════════════════════
                 COLUMNA LEDGER (3/4 desktop, full mobile)
             ══════════════════════════════════════════════ */}
@@ -966,7 +966,7 @@ export default function CajaPage() {
               <div className="space-y-4 mb-6">
                 {/* 1. Arqueo y Disponible (Fila Principal) */}
                 {session?.status === 'open' && (
-                  <div className="bg-white rounded-[3rem] p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden group border-2 border-blue-600/10">
+                  <div className="bg-white rounded-[3rem] px-4 py-8 sm:p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden group border-2 border-blue-600/10">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full -mr-32 -mt-32 blur-[100px] group-hover:bg-blue-600/10 transition-colors duration-1000" />
                     
                     {/* Trigger Sub-Dashboard */}
@@ -982,9 +982,9 @@ export default function CajaPage() {
                       <ChevronRight className={cn("w-6 h-6 transition-transform", showSubDashboard && "rotate-90")} />
                     </button>
 
-                    <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-10">
                       {/* Efectivo */}
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-4 sm:gap-6">
                         <div className="w-16 h-16 rounded-[2.2rem] bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
                           <Banknote className="w-8 h-8 text-white" />
                         </div>
@@ -1010,7 +1010,7 @@ export default function CajaPage() {
                       </div>
 
                       {/* Digital */}
-                      <div className="flex items-center gap-6 sm:border-l border-slate-100 sm:pl-8">
+                      <div className="flex items-center gap-4 sm:gap-6 sm:border-l border-slate-100 sm:pl-8">
                         <div className="w-16 h-16 rounded-[2.2rem] bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20 shrink-0">
                           <Smartphone className="w-8 h-8 text-white" />
                         </div>
