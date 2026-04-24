@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { verifyPin } from '@/api/auth'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
-import { ShieldCheck, Loader2 } from 'lucide-react'
+import { ShieldCheck, Loader2, Smartphone, Eye, EyeOff } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 /**
  * LockScreen simplificado:
@@ -14,6 +15,7 @@ export default function LockScreen({ onUnlock }) {
   const { role, setActiveProfile, businessId, staffId } = useAuth()
   const [verifying, setVerifying] = useState(false)
   const [pinDigits, setPinDigits] = useState(['', '', '', ''])
+  const [showPin, setShowPin] = useState(false)
   const [error, setError] = useState('')
   const [shake, setShake] = useState(false)
   const pinRefs = useRef([])
@@ -141,7 +143,7 @@ export default function LockScreen({ onUnlock }) {
                 <input
                   key={idx}
                   ref={el => pinRefs.current[idx] = el}
-                  type="password"
+                  type={showPin ? 'text' : 'password'}
                   inputMode="numeric"
                   maxLength={1}
                   autoFocus={idx === 0}
@@ -159,6 +161,14 @@ export default function LockScreen({ onUnlock }) {
                 />
             ))}
           </motion.div>
+          <button
+            type="button"
+            onClick={() => setShowPin(s => !s)}
+            className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mx-auto mb-10 transition-colors"
+          >
+            {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {showPin ? 'Ocultar PIN' : 'Mostrar PIN'}
+          </button>
 
           <AnimatePresence>
             {error && (

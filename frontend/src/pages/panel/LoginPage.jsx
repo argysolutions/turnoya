@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Eye, EyeOff } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { login } from '@/api/auth'
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [savedAccount, setSavedAccount] = useState(null)
   
   const passwordInputRef = useRef(null)
@@ -121,17 +122,26 @@ export default function LoginPage() {
                 <Label htmlFor="password" className="text-slate-500 font-black uppercase text-[11px] tracking-widest">Contraseña</Label>
                 <Link to="/recovery" className="text-xs text-blue-600 hover:text-blue-800 font-black uppercase tracking-tighter">¿Olvidaste tu clave?</Link>
               </div>
-              <Input
-                ref={passwordInputRef}
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={handleChange}
-                required
-                className="bg-slate-50/50 border-slate-100 h-16 rounded-2xl focus:bg-white transition-all shadow-sm text-2xl font-black px-6 focus:ring-4 focus:ring-blue-50"
-              />
+              <div className="relative group">
+                <Input
+                  ref={passwordInputRef}
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  className="bg-slate-50/50 border-slate-100 h-16 rounded-2xl focus:bg-white transition-all shadow-sm text-2xl font-black px-6 pr-14 focus:ring-4 focus:ring-blue-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(s => !s)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-300 hover:text-slate-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+                </button>
+              </div>
             </div>
             <Button
               type="submit"
