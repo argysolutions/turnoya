@@ -1444,7 +1444,7 @@ export default function CajaPage() {
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className="relative bg-white w-full max-w-[400px] rounded-[3rem] overflow-hidden shadow-2xl"
+                className="relative bg-white w-full max-w-[480px] rounded-[3rem] overflow-hidden shadow-2xl"
               >
                 {/* Header */}
                 <div className="p-8 bg-white text-slate-900 flex items-start justify-between">
