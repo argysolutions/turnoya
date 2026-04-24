@@ -1434,16 +1434,17 @@ export default function CajaPage() {
         {/* ── CALENDAR PICKER (MODAL) ──────────────────────── */}
         <AnimatePresence>
           {isCalendarExpanded && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pt-20">
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 onClick={() => setIsCalendarExpanded(false)}
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
               />
               <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                initial={{ scale: 0.9, opacity: 0, y: 40 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                exit={{ scale: 0.9, opacity: 0, y: 40 }}
+                layout
                 className="relative bg-white w-full max-w-[480px] rounded-[3rem] overflow-hidden shadow-2xl"
               >
                 {/* Header */}
@@ -1477,17 +1478,28 @@ export default function CajaPage() {
                   />
                 </div>
 
-                <div className="p-6 bg-white flex justify-center border-t border-slate-50">
-                  <button 
-                    onClick={() => {
-                      setDate(today());
-                      setIsCalendarExpanded(false);
-                    }}
-                    className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-blue-100 active:scale-95 transition-all"
-                  >
-                    Volver a Hoy
-                  </button>
-                </div>
+                <AnimatePresence>
+                  {date !== today() && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-6 bg-white flex justify-center border-t border-slate-50">
+                        <button 
+                          onClick={() => {
+                            setDate(today());
+                            setIsCalendarExpanded(false);
+                          }}
+                          className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-blue-100 active:scale-95 transition-all"
+                        >
+                          Volver a Hoy
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             </div>
           )}
