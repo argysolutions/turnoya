@@ -688,6 +688,8 @@ export default function CajaPage() {
   const [activeLedgerTab, setActiveLedgerTab] = useState('todos') // todos, ingresos, egresos
   const [showOpeningModal, setShowOpeningModal] = useState(false)
   const [showSubDashboard, setShowSubDashboard] = useState(false)
+  const [hasClickedSubDashboard, setHasClickedSubDashboard] = useState(false)
+  const [hasClickedHidden, setHasClickedHidden] = useState(false)
   const [isIncomeExpanded, setIsIncomeExpanded] = useState(false)
   const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
   const [isNetExpanded, setIsNetExpanded] = useState(false)
@@ -965,13 +967,18 @@ export default function CajaPage() {
                     
                     {/* Trigger Sub-Dashboard */}
                     <button 
-                      onClick={() => setShowSubDashboard(!showSubDashboard)}
+                      onClick={() => {
+                        setShowSubDashboard(!showSubDashboard);
+                        setHasClickedSubDashboard(true);
+                      }}
                       className={cn(
-                        "absolute top-6 right-6 w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all z-10",
-                        showSubDashboard && "bg-blue-600 text-white border-blue-500 rotate-90"
+                        "absolute top-6 right-6 w-12 h-12 rounded-2xl transition-all z-10 flex items-center justify-center",
+                        hasClickedSubDashboard 
+                          ? "bg-blue-600 text-white border border-blue-700" 
+                          : "bg-slate-50 border border-slate-100 text-black hover:bg-slate-100"
                       )}
                     >
-                      <ChevronRight className="w-6 h-6" />
+                      <ChevronRight className={cn("w-6 h-6 transition-transform", showSubDashboard && "rotate-90")} />
                     </button>
 
                     <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -986,7 +993,18 @@ export default function CajaPage() {
                             <p className={cn("text-5xl font-black tracking-tighter text-slate-900 transition-all duration-500", hidden && "blur-xl select-none")}>
                               {display(session.expected_cash)}
                             </p>
-                            <button onClick={() => setHidden(!hidden)} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors">
+                            <button 
+                              onClick={() => {
+                                setHidden(!hidden);
+                                setHasClickedHidden(true);
+                              }} 
+                              className={cn(
+                                "w-10 h-10 rounded-2xl flex items-center justify-center transition-colors",
+                                hasClickedHidden 
+                                  ? "bg-blue-600 text-white" 
+                                  : "bg-slate-50 border border-slate-100 text-black hover:text-blue-600"
+                              )}
+                            >
                               {hidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
                           </div>
