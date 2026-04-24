@@ -920,7 +920,7 @@ export default function CajaPage() {
             )}
           </AnimatePresence>
 
-          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto">
+          <div className="flex min-h-full gap-0 lg:gap-6 max-w-7xl mx-auto pt-6 px-4 md:px-0">
             {/* ═══════════════════════════════════════════
                 COLUMNA LEDGER (3/4 desktop, full mobile)
             ══════════════════════════════════════════════ */}
