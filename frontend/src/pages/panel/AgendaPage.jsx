@@ -54,7 +54,7 @@ export default function AgendaPage() {
   const { 
     date, 
     setDate, 
-    appointments, 
+    appointments: realAppointments, 
     setAppointments,
     loading, 
     addAppointment, 
@@ -65,6 +65,21 @@ export default function AgendaPage() {
     fetchBlockedDates, 
     refresh
   } = useAppointments(new Date())
+
+  // MOCK PARA DEMOSTRACIÓN DE REPROGRAMADO
+  const appointments = useMemo(() => {
+    const mockRescheduled = {
+      id: 'mock-rescheduled-1',
+      client_name: 'DEMO: Carlos Reschedule',
+      service_name: 'Barbería Premium + Barba',
+      start_at: new Date(new Date().setHours(11, 0, 0, 0)).toISOString(),
+      status: 'rescheduled',
+      phone: '1122334455',
+      is_frequent: true,
+      staff_name: 'Martín'
+    }
+    return realAppointments ? [mockRescheduled, ...realAppointments] : [mockRescheduled]
+  }, [realAppointments])
 
 
   // Fetch blocked dates for the calendar whenever the visible month changes
@@ -275,8 +290,8 @@ export default function AgendaPage() {
     // Esperamos a que loading sea false y que tengamos turnos para decidir la pestaña principal
     if (!loading && appointments && appointments.length > 0 && !hasInitializedTab) {
       const sections = {
-        pendiente: appointments.filter(a => ['pending', 'pending_block', 'rescheduled'].includes(a.status)),
-        confirmado: appointments.filter(a => a.status === 'confirmed'),
+        pendiente: appointments.filter(a => ['pending', 'pending_block'].includes(a.status)),
+        confirmado: appointments.filter(a => ['confirmed', 'rescheduled'].includes(a.status)),
         finalizado: appointments.filter(a => a.status === 'completed'),
         canceladoAusente: appointments.filter(a => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(a.status)),
       }
@@ -327,8 +342,8 @@ export default function AgendaPage() {
     )
 
     return {
-      pendiente: list.filter(a => ['pending', 'pending_block', 'rescheduled'].includes(a.status)),
-      confirmado: list.filter(a => a.status === 'confirmed'),
+      pendiente: list.filter(a => ['pending', 'pending_block'].includes(a.status)),
+      confirmado: list.filter(a => ['confirmed', 'rescheduled'].includes(a.status)),
       finalizado: list.filter(a => a.status === 'completed'),
       canceladoAusente: list.filter(a => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(a.status)),
     }
@@ -387,8 +402,8 @@ export default function AgendaPage() {
 
     return {
       all: baseList.length,
-      pendientes: baseList.filter(app => ['pending', 'pending_block', 'rescheduled'].includes(app.status)).length,
-      confirmados: baseList.filter(app => app.status === 'confirmed').length,
+      pendientes: baseList.filter(app => ['pending', 'pending_block'].includes(app.status)).length,
+      confirmados: baseList.filter(app => ['confirmed', 'rescheduled'].includes(app.status)).length,
       finalizados: baseList.filter(app => app.status === 'completed').length,
       cancelados: baseList.filter(app => ['cancelled', 'cancelled_timeout', 'cancelled_occupied', 'no_show'].includes(app.status)).length,
     }
