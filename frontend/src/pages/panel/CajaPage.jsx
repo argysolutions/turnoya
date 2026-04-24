@@ -1222,7 +1222,7 @@ export default function CajaPage() {
               </div>
 
               {/* Entries con Swipe */}
-              <div className="flex-1 relative bg-slate-50/30 min-h-[50vh] flex flex-col">
+              <div className="flex-1 relative bg-slate-50/30 min-h-[42vh] flex flex-col">
                 <motion.div 
                   key={activeLedgerTab}
                   initial={{ x: 30, opacity: 0 }}
@@ -1247,7 +1247,7 @@ export default function CajaPage() {
                       <div className="w-10 h-10 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin" />
                     </div>
                   ) : ledgerEntries.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center py-24 text-center px-6">
+                    <div className="flex-1 flex flex-col items-center justify-center py-16 text-center px-6">
                       <div className="w-20 h-20 bg-white rounded-[2.5rem] flex items-center justify-center mb-6 shadow-sm">
                         <FileText className="w-10 h-10 text-slate-200" />
                       </div>
