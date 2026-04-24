@@ -960,14 +960,14 @@ export default function CajaPage() {
               <div className="space-y-4 mb-6">
                 {/* 1. Arqueo y Disponible (Fila Principal) */}
                 {session?.status === 'open' && (
-                  <div className="bg-slate-950 rounded-[3rem] p-8 shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full -mr-32 -mt-32 blur-[100px] group-hover:bg-blue-500/20 transition-colors duration-1000" />
+                  <div className="bg-white rounded-[3rem] p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden group border-2 border-blue-600/10">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full -mr-32 -mt-32 blur-[100px] group-hover:bg-blue-600/10 transition-colors duration-1000" />
                     
                     {/* Trigger Sub-Dashboard */}
                     <button 
                       onClick={() => setShowSubDashboard(!showSubDashboard)}
                       className={cn(
-                        "absolute top-6 right-6 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all z-10",
+                        "absolute top-6 right-6 w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all z-10",
                         showSubDashboard && "bg-blue-600 text-white border-blue-500 rotate-90"
                       )}
                     >
@@ -977,16 +977,16 @@ export default function CajaPage() {
                     <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-8">
                       {/* Efectivo */}
                       <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 rounded-[2.2rem] bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-600/30 shrink-0">
+                        <div className="w-16 h-16 rounded-[2.2rem] bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
                           <Banknote className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Efectivo en Caja</p>
+                          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Efectivo en Caja</p>
                           <div className="flex items-center gap-3">
-                            <p className={cn("text-5xl font-black tracking-tighter text-white transition-all duration-500", hidden && "blur-xl select-none")}>
+                            <p className={cn("text-5xl font-black tracking-tighter text-slate-900 transition-all duration-500", hidden && "blur-xl select-none")}>
                               {display(session.expected_cash)}
                             </p>
-                            <button onClick={() => setHidden(!hidden)} className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                            <button onClick={() => setHidden(!hidden)} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors">
                               {hidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
                           </div>
@@ -994,13 +994,13 @@ export default function CajaPage() {
                       </div>
 
                       {/* Digital */}
-                      <div className="flex items-center gap-6 sm:border-l border-white/10 sm:pl-8">
-                        <div className="w-16 h-16 rounded-[2.2rem] bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30 shrink-0">
+                      <div className="flex items-center gap-6 sm:border-l border-slate-100 sm:pl-8">
+                        <div className="w-16 h-16 rounded-[2.2rem] bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20 shrink-0">
                           <Smartphone className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Disponible Digital</p>
-                          <p className={cn("text-5xl font-black tracking-tighter text-white transition-all duration-500", hidden && "blur-xl select-none")}>
+                          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Disponible Digital</p>
+                          <p className={cn("text-5xl font-black tracking-tighter text-slate-900 transition-all duration-500", hidden && "blur-xl select-none")}>
                             {display(digitalTotal)}
                           </p>
                         </div>
