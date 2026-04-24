@@ -138,6 +138,8 @@ export default function StaffLoginPage() {
                   value={digit}
                   onChange={e => handlePinChange(e.target.value, idx)}
                   onKeyDown={e => handlePinKeyDown(e, idx)}
+                  autoComplete="off"
+                  style={{ WebkitTextSecurity: showPin ? 'none' : 'disc' }}
                   className="w-12 h-14 rounded-2xl border border-slate-200 bg-slate-50 text-center text-xl font-black focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
                 />
               ))}

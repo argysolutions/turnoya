@@ -151,6 +151,8 @@ export default function LockScreen({ onUnlock }) {
                   onChange={e => handlePinChange(e.target.value, idx)}
                   onKeyDown={e => handlePinKeyDown(e, idx)}
                   disabled={verifying}
+                  autoComplete="off"
+                  style={{ WebkitTextSecurity: showPin ? 'none' : 'disc' }}
                   className={cn(
                     "w-20 h-24 sm:w-24 sm:h-28 text-center text-5xl font-black rounded-3xl border-2 transition-all outline-none",
                     error 
