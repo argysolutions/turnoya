@@ -1,7 +1,7 @@
 import React from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, User, Scissors, Info as InfoIcon, Star, ChevronRight, MessageCircle } from 'lucide-react'
+import { Clock, User, Scissors, Info as InfoIcon, Star, ChevronRight, MessageCircle, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const statusStyles = {
@@ -86,17 +86,26 @@ export const AppointmentCard = React.memo(({ appointment, onClick }) => {
               <span className="truncate whitespace-nowrap">{service_name || 'Servicio'}</span>
             </div>
             {phone && (
-              <div className="flex items-center gap-1.5 ml-auto">
+              <div className="flex items-center gap-1 ml-auto">
                 <span className="text-xl md:text-[12px] text-black font-black select-text whitespace-nowrap">{phone}</span>
-                <a 
-                  href={`https://wa.me/${phone.replace(/\D/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex items-center justify-center p-3 md:p-2 bg-emerald-100 text-emerald-600 rounded-xl md:rounded-lg active:scale-90 transition-transform ml-1"
-                >
-                  <MessageCircle className="w-6 h-6 md:w-5 md:h-5 fill-emerald-600/10" />
-                </a>
+                <div className="flex items-center gap-1 ml-1">
+                  <a 
+                    href={`tel:${phone.replace(/\D/g, '')}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center p-3 md:p-2 bg-blue-100 text-blue-600 rounded-xl md:rounded-lg active:scale-90 transition-transform"
+                  >
+                    <Phone className="w-6 h-6 md:w-5 md:h-5 fill-blue-600/10" />
+                  </a>
+                  <a 
+                    href={`https://wa.me/${phone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center p-3 md:p-2 bg-emerald-100 text-emerald-600 rounded-xl md:rounded-lg active:scale-90 transition-transform"
+                  >
+                    <MessageCircle className="w-6 h-6 md:w-5 md:h-5 fill-emerald-600/10" />
+                  </a>
+                </div>
               </div>
             )}
           </div>
