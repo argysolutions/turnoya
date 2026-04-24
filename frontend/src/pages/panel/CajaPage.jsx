@@ -688,6 +688,8 @@ export default function CajaPage() {
   const [activeLedgerTab, setActiveLedgerTab] = useState('todos') // todos, ingresos, egresos
   const [showOpeningModal, setShowOpeningModal] = useState(false)
   const [isIncomeExpanded, setIsIncomeExpanded] = useState(false)
+  const [isExpensesExpanded, setIsExpensesExpanded] = useState(false)
+  const [isNetExpanded, setIsNetExpanded] = useState(false)
 
   // Filtrado final de Ledger (Tabs + Search + Roles)
   const ledgerEntries = useMemo(() => {
@@ -1029,9 +1031,10 @@ export default function CajaPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-3 bg-white rounded-[3rem] border border-slate-100 p-2 shadow-sm flex flex-col gap-2">
                     <div className="flex flex-wrap items-center justify-between p-4 gap-6">
+                      {/* Ventas Brutas */}
                       <div 
                         className="flex-1 min-w-[120px] cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-colors group"
-                        onClick={() => setIsIncomeExpanded(!isIncomeExpanded)}
+                        onClick={() => { setIsIncomeExpanded(!isIncomeExpanded); setIsExpensesExpanded(false); setIsNetExpanded(false); }}
                       >
                         <div className="flex items-center gap-2">
                           <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Ventas Brutas</p>
@@ -1042,24 +1045,39 @@ export default function CajaPage() {
                         </p>
                       </div>
                       
-                      <div className="flex-1 min-w-[120px] px-6 border-l border-slate-100">
-                        <p className="text-[10px] font-black uppercase text-rose-400 tracking-widest mb-1">Gastos Totales</p>
+                      {/* Gastos Totales */}
+                      <div 
+                        className="flex-1 min-w-[120px] px-6 border-l border-slate-100 cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-colors group"
+                        onClick={() => { setIsExpensesExpanded(!isExpensesExpanded); setIsIncomeExpanded(false); setIsNetExpanded(false); }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-black uppercase text-rose-400 tracking-widest">Gastos Totales</p>
+                          <ChevronRight className={cn("w-3 h-3 text-rose-300 transition-transform", isExpensesExpanded && "rotate-90")} />
+                        </div>
                         <p className={cn("text-2xl font-black text-rose-600 tracking-tighter", hidden && "blur-md")}>
                           {display(summary?.totalExpenses || 0)}
                         </p>
                       </div>
 
-                      <div className="flex-1 min-w-[120px] px-6 border-l border-slate-100 bg-slate-50/50 rounded-[2rem] py-3">
-                        <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">Balance Neto</p>
+                      {/* Balance Neto */}
+                      <div 
+                        className="flex-1 min-w-[120px] px-6 border-l border-slate-100 bg-slate-50/50 rounded-[2rem] py-3 cursor-pointer hover:bg-blue-50 transition-colors group"
+                        onClick={() => { setIsNetExpanded(!isNetExpanded); setIsIncomeExpanded(false); setIsExpensesExpanded(false); }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest">Balance Neto</p>
+                          <ChevronRight className={cn("w-3 h-3 text-blue-300 transition-transform", isNetExpanded && "rotate-90")} />
+                        </div>
                         <p className={cn("text-3xl font-black text-blue-600 tracking-tighter", hidden && "blur-md")}>
                           {display(summary?.netBalance || 0)}
                         </p>
                       </div>
                     </div>
 
-                    <AnimatePresence>
+                    <AnimatePresence mode="wait">
                       {isIncomeExpanded && (
                         <motion.div
+                          key="income-breakdown"
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -1075,6 +1093,60 @@ export default function CajaPage() {
                                 </div>
                               )
                             })}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {isExpensesExpanded && (
+                        <motion.div
+                          key="expenses-breakdown"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t border-slate-50"
+                        >
+                          <div className="p-4 flex flex-wrap gap-3">
+                            {Object.entries(
+                              expenses.reduce((acc, e) => {
+                                acc[e.category] = (acc[e.category] || 0) + e.amount
+                                return acc
+                              }, {})
+                            ).map(([cat, total]) => (
+                              <div key={cat} className="flex-1 min-w-[100px] bg-rose-50/30 p-3 rounded-2xl border border-rose-100/30 text-center">
+                                <p className="text-[9px] font-black uppercase text-rose-400 mb-0.5 tracking-tighter">{cat}</p>
+                                <p className={cn("text-sm font-black text-rose-700", hidden && "blur-sm")}>{display(total)}</p>
+                              </div>
+                            ))}
+                            {expenses.length === 0 && (
+                              <p className="w-full text-center py-2 text-[10px] font-bold text-slate-300 uppercase tracking-widest">Sin gastos registrados</p>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {isNetExpanded && (
+                        <motion.div
+                          key="net-breakdown"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t border-slate-50"
+                        >
+                          <div className="p-6 flex items-center justify-around gap-4 bg-blue-50/20">
+                            <div className="text-center">
+                              <p className="text-[9px] font-black uppercase text-emerald-500 mb-1">Ingresos</p>
+                              <p className={cn("text-xl font-black text-emerald-600", hidden && "blur-md")}>+ {display(summary?.totalIncome)}</p>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black">−</div>
+                            <div className="text-center">
+                              <p className="text-[9px] font-black uppercase text-rose-500 mb-1">Egresos</p>
+                              <p className={cn("text-xl font-black text-rose-600", hidden && "blur-md")}>- {display(summary?.totalExpenses)}</p>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-black">=</div>
+                            <div className="text-center">
+                              <p className="text-[9px] font-black uppercase text-blue-600 mb-1">Total Neto</p>
+                              <p className={cn("text-xl font-black text-blue-700", hidden && "blur-md")}>{display(summary?.netBalance)}</p>
+                            </div>
                           </div>
                         </motion.div>
                       )}
