@@ -1011,7 +1011,7 @@ export default function CajaPage() {
 
                       {/* Digital */}
                       <div className="flex items-center gap-4 sm:gap-6 sm:border-l border-slate-100 sm:pl-8">
-                        <div className="w-16 h-16 rounded-[2.2rem] bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20 shrink-0">
+                        <div className="w-16 h-16 rounded-[2.2rem] bg-yellow-400 flex items-center justify-center shadow-lg shadow-yellow-400/20 shrink-0">
                           <Smartphone className="w-8 h-8 text-white" />
                         </div>
                         <div>
