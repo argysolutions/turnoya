@@ -64,17 +64,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-svh bg-slate-50 flex items-center justify-center px-4 relative">
-      <div className="w-full max-w-sm relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight transition-all">TurnoYa</h1>
+      <div className="w-full max-w-[440px] relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-black text-slate-900 uppercase tracking-tighter transition-all leading-tight">TurnoYa</h1>
           {savedAccount ? (
-            <p className="text-blue-600 mt-2 font-medium">Hola de nuevo, <span className="font-bold text-blue-700">{savedAccount.name}</span></p>
+            <p className="text-xl text-blue-600 mt-3 font-bold">Hola de nuevo, <span className="text-blue-700 uppercase tracking-tighter">{savedAccount.name}</span></p>
           ) : (
-            <p className="text-slate-500 mt-2 font-medium">Gestioná tu agenda con facilidad</p>
+            <p className="text-lg text-slate-500 mt-3 font-bold">Gestioná tu negocio con facilidad</p>
           )}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+        <div className="bg-white border border-slate-100 rounded-[4rem] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative overflow-hidden">
           <AnimatePresence>
             {isSuccess && (
               <motion.div
@@ -83,12 +83,12 @@ export default function LoginPage() {
                 className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center"
               >
                 <div
-                  className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-200"
+                  className="w-24 h-24 bg-emerald-500 rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-emerald-200"
                 >
-                  <Check className="w-10 h-10 text-white" />
+                  <Check className="w-12 h-12 text-white" />
                 </div>
                 <p
-                  className="mt-4 text-emerald-600 font-black uppercase tracking-widest text-xs"
+                  className="mt-6 text-emerald-600 font-black uppercase tracking-widest text-sm"
                 >
                   ¡Bienvenido!
                 </p>
@@ -96,11 +96,11 @@ export default function LoginPage() {
             )}
           </AnimatePresence>
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between ml-1">
-                <Label htmlFor="email" className="text-slate-700 font-semibold">Email</Label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between ml-2">
+                <Label htmlFor="email" className="text-slate-500 font-black uppercase text-[11px] tracking-widest">Email</Label>
                 {savedAccount && (
-                  <button type="button" onClick={handleClearAccount} className="text-xs text-blue-600 font-medium hover:text-blue-700">Cambiar cuenta</button>
+                  <button type="button" onClick={handleClearAccount} className="text-xs text-blue-600 font-black uppercase tracking-tighter hover:text-blue-800">Cambiar cuenta</button>
                 )}
               </div>
               <Input
@@ -113,13 +113,13 @@ export default function LoginPage() {
                 onChange={handleChange}
                 required
                 readOnly={!!savedAccount}
-                className={`h-12 rounded-xl transition-all shadow-sm ${savedAccount ? 'bg-slate-100 text-slate-500 border-transparent focus:ring-0 cursor-not-allowed' : 'bg-slate-50/50 border-slate-200 focus:bg-white'}`}
+                className={`h-16 rounded-2xl transition-all shadow-sm text-xl font-bold px-6 ${savedAccount ? 'bg-slate-50 text-slate-400 border-transparent focus:ring-0 cursor-not-allowed' : 'bg-slate-50/50 border-slate-100 focus:bg-white focus:ring-4 focus:ring-blue-50'}`}
               />
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between ml-1">
-                <Label htmlFor="password" className="text-slate-700 font-semibold">Contraseña</Label>
-                <Link to="/recovery" className="text-xs text-blue-600 hover:text-blue-700 font-medium">¿Olvidaste tu clave?</Link>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between ml-2">
+                <Label htmlFor="password" className="text-slate-500 font-black uppercase text-[11px] tracking-widest">Contraseña</Label>
+                <Link to="/recovery" className="text-xs text-blue-600 hover:text-blue-800 font-black uppercase tracking-tighter">¿Olvidaste tu clave?</Link>
               </div>
               <Input
                 ref={passwordInputRef}
@@ -130,12 +130,12 @@ export default function LoginPage() {
                 value={form.password}
                 onChange={handleChange}
                 required
-                className="bg-slate-50/50 border-slate-200 h-12 rounded-xl focus:bg-white transition-all shadow-sm"
+                className="bg-slate-50/50 border-slate-100 h-16 rounded-2xl focus:bg-white transition-all shadow-sm text-2xl font-black px-6 focus:ring-4 focus:ring-blue-50"
               />
             </div>
             <Button
               type="submit"
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-600/10 transition-all active:scale-[0.98]"
+              className="w-full h-18 py-8 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest shadow-2xl shadow-blue-200 transition-all active:scale-[0.98] text-lg"
               disabled={loading}
             >
               {loading ? 'Ingresando...' : 'Iniciar Sesión'}

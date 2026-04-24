@@ -114,21 +114,21 @@ export default function LockScreen({ onUnlock }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
       />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-        className="relative z-10 w-full max-w-sm bg-white rounded-[3rem] p-8 sm:p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100"
+        className="relative z-10 w-full max-w-[440px] bg-white rounded-[4rem] p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] border border-slate-100"
       >
-        <div className="text-center mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-slate-900/20">
-            <ShieldCheck className="w-7 h-7 text-white" />
+        <div className="text-center mb-12">
+          <div className="w-24 h-24 rounded-[2.5rem] bg-slate-900 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-slate-900/20">
+            <ShieldCheck className="w-12 h-12 text-white" />
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">Acceso a Caja</h1>
-          <p className="text-sm font-medium text-slate-400 mt-2">Ingresá tu PIN de Dueño para desbloquear</p>
+          <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter leading-tight">Acceso a Caja</h1>
+          <p className="text-lg font-bold text-slate-500 mt-3 leading-snug">Ingresá tu PIN de Dueño para desbloquear</p>
         </div>
 
         {/* PIN Inputs */}
@@ -149,8 +149,13 @@ export default function LockScreen({ onUnlock }) {
                   onChange={e => handlePinChange(e.target.value, idx)}
                   onKeyDown={e => handlePinKeyDown(e, idx)}
                   disabled={verifying}
-                  className={`w-14 h-16 rounded-2xl bg-slate-50 border-2 ${error ? 'border-red-200' : 'border-slate-100'} text-center text-2xl font-black text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all disabled:opacity-50`}
-                  placeholder="•"
+                  className={cn(
+                    "w-20 h-24 sm:w-24 sm:h-28 text-center text-5xl font-black rounded-3xl border-2 transition-all outline-none",
+                    error 
+                        ? "border-rose-200 bg-rose-50 text-rose-600" 
+                        : "border-slate-100 bg-slate-50 focus:border-slate-900 focus:bg-white text-slate-900",
+                    digit && !error ? "border-slate-900 bg-white" : ""
+                  )}
                 />
             ))}
           </motion.div>
@@ -161,7 +166,7 @@ export default function LockScreen({ onUnlock }) {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="text-center text-red-500 text-[11px] font-black uppercase tracking-wider mb-6 px-4"
+                className="text-center text-rose-500 text-sm font-black uppercase tracking-wider mb-8"
               >
                 {error}
               </motion.p>
@@ -170,12 +175,12 @@ export default function LockScreen({ onUnlock }) {
         </div>
 
         {verifying ? (
-          <div className="flex items-center justify-center gap-2 text-slate-400 py-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Verificando...</span>
+          <div className="flex items-center justify-center gap-3 text-slate-400 py-4">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span className="text-sm font-black uppercase tracking-widest">Verificando...</span>
           </div>
         ) : (
-          <div className="text-center pt-2">
+          <div className="text-center pt-4">
             <button
               type="button"
               onClick={() => toast.info('Podés cambiar tu PIN en Configuración → Gestión de Staff.')}
