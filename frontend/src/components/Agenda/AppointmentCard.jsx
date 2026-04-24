@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 const statusStyles = {
   pending: 'bg-amber-50 border-amber-200 text-amber-700',
   confirmed: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+  rescheduled: 'bg-orange-500 border-orange-200 text-orange-700',
   completed: 'bg-blue-50 border-blue-200 text-blue-700',
   cancelled: 'bg-rose-50 border-rose-200 text-rose-700',
   cancelled_occupied: 'bg-slate-100 border-slate-300 text-slate-400 italic',
@@ -92,7 +93,7 @@ export const AppointmentCard = React.memo(({ appointment, onClick }) => {
               <div className="flex items-center gap-1 ml-auto">
                 <div className="flex items-center gap-1 ml-1">
                   {status === 'rescheduled' && (
-                    <div className="flex items-center justify-center p-3 md:p-2 bg-blue-50 text-blue-600 rounded-xl md:rounded-lg mr-1 border border-blue-100 shadow-sm">
+                    <div className="flex items-center justify-center p-3 md:p-2 bg-orange-100 text-orange-600 rounded-xl md:rounded-lg mr-1 border border-orange-100 shadow-sm">
                       <History className="w-6 h-6 md:w-5 md:h-5" />
                     </div>
                   )}
