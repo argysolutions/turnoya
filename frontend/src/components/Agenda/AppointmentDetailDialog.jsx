@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Clock, User, Scissors, CheckCircle, XCircle, X } from 'lucide-react'
+import { Clock, User, Scissors, CheckCircle, XCircle, X, ChevronLeft, ChevronRight, UserX } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 
 const AppointmentDetailDialog = ({ appointment, isOpen, onClose, onUpdateStatus, onDelete }) => {
   const [showCancelOptions, setShowCancelOptions] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   if (!appointment) return null
 
