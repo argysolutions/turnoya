@@ -1213,45 +1213,6 @@ export default function CajaPage() {
                   </div>
                 </div>
 
-                {/* ── VER DETALLE (Solo Dueño) ────────────────────────── */}
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <button
-                  id="detail-expand-toggle"
-                  onClick={() => setIsDetailExpanded(!isDetailExpanded)}
-                  className="w-full h-14 md:h-auto px-5 py-3 flex items-center justify-center gap-2 text-sm md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-50/60 transition-colors"
-                >
-                  <span>Ver detalle</span>
-                  <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${isDetailExpanded ? 'rotate-90' : ''}`} />
-                </button>
-
-                <AnimatePresence>
-                  {isDetailExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.22, ease: 'easeInOut' }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-5 pb-5 grid grid-cols-3 gap-3 border-t border-slate-50">
-                        <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100/60 mt-4">
-                          <p className="text-[10px] md:text-[9px] font-black uppercase text-slate-400 mb-1.5">Balance Neto</p>
-                          <p className="text-3xl md:text-lg font-black md:font-semibold text-slate-900 leading-tight">{display(summary?.netBalance)}</p>
-                        </div>
-                        <div className="text-center p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100/40 mt-4">
-                          <p className="text-[10px] md:text-[9px] font-black uppercase text-emerald-600 mb-1.5">Ventas Brutas</p>
-                          <p className="text-3xl md:text-lg font-black md:font-semibold text-emerald-900 leading-tight">{display(summary?.totalIncome)}</p>
-                          <p className="text-xs md:text-[9px] font-bold text-emerald-400 mt-1">{summary?.salesCount || 0} cobros</p>
-                        </div>
-                        <div className="text-center p-4 rounded-2xl bg-red-50/50 border border-red-100/30 mt-4">
-                          <p className="text-[10px] md:text-[9px] font-black uppercase text-red-500 mb-1.5">Gastos Totales</p>
-                          <p className="text-3xl md:text-lg font-black md:font-semibold text-red-900 leading-tight">{display(summary?.totalExpenses)}</p>
-                          <p className="text-xs md:text-[9px] font-bold text-red-400 mt-1">{summary?.expensesCount || 0} egresos</p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
             </div>
           )}
