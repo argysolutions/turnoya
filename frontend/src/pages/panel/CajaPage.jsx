@@ -1198,9 +1198,9 @@ export default function CajaPage() {
 
                 <div className="flex gap-2">
                   {[
-                    { id: 'todos', label: 'Todos', color: 'bg-blue-600', icon: null },
-                    { id: 'ingresos', label: 'Ingresos', color: 'bg-emerald-600', icon: ArrowUp },
-                    { id: 'egresos', label: 'Egresos', color: 'bg-rose-600', icon: ArrowDown }
+                    { id: 'todos', label: 'Todos', color: 'bg-blue-600' },
+                    { id: 'ingresos', label: 'Ingresos', color: 'bg-emerald-600' },
+                    { id: 'egresos', label: 'Egresos', color: 'bg-rose-600' }
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -1212,7 +1212,6 @@ export default function CajaPage() {
                           : "bg-slate-50 text-slate-400 hover:bg-slate-100"
                       )}
                     >
-                      {tab.icon && <tab.icon className="w-5 h-5" />}
                       {tab.label}
                     </button>
                   ))}
