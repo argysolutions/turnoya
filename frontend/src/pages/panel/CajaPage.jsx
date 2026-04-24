@@ -883,7 +883,7 @@ export default function CajaPage() {
               {isOwner && (
                 <button 
                   onClick={() => setShowManagementDrawer(true)}
-                  className="w-12 h-12 flex items-center justify-center text-slate-400"
+                  className="w-12 h-12 flex items-center justify-center text-yellow-500"
                 >
                   <Key className="w-7 h-7" />
                 </button>
@@ -1186,7 +1186,7 @@ export default function CajaPage() {
                     onClick={() => setIsSearchOpen(!isSearchOpen)}
                     className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-sm border border-slate-100",
-                      isSearchOpen ? "bg-blue-600 text-white border-blue-700" : "bg-slate-50 text-slate-400 border-slate-100"
+                      isSearchOpen ? "bg-blue-600 text-white border-blue-700" : "bg-slate-50 text-black border-slate-100"
                     )}
                   >
                     <Search className="w-5 h-5" />
