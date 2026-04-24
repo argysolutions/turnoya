@@ -87,3 +87,11 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Privacy & Security Utility */
+.mask-security {
+  -webkit-text-security: disc !important;
+}
+.mask-none {
+  -webkit-text-security: none !important;
+}

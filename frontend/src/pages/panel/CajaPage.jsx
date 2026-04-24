@@ -251,17 +251,19 @@ function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
         ) : (
           <div className="flex flex-col w-full gap-2">
             <div className="relative">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="0"
-                className="w-full h-14 rounded-2xl border border-amber-200 bg-white pl-4 pr-12 text-xl font-black focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                value={amount}
-                onChange={e => setAmount(fmtNumericInput(e.target.value))}
-                autoComplete="off"
-                style={{ WebkitTextSecurity: showValue ? 'none' : 'disc' }}
-                autoFocus
-              />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  className={cn(
+                    "w-full h-14 rounded-2xl border border-amber-200 bg-white pl-4 pr-12 text-xl font-black focus:ring-2 focus:ring-amber-500 focus:outline-none",
+                    showValue ? "mask-none" : "mask-security"
+                  )}
+                  value={amount}
+                  onChange={e => setAmount(fmtNumericInput(e.target.value))}
+                  autoComplete="off"
+                  autoFocus
+                />
               <button
                 type="button"
                 onClick={() => setShowValue(!showValue)}
@@ -340,8 +342,10 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
                 autoFocus
                 onChange={e => setCounted(fmtNumericInput(e.target.value))}
                 autoComplete="off"
-                style={{ WebkitTextSecurity: showValue ? 'none' : 'disc' }}
-                className="w-full h-14 rounded-2xl border border-slate-200 pl-4 pr-12 text-2xl font-black focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                className={cn(
+                  "w-full h-14 rounded-2xl border border-slate-200 pl-4 pr-12 text-2xl font-black focus:ring-2 focus:ring-blue-600 focus:outline-none",
+                  showValue ? "mask-none" : "mask-security"
+                )}
                 placeholder="0"
               />
               <button
@@ -1311,11 +1315,13 @@ function ExpenseModal({ onClose, onSaved, categories }) {
               type="text"
               inputMode="numeric"
               placeholder="Monto"
-              className="w-full h-14 rounded-2xl border border-slate-100 bg-slate-50 pl-4 pr-12 text-2xl font-black focus:outline-none focus:ring-2 focus:ring-slate-200"
+              className={cn(
+                "w-full h-14 rounded-2xl border border-slate-100 bg-slate-50 pl-4 pr-12 text-2xl font-black focus:outline-none focus:ring-2 focus:ring-slate-200",
+                showAmount ? "mask-none" : "mask-security"
+              )}
               value={form.amount}
               onChange={e => setForm({ ...form, amount: fmtNumericInput(e.target.value) })}
               autoComplete="off"
-              style={{ WebkitTextSecurity: showAmount ? 'none' : 'disc' }}
             />
             <button
               type="button"

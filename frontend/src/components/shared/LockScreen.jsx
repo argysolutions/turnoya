@@ -143,7 +143,7 @@ export default function LockScreen({ onUnlock }) {
                 <input
                   key={idx}
                   ref={el => pinRefs.current[idx] = el}
-                  type={showPin ? 'text' : 'password'}
+                  type="text"
                   inputMode="numeric"
                   maxLength={1}
                   autoFocus={idx === 0}
@@ -151,10 +151,10 @@ export default function LockScreen({ onUnlock }) {
                   onChange={e => handlePinChange(e.target.value, idx)}
                   onKeyDown={e => handlePinKeyDown(e, idx)}
                   disabled={verifying}
-                  autoComplete="off"
-                  style={{ WebkitTextSecurity: showPin ? 'none' : 'disc' }}
+                  autoComplete="one-time-code"
                   className={cn(
                     "w-20 h-24 sm:w-24 sm:h-28 text-center text-5xl font-black rounded-3xl border-2 transition-all outline-none",
+                    showPin ? "mask-none" : "mask-security",
                     error 
                         ? "border-rose-200 bg-rose-50 text-rose-600" 
                         : "border-slate-100 bg-slate-50 focus:border-slate-900 focus:bg-white text-slate-900",

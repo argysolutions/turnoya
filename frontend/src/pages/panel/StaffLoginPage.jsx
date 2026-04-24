@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
 import { Lock, Building2, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export default function StaffLoginPage() {
   const { setToken } = useAuth()
@@ -131,16 +132,18 @@ export default function StaffLoginPage() {
                 <input
                   key={idx}
                   id={`pin-${idx}`}
-                  type={showPin ? 'text' : 'password'}
+                  type="text"
                   inputMode="numeric"
                   maxLength={1}
                   autoFocus={savedStaff && idx === 0}
                   value={digit}
                   onChange={e => handlePinChange(e.target.value, idx)}
                   onKeyDown={e => handlePinKeyDown(e, idx)}
-                  autoComplete="off"
-                  style={{ WebkitTextSecurity: showPin ? 'none' : 'disc' }}
-                  className="w-12 h-14 rounded-2xl border border-slate-200 bg-slate-50 text-center text-xl font-black focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                  autoComplete="one-time-code"
+                  className={cn(
+                    "w-12 h-14 rounded-2xl border border-slate-200 bg-slate-50 text-center text-xl font-black focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all",
+                    showPin ? "mask-none" : "mask-security"
+                  )}
                 />
               ))}
             </div>
