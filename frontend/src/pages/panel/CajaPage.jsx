@@ -270,7 +270,21 @@ function AperturaBanner({ onOpen, onOpenManagement, inline = false }) {
                 onClick={() => setShowValue(!showValue)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 hover:text-amber-600 transition-colors"
               >
-                {showValue ? <EyeOff classN// ─── Cierre de Caja Modal ────────────────────────────────────────────────────
+                                {showValue ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setFormOpen(false)} variant="ghost" className="flex-1 h-12 text-xs font-black uppercase tracking-widest">Cancelar</Button>
+              <Button onClick={handleOpen} disabled={saving} className="flex-[2] h-12 bg-amber-900 text-white font-black uppercase text-xs rounded-xl tracking-widest">{saving ? 'Abriendo...' : 'Confirmar'}</Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Cierre de Caja Modal ────────────────────────────────────────────────────
 function CierreCajaModal({ session, summary, onClose, onClosed }) {
   const [step, setStep] = useState(1) // 1: Select type, 2: Details & PIN
   const [closeType, setCloseType] = useState(null) // 'partial' or 'final'
