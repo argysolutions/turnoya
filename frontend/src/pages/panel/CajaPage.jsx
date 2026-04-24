@@ -29,7 +29,13 @@ import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
 import { cn } from '@/lib/utils'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-const today = () => new Date().toISOString().split('T')[0]
+const today = () => {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = (d.getMonth() + 1).toString().padStart(2, '0')
+  const day = d.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 const fmt = (amount) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount ?? 0)
