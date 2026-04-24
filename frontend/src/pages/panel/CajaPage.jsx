@@ -1186,13 +1186,9 @@ export default function CajaPage() {
                     </Button>
                   </div>
                 </div>
-              </div>
-            )}
 
-
-            {/* ── VER DETALLE (Solo Dueño) ────────────────────────── */}
-            {isOwner && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                {/* ── VER DETALLE (Solo Dueño) ────────────────────────── */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <button
                   id="detail-expand-toggle"
                   onClick={() => setIsDetailExpanded(!isDetailExpanded)}
