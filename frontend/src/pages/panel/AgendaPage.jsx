@@ -1062,93 +1062,92 @@ export default function AgendaPage() {
               className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm lg:hidden"
             />
             {/* Bottom Sheet - Calendar */}
-            <motion.div 
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
-              drag="y"
-              dragControls={dragControls}
-              dragListener={false}
-              dragConstraints={{ top: 0, bottom: 500 }}
-              dragElastic={{ top: 0, bottom: 0.1 }}
-              onDragEnd={(e, info) => {
-                if (info.offset.y > 100 || info.velocity.y > 300) {
-                  setIsMobileCalendarOpen(false)
-                }
-              }}
-              className="fixed inset-x-0 bottom-0 z-[120] bg-white rounded-t-[32px] flex flex-col lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)]"
-            >
-              {/* Handle Bar Area */}
-              <div 
-                onPointerDown={(e) => dragControls.start(e)}
-                style={{ touchAction: 'none' }}
-                className="w-full py-4 cursor-grab active:cursor-grabbing shrink-0"
+            <div className="fixed inset-0 z-[120] flex items-end justify-center p-4 pb-10">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsMobileCalendarOpen(false)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm lg:hidden"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0, y: 100 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 100 }}
+                layout
+                className="relative w-full max-w-[480px] bg-white rounded-[3rem] flex flex-col lg:hidden shadow-2xl overflow-hidden"
               >
-                <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto" />
-              </div>
-              {/* Header */}
-              <div className="px-8 pt-8 pb-4 flex items-start justify-between bg-white">
-                <div>
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tight">Calendario</h3>
-                  <p className="text-lg text-slate-500 font-bold mt-2">Seleccioná una fecha para ver turnos.</p>
+                {/* Header */}
+                <div className="px-8 pt-8 pb-4 flex items-start justify-between bg-white">
+                  <div>
+                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Calendario</h3>
+                    <p className="text-lg text-slate-500 font-bold mt-2">Seleccioná una fecha para ver turnos.</p>
+                  </div>
+                  <button 
+                    onClick={() => setIsMobileCalendarOpen(false)}
+                    className="p-2 hover:bg-slate-100 rounded-full text-black transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => setIsMobileCalendarOpen(false)}
-                  className="p-2 hover:bg-slate-100 rounded-full text-black transition-colors"
+
+                <div 
+                  className="px-4 py-2 flex flex-col items-center"
+                  onTouchStart={onTouchStart}
+                  onTouchMove={onTouchMove}
+                  onTouchEnd={onTouchEnd}
                 >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    month={currentMonth}
+                    onSelect={(d) => {
+                      if (d) {
+                        setDate(d);
+                        setIsMobileCalendarOpen(false);
+                      }
+                    }}
+                    onMonthChange={setCurrentMonth}
+                    fixedWeeks
+                    className="w-full p-2"
+                    modifiers={{ blocked: blockedDates }}
+                    modifiersStyles={{ 
+                      blocked: { 
+                        backgroundColor: '#fee2e2', 
+                        color: '#dc2626', 
+                        fontWeight: 'bold',
+                        borderRadius: '0.5rem'
+                      } 
+                    }}
+                  />
+                </div>
 
-              <div 
-                className="px-4 py-2 flex flex-col items-center"
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-              >
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  month={currentMonth}
-                  onSelect={(d) => {
-                    if (d) {
-                      setDate(d);
-                      setIsMobileCalendarOpen(false);
-                    }
-                  }}
-                  onMonthChange={setCurrentMonth}
-                  fixedWeeks
-                  className="w-full p-2"
-                  modifiers={{ blocked: blockedDates }}
-                  modifiersStyles={{ 
-                    blocked: { 
-                      backgroundColor: '#fee2e2', 
-                      color: '#dc2626', 
-                      fontWeight: 'bold',
-                      borderRadius: '0.5rem'
-                    } 
-                  }}
-                />
-              </div>
-
-              <div className="px-8 pb-10 pt-4 bg-white">
-                <button 
-                  onClick={() => {
-                    const today = new Date();
-                    setDate(today);
-                    setCurrentMonth(today);
-                    setIsMobileCalendarOpen(false);
-                  }}
-                  className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-blue-100 active:scale-95 transition-all"
-                >
-                  Volver a Hoy
-                </button>
-              </div>
-
-              {/* Bottom Safe Area Padding */}
-              <div className="h-8 shrink-0" />
-            </motion.div>
+                <AnimatePresence mode="popLayout">
+                  {!isSameDay(date, new Date()) && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0, y: 20 }}
+                      animate={{ height: 'auto', opacity: 1, y: 0 }}
+                      exit={{ height: 0, opacity: 0, y: 20 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-8 pb-10 pt-4 bg-white border-t border-slate-50">
+                        <button 
+                          onClick={() => {
+                            const today = new Date();
+                            setDate(today);
+                            setCurrentMonth(today);
+                            setIsMobileCalendarOpen(false);
+                          }}
+                          className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-blue-100 active:scale-95 transition-all"
+                        >
+                          Volver a Hoy
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
