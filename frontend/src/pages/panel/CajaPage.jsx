@@ -22,7 +22,7 @@ import {
   ChevronLeft, ChevronRight, CreditCard, Wallet, ArrowLeftRight,
   HelpCircle, Eye, EyeOff, PlusCircle, X, Unlock,
   Share2, Search, FileText, Download, CalendarDays,
-  Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff, MoreVertical,
+  Menu, Banknote, Smartphone, Lock, ArrowRight, ShieldOff, Key,
   Clock, ShieldCheck
 } from 'lucide-react'
 import { useEncryptedPrefs } from '@/hooks/useEncryptedPrefs'
@@ -315,7 +315,7 @@ function CierreCajaModal({ session, summary, onClose, onClosed }) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
+      <DialogContent className="sm:max-w-md rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl z-[200]">
         <AnimatePresence mode="wait">
           {step === 1 ? (
             <motion.div 
@@ -879,19 +879,12 @@ export default function CajaPage() {
                 <Search className="w-7 h-7" />
               </button>
 
-              <button 
-                onClick={() => setIsCalendarExpanded(true)}
-                className="w-12 h-12 flex items-center justify-center text-blue-600"
-              >
-                <CalendarDays className="w-7 h-7" />
-              </button>
-
               {isOwner && (
                 <button 
                   onClick={() => setShowManagementDrawer(true)}
                   className="w-12 h-12 flex items-center justify-center text-slate-400"
                 >
-                  <MoreVertical className="w-7 h-7" />
+                  <Key className="w-7 h-7" />
                 </button>
               )}
             </div>
@@ -1067,6 +1060,12 @@ export default function CajaPage() {
 
                   {/* Operaciones Rápidas */}
                   <div className="bg-slate-50 rounded-[3rem] p-3 flex gap-2">
+                    <Button 
+                      onClick={() => setIsCalendarExpanded(true)}
+                      className="w-16 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-blue-600 shadow-sm hover:bg-blue-50 transition-all active:scale-95 shrink-0"
+                    >
+                      <CalendarDays className="w-6 h-6" />
+                    </Button>
                     <Button 
                       onClick={() => setShowExpenseModal(true)}
                       className="flex-1 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-slate-900 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
