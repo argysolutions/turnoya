@@ -989,7 +989,7 @@ export default function CajaPage() {
                           <Banknote className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Efectivo en Caja</p>
+                          <p className="text-xl md:text-xs font-black uppercase tracking-tighter text-slate-500 mb-2 md:mb-1">Efectivo en Caja</p>
                           <div className="flex items-center gap-3">
                             <p className={cn("text-5xl font-black tracking-tighter text-slate-900 transition-all duration-500", hidden && "blur-xl select-none")}>
                               {display(session.expected_cash)}
@@ -1015,7 +1015,7 @@ export default function CajaPage() {
                           <Smartphone className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Disponible Digital</p>
+                          <p className="text-xl md:text-xs font-black uppercase tracking-tighter text-slate-500 mb-2 md:mb-1">Disponible Digital</p>
                           <p className={cn("text-5xl font-black tracking-tighter text-slate-900 transition-all duration-500", hidden && "blur-xl select-none")}>
                             {display(digitalTotal)}
                           </p>
@@ -1046,7 +1046,7 @@ export default function CajaPage() {
                               onClick={() => { setIsIncomeExpanded(!isIncomeExpanded); setIsExpensesExpanded(false); setIsNetExpanded(false); }}
                             >
                               <div className="flex items-center gap-2">
-                                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Ventas Brutas</p>
+                                <p className="text-xl md:text-[10px] font-black uppercase text-slate-500 tracking-tighter mb-1">Ventas Brutas</p>
                                 <ChevronRight className={cn("w-3 h-3 text-slate-300 transition-transform", isIncomeExpanded && "rotate-90")} />
                               </div>
                               <p className={cn("text-2xl font-black text-slate-900 tracking-tighter", hidden && "blur-md")}>
@@ -1063,7 +1063,7 @@ export default function CajaPage() {
                               onClick={() => { setIsExpensesExpanded(!isExpensesExpanded); setIsIncomeExpanded(false); setIsNetExpanded(false); }}
                             >
                               <div className="flex items-center gap-2">
-                                <p className="text-[10px] font-black uppercase text-rose-400 tracking-widest">Gastos Totales</p>
+                                <p className="text-xl md:text-[10px] font-black uppercase text-slate-500 tracking-tighter mb-1">Gastos Totales</p>
                                 <ChevronRight className={cn("w-3 h-3 text-rose-300 transition-transform", isExpensesExpanded && "rotate-90")} />
                               </div>
                               <p className={cn("text-2xl font-black text-rose-600 tracking-tighter", hidden && "blur-md")}>
@@ -1080,7 +1080,7 @@ export default function CajaPage() {
                               onClick={() => { setIsNetExpanded(!isNetExpanded); setIsIncomeExpanded(false); setIsExpensesExpanded(false); }}
                             >
                               <div className="flex items-center gap-2">
-                                <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest">Balance Neto</p>
+                                <p className="text-xl md:text-[10px] font-black uppercase text-slate-500 tracking-tighter mb-1">Balance Neto</p>
                                 <ChevronRight className={cn("w-3 h-3 text-blue-300 transition-transform", isNetExpanded && "rotate-90")} />
                               </div>
                               <p className={cn("text-3xl font-black text-blue-600 tracking-tighter", hidden && "blur-md")}>
@@ -1184,7 +1184,7 @@ export default function CajaPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-xl font-black uppercase tracking-tight text-slate-900">Movimientos</h2>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <p className="text-xl md:text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-1">
                       {isToday ? 'Viendo el día de hoy' : `Viendo el ${fmtDateShort(date)}`}
                     </p>
                   </div>
