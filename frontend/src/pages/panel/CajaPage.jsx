@@ -1441,14 +1441,14 @@ export default function CajaPage() {
                 className="relative bg-white w-full max-w-[400px] rounded-[3rem] overflow-hidden shadow-2xl"
               >
                 {/* Header */}
-                <div className="p-8 bg-slate-900 text-white flex items-center justify-between">
+                <div className="p-8 bg-white text-slate-900 flex items-start justify-between">
                   <div>
-                    <h3 className="text-xl font-black uppercase tracking-tighter">Seleccionar Fecha</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Navegar por el historial</p>
+                    <h3 className="text-3xl font-black text-black tracking-tight">Seleccionar Fecha</h3>
+                    <p className="text-lg text-slate-600 font-bold mt-2">Navegá por el historial de caja.</p>
                   </div>
                   <button 
                     onClick={() => setIsCalendarExpanded(false)}
-                    className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                    className="p-2 hover:bg-slate-100 rounded-full text-black transition-colors"
                   >
                     <X className="w-6 h-6" />
                   </button>
