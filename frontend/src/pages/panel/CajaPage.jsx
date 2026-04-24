@@ -1183,7 +1183,7 @@ export default function CajaPage() {
               <div className="px-6 py-5 border-b border-slate-50 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">Movimientos</h2>
+                    <h2 className="text-2xl font-black tracking-tighter text-slate-900">Movimientos</h2>
                   </div>
                   <button 
                     onClick={() => setIsSearchOpen(!isSearchOpen)}
