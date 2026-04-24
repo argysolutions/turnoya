@@ -1220,7 +1220,7 @@ export default function CajaPage() {
               </div>
 
               {/* Entries con Swipe */}
-              <div className="flex-1 relative bg-slate-50/30 min-h-[60vh] flex flex-col">
+              <div className="flex-1 relative bg-slate-50/30 min-h-[40vh] flex flex-col">
                 <motion.div 
                   key={activeLedgerTab}
                   initial={{ x: 30, opacity: 0 }}
