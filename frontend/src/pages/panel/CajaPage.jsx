@@ -929,76 +929,88 @@ export default function CajaPage() {
             {/* ── SESSION BANNER ───────────── */}
             {null}
 
-            {/* ── DASHBOARD DE GESTIÓN UNIFICADO (Pattern Premium) ── */}
+            {/* ── DASHBOARD DE GESTIÓN SIMPLIFICADO (Pattern Premium) ── */}
             {isOwner && (
               <div className="space-y-4 mb-6">
-                {/* 1. Arqueo y Balance (Compacto) */}
+                {/* 1. Arqueo y Disponible (Fila Principal) */}
                 {session?.status === 'open' && (
-                  <div className="bg-slate-950 rounded-[3rem] p-6 shadow-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full -mr-24 -mt-24 blur-3xl group-hover:bg-blue-500/20 transition-colors duration-500" />
-                    <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-[2rem] bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40 shrink-0">
-                          <Banknote className="w-7 h-7 text-white" />
+                  <div className="bg-slate-950 rounded-[3rem] p-8 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full -mr-32 -mt-32 blur-[100px] group-hover:bg-blue-500/20 transition-colors duration-1000" />
+                    
+                    <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-8">
+                      {/* Efectivo */}
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-[2.2rem] bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-600/30 shrink-0">
+                          <Banknote className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Efectivo en Caja</p>
+                          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Efectivo en Caja</p>
                           <div className="flex items-center gap-3">
-                            <p className={cn("text-4xl font-black tracking-tighter text-white transition-all duration-500", hidden && "blur-xl select-none")}>
+                            <p className={cn("text-5xl font-black tracking-tighter text-white transition-all duration-500", hidden && "blur-xl select-none")}>
                               {display(session.expected_cash)}
                             </p>
-                            <button
-                              onClick={() => setHidden(!hidden)}
-                              className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
-                            >
-                              {hidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            <button onClick={() => setHidden(!hidden)} className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                              {hidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="flex gap-6 sm:gap-10 px-2 sm:px-6 sm:border-l border-white/10">
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-0.5">Ventas Digitales</p>
-                          <p className={cn("text-xl font-black text-white/90 tracking-tight", hidden && "blur-md")}>{display(digitalTotal)}</p>
+
+                      {/* Digital */}
+                      <div className="flex items-center gap-6 sm:border-l border-white/10 sm:pl-8">
+                        <div className="w-16 h-16 rounded-[2.2rem] bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30 shrink-0">
+                          <Smartphone className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-0.5">Inicial</p>
-                          <p className="text-xl font-black text-white/70 tracking-tight">{display(session.initial_amount)}</p>
+                          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Disponible Digital</p>
+                          <p className={cn("text-5xl font-black tracking-tighter text-white transition-all duration-500", hidden && "blur-xl select-none")}>
+                            {display(digitalTotal)}
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* 2. Grid de Resumen y Acciones (Horizontal) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Resumen por Métodos (Más compacto) */}
-                  <div className="md:col-span-2 bg-white rounded-[3rem] border border-slate-100 p-5 shadow-sm flex items-center overflow-x-auto hide-scrollbar gap-4">
-                    {['Efectivo', 'Transferencia', 'Tarjeta'].map(method => {
-                      const data = byMethod[method] || { total: 0, count: 0 };
-                      const Icon = method === 'Efectivo' ? Banknote : method === 'Tarjeta' ? CreditCard : ArrowLeftRight;
-                      return (
-                        <div key={method} className="flex items-center gap-3 min-w-[160px] p-2 rounded-2xl hover:bg-slate-50 transition-colors shrink-0">
-                          <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400">
-                            <Icon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">{method}</p>
-                            <p className={cn("text-lg font-black text-slate-900 tracking-tighter transition-all", hidden && "blur-md")}>
-                              {display(data.total)}
-                            </p>
-                          </div>
-                        </div>
-                      )
-                    })}
+                {/* 2. Métricas de Resumen (Bruto, Gastos, Neto) */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {/* Resumen Métricas */}
+                  <div className="md:col-span-3 bg-white rounded-[3rem] border border-slate-100 p-6 shadow-sm flex flex-wrap items-center justify-between gap-6">
+                    <div className="flex-1 min-w-[120px]">
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Ventas Brutas</p>
+                      <p className={cn("text-2xl font-black text-slate-900 tracking-tighter", hidden && "blur-md")}>
+                        {display(summary?.totalIncome || 0)}
+                      </p>
+                    </div>
+                    
+                    <div className="flex-1 min-w-[120px] px-6 border-l border-slate-100">
+                      <p className="text-[10px] font-black uppercase text-rose-400 tracking-widest mb-1">Gastos Totales</p>
+                      <p className={cn("text-2xl font-black text-rose-600 tracking-tighter", hidden && "blur-md")}>
+                        {display(summary?.totalExpenses || 0)}
+                      </p>
+                    </div>
+
+                    <div className="flex-1 min-w-[120px] px-6 border-l border-slate-100 bg-slate-50/50 rounded-[2rem] py-3">
+                      <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">Balance Neto</p>
+                      <p className={cn("text-3xl font-black text-blue-600 tracking-tighter", hidden && "blur-md")}>
+                        {display(summary?.netBalance || 0)}
+                      </p>
+                    </div>
+
+                    <button 
+                      onClick={() => setShowManagementDrawer(true)}
+                      className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95"
+                      title="Ver detalle por métodos"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
                   </div>
 
-                  {/* Operaciones (Botones estilizados) */}
+                  {/* Operaciones Rápidas */}
                   <div className="bg-slate-50 rounded-[3rem] p-3 flex gap-2">
                     <Button 
                       onClick={() => setShowExpenseModal(true)}
-                      className="flex-1 h-14 rounded-[2rem] bg-white border border-slate-200/50 text-slate-900 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
+                      className="flex-1 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-slate-900 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
                     >
                       <PlusCircle className="w-4 h-4 mr-2" />
                       Gasto
@@ -1006,7 +1018,7 @@ export default function CajaPage() {
                     <Button 
                       onClick={() => setShowCierreModal(true)}
                       disabled={session?.status !== 'open'}
-                      className="flex-1 h-14 rounded-[2rem] bg-white border border-slate-200/50 text-rose-600 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 disabled:opacity-30"
+                      className="flex-1 h-16 rounded-[2rem] bg-white border border-slate-200/50 text-rose-600 font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 disabled:opacity-30"
                     >
                       <Lock className="w-4 h-4 mr-2" />
                       Cierre
