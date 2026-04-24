@@ -1227,7 +1227,8 @@ export default function CajaPage() {
                   )}
                 </AnimatePresence>
               </div>
-            )}
+            </div>
+          )}
 
             {/* ════════════════════════════════════════
                 LIBRO MAYOR (LEDGER)
