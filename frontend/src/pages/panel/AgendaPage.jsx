@@ -525,7 +525,18 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-tighter">HOY</span>
+                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-tighter flex">
+                      {"HOY".split("").map((char, i) => (
+                        <motion.span
+                          key={i}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1, duration: 0.2 }}
+                        >
+                          {char}
+                        </motion.span>
+                      ))}
+                    </span>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -535,8 +546,21 @@ export default function AgendaPage() {
                     exit={{ y: -20, opacity: 0 }}
                     className="absolute inset-0 flex items-center justify-center"
                   >
-                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-tighter whitespace-nowrap">
-                      {format(date, "EEE dd - MM", { locale: es }).replace('.', '').toUpperCase()}
+                    <span className="text-3xl lg:text-2xl font-black text-blue-600 uppercase tracking-tighter whitespace-nowrap flex">
+                      {format(date, "EEE dd - MM", { locale: es })
+                        .replace('.', '')
+                        .toUpperCase()
+                        .split("")
+                        .map((char, i) => (
+                          <motion.span
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.05, duration: 0.15 }}
+                          >
+                            {char === " " ? "\u00A0" : char}
+                          </motion.span>
+                        ))}
                     </span>
                   </motion.div>
                 )}
