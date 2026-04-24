@@ -925,78 +925,97 @@ export default function CajaPage() {
             {/* ── SESSION BANNER ───────────── */}
             {null}
 
-            {/* ── DOS TARJETAS PRINCIPALES (Solo Dueño) ───────────── */}
+            {/* ── DASHBOARD DE GESTIÓN (Pattern Sidebar/Drawer) ── */}
             {isOwner && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Disponible Digital */}
-                <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                  <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-                      <Smartphone className="w-4 h-4 text-blue-500" />
+              <div className="lg:hidden space-y-6 mb-8 px-1">
+                {/* 1. Arqueo de Caja (Card Principal) */}
+                {session?.status === 'open' && (
+                  <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl shadow-slate-200 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+                    <div className="relative flex justify-between items-start">
+                      <div>
+                        <p className="text-[11px] font-black uppercase tracking-tighter text-slate-400 mb-2">Efectivo Esperado</p>
+                        <div className="flex items-center gap-3">
+                          <p className={cn("text-5xl font-black tracking-tighter text-white transition-all duration-500", hidden && "blur-xl select-none")}>
+                            {display(session.expected_cash)}
+                          </p>
+                          <button
+                            onClick={() => setHidden(!hidden)}
+                            className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+                          >
+                            {hidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="w-14 h-14 rounded-3xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40">
+                        <Banknote className="w-7 h-7 text-white" />
+                      </div>
                     </div>
-                    <span className="text-xs md:text-[10px] font-black uppercase tracking-wider text-slate-400">Disponible Digital</span>
+                    
+                    <div className="mt-8 pt-6 border-t border-white/10 flex justify-between">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-1">Monto Inicial</p>
+                        <p className="text-xl font-black text-white/80">{display(session.initial_amount)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-1">Ventas Digitales</p>
+                        <p className="text-xl font-black text-white/80">{display(digitalTotal)}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-end gap-3 mb-3 mt-1">
-                    <p className="text-4xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
-                      {display(digitalTotal)}
-                    </p>
-                    <button
-                      onClick={() => setHidden(!hidden)}
-                      className={cn(
-                        "w-10 h-10 md:w-7 md:h-7 rounded-xl md:rounded-lg flex items-center justify-center transition-all",
-                        hidden ? "bg-slate-100 text-slate-900 ring-1 ring-slate-200" : "text-slate-300 hover:text-slate-900"
-                      )}
-                    >
-                      {hidden ? <EyeOff className="w-5 h-5 md:w-3.5 md:h-3.5" /> : <Eye className="w-5 h-5 md:w-3.5 md:h-3.5" />}
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-semibold text-slate-400">
-                    {(byMethod['Transferencia']?.total ?? 0) > 0 && (
-                      <span className="flex items-center gap-1">
-                        <ArrowLeftRight className="w-2.5 h-2.5" />
-                        {display(byMethod['Transferencia'].total)}
-                      </span>
-                    )}
-                    {(byMethod['Tarjeta']?.total ?? 0) > 0 && (
-                      <span className="flex items-center gap-1">
-                        <CreditCard className="w-2.5 h-2.5" />
-                        {display(byMethod['Tarjeta'].total)}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                )}
 
-                {/* Efectivo en Cajón */}
-                <div className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                  <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
-                      <Banknote className="w-4 h-4 text-emerald-500" />
+                {/* 2. Métodos de Pago y Operaciones */}
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Resumen por Métodos */}
+                  <div className="bg-white rounded-[2.5rem] border border-slate-100 p-6 shadow-sm">
+                    <p className="text-[11px] font-black uppercase tracking-tighter text-slate-400 mb-4 px-2">Resumen por Métodos</p>
+                    <div className="space-y-2">
+                      {['Efectivo', 'Transferencia', 'Tarjeta'].map(method => {
+                        const data = byMethod[method] || { total: 0, count: 0 };
+                        const Icon = method === 'Efectivo' ? Banknote : method === 'Tarjeta' ? CreditCard : ArrowLeftRight;
+                        return (
+                          <div key={method} className="flex items-center justify-between p-4 rounded-[1.5rem] hover:bg-slate-50 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500">
+                                <Icon className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-black text-slate-800">{method}</p>
+                                <p className="text-[10px] font-bold text-slate-400">{data.count} movimientos</p>
+                              </div>
+                            </div>
+                            <p className={cn("text-lg font-black text-slate-900 tracking-tighter transition-all", hidden && "blur-md")}>
+                              {display(data.total)}
+                            </p>
+                          </div>
+                        )
+                      })}
                     </div>
-                    <span className="text-xs md:text-[10px] font-black uppercase tracking-wider text-slate-400">Efectivo en Cajón</span>
                   </div>
-                  <div className="flex items-end gap-3 mb-3 mt-1">
-                    <p className="text-4xl md:text-[2rem] font-black md:font-semibold text-slate-900 tracking-tighter md:tracking-tight leading-none">
-                      {display(efectivoTotal)}
-                    </p>
-                    <button
-                      onClick={() => setHidden(!hidden)}
-                      className={cn(
-                        "w-10 h-10 md:w-7 md:h-7 rounded-xl md:rounded-lg flex items-center justify-center transition-all",
-                        hidden ? "bg-slate-100 text-slate-900 ring-1 ring-slate-200" : "text-slate-300 hover:text-slate-900"
-                      )}
+
+                  {/* Operaciones Rápidas */}
+                  <div className="bg-slate-50 rounded-[2.5rem] p-6 flex flex-wrap gap-3">
+                    <Button 
+                      onClick={() => setShowExpenseModal(true)}
+                      className="flex-1 min-w-[140px] h-16 rounded-2xl bg-white border border-slate-100 text-slate-900 font-black uppercase text-xs tracking-widest shadow-sm hover:bg-slate-900 hover:text-white transition-all active:scale-95"
                     >
-                      {hidden ? <EyeOff className="w-5 h-5 md:w-3.5 md:h-3.5" /> : <Eye className="w-5 h-5 md:w-3.5 md:h-3.5" />}
-                    </button>
+                      <PlusCircle className="w-4 h-4 mr-2" />
+                      Gasto
+                    </Button>
+                    <Button 
+                      onClick={() => setShowCierreModal(true)}
+                      disabled={session?.status !== 'open'}
+                      className="flex-1 min-w-[140px] h-16 rounded-2xl bg-white border border-slate-100 text-rose-600 font-black uppercase text-xs tracking-widest shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 disabled:opacity-30"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      Cierre
+                    </Button>
                   </div>
-                  {session?.status === 'open' && (
-                    <p className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                      Esperado: {display(session.expected_cash)}
-                    </p>
-                  )}
                 </div>
               </div>
             )}
+
 
             {/* ── VER DETALLE (Solo Dueño) ────────────────────────── */}
             {isOwner && (
