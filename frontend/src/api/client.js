@@ -33,6 +33,12 @@ client.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // En modo mock, no intentar refrescar — simplemente rechazar sin tocar la sesión
+      const currentToken = localStorage.getItem('token')
+      if (currentToken && currentToken.startsWith('mock.')) {
+        return Promise.reject(error)
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -64,7 +70,6 @@ client.interceptors.response.use(
         processQueue(refreshError, null)
         isRefreshing = false
         
-        // Si el refresh falla, limpiar sesión
         localStorage.removeItem('token')
         localStorage.removeItem('business')
         

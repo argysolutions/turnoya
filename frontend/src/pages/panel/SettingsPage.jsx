@@ -67,6 +67,7 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
   const [ownerPin, setOwnerPin] = useState('')
   const [updatingPin, setUpdatingPin] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [activeSettingsTab, setActiveSettingsTab] = useState('reglas')
   const [linkingGoogle, setLinkingGoogle] = useState(false)
   const { role, businessId, loading: authLoading } = useAuth()
   const isRestricted = !authLoading && role !== 'owner'
@@ -270,7 +271,7 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
       ) : (
         <>
           {/* 1. MASTER HEADER MÓVIL (Pattern AgendaPage) */}
-          <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 h-16 flex items-center justify-between relative mb-6">
+          <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] -mx-4 px-4 h-16 flex items-center justify-between relative mb-6">
             {/* Left: Menu Icon */}
             <div className="min-w-[48px]">
               <button onClick={() => setIsMenuOpen(true)} className="w-12 h-12 flex items-center justify-center text-black">
@@ -306,17 +307,17 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
             </Button>
           </div>
 
-          <Tabs defaultValue="reglas" className="w-full">
+          <Tabs value={activeSettingsTab} onValueChange={setActiveSettingsTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 rounded-xl h-12">
-              <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-active:bg-white data-active:shadow-sm">
                 <Settings2 className="w-4 h-4 mr-2" /> Reglas de Negocio
               </TabsTrigger>
-              <TabsTrigger value="integraciones" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger value="integraciones" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-active:bg-white data-active:shadow-sm">
                 <Share2 className="w-4 h-4 mr-2" /> Integraciones
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="reglas" className="animate-in fade-in slide-in-from-bottom-2">
+            <TabsContent value="reglas" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
               {/* ... (existing content) ... */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="shadow-sm border-slate-200">
@@ -634,7 +635,7 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
               </div>
             </TabsContent>
 
-            <TabsContent value="integraciones" className="animate-in fade-in slide-in-from-bottom-2">
+            <TabsContent value="integraciones" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
               <div className="max-w-2xl">
                 <Card className="shadow-sm border-slate-200 overflow-hidden">
                   <CardHeader className="bg-slate-50/50 border-b border-slate-100">

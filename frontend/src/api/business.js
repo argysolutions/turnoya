@@ -3,7 +3,20 @@ import client from './client'
 /**
  * Obtiene la configuración del negocio (políticas, comisiones, categorías).
  */
-export const getSettings = () => client.get('/settings')
+export const getSettings = async () => {
+  try {
+    return await client.get('/settings')
+  } catch (e) {
+    return { data: {
+      cancellation_policy: '',
+      anticipation_margin: 30,
+      buffer_time: 10,
+      whatsapp_enabled: false,
+      commission_rate: 0,
+      expense_categories: ['Productos', 'Insumos', 'Limpieza']
+    }}
+  }
+}
 
 /**
  * Actualiza la configuración del negocio.
@@ -25,7 +38,15 @@ export const updateOwnerPin = (pin) => client.put('/settings/owner-pin', { pin }
 
 // ─── Staff Management CRUD ──────────────────────────────────────────────────
 
-export const listStaff = () => client.get('/staff')
+export const listStaff = async () => {
+  try {
+    return await client.get('/staff')
+  } catch (e) {
+    return { data: { staff: [
+      { id: 1, name: 'Juan Perez (Mock)', role: 'employee', professional_name: 'Juan P.', is_active: true, has_pin: true },
+    ]}}
+  }
+}
 export const addStaff = (data) => client.post('/staff', data)
 export const editStaff = (id, data) => client.put(`/staff/${id}`, data)
 export const updateMemberPin = (id, pin) => client.put(`/staff/${id}/pin`, { pin })

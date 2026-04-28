@@ -9,7 +9,14 @@ const AuthContext = createContext(null)
  */
 function decodeJWT(token) {
   try {
-    const [, payload] = token.split('.')
+    // Bypass para el token de desarrollo (mock)
+    if (token.startsWith('mock.')) {
+      return { id: 1, business_id: 1, role: 'owner', name: 'Color Craft Mock', exp: 9999999999 }
+    }
+
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = parts[1]
     const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
     if (decoded.exp && decoded.exp * 1000 < Date.now()) return null
     
