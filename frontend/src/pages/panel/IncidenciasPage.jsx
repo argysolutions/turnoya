@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import { Menu } from 'lucide-react'
 import { useIncidencias } from '@/hooks/useIncidencias'
 import { useAuth } from '@/context/AuthContext'
 import IncidenciasList from '@/components/Incidencias/IncidenciasList'
@@ -16,6 +17,7 @@ export default function IncidenciasPage() {
     createIncidencia, 
     deleteIncidencia 
   } = useIncidencias()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     // Solo el dueño puede listar, empleados solo reportan
@@ -25,9 +27,31 @@ export default function IncidenciasPage() {
   }, [isOwner, fetchIncidencias])
 
   return (
-    <Layout>
+    <Layout 
+      maxWidth="max-w-7xl"
+      hideMobileHeader={true}
+      mobileMenuState={[isMenuOpen, setIsMenuOpen]}
+    >
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <header className="flex flex-col gap-2">
+        {/* 1. MASTER HEADER MÓVIL */}
+        <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 h-16 flex items-center justify-between relative mb-6">
+          {/* Left: Menu Icon */}
+          <div className="min-w-[48px]">
+            <button onClick={() => setIsMenuOpen(true)} className="w-12 h-12 flex items-center justify-center text-black">
+              <Menu className="w-8 h-8" />
+            </button>
+          </div>
+
+          {/* Center: Title */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="text-3xl font-black text-black tracking-tighter">Bitácora</span>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="min-w-[48px]" />
+        </div>
+
+        <header className="hidden lg:flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <Terminal className="w-6 h-6 text-slate-900" />
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Bitácora Técnica</h1>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Menu } from 'lucide-react'
 import { toast } from 'sonner'
 import Layout from '@/components/shared/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +26,7 @@ export default function AvailabilityPage() {
   const [slots, setSlots] = useState(defaultSlots())
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     const check = () => setIsMobile(window.matchMedia("(max-width: 768px)").matches)
@@ -91,8 +93,34 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <Layout>
-      <div className="sticky top-14 z-20 bg-white -mx-4 px-4 pt-1 pb-4 border-b border-slate-100/80 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+    <Layout 
+      maxWidth="max-w-7xl"
+      hideMobileHeader={true}
+      mobileMenuState={[isMenuOpen, setIsMenuOpen]}
+    >
+      {/* 1. MASTER HEADER MÓVIL */}
+      <div className="lg:hidden sticky top-0 z-[70] bg-white border-b border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)] w-screen -ml-4 px-4 h-16 flex items-center justify-between relative mb-6">
+        {/* Left: Menu Icon */}
+        <div className="min-w-[48px]">
+          <button onClick={() => setIsMenuOpen(true)} className="w-12 h-12 flex items-center justify-center text-black">
+            <Menu className="w-8 h-8" />
+          </button>
+        </div>
+
+        {/* Center: Title */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="text-3xl font-black text-black tracking-tighter">Horarios</span>
+        </div>
+
+        {/* Right: Actions */}
+        <div className="min-w-[48px]">
+          <Button onClick={handleSave} disabled={loading} variant="ghost" className="h-12 text-blue-600 font-black uppercase text-xs tracking-tighter">
+            {loading ? '...' : 'Guardar'}
+          </Button>
+        </div>
+      </div>
+
+      <div className="hidden lg:flex sticky top-14 z-20 bg-white -mx-4 px-4 pt-1 pb-4 border-b border-slate-100/80 mb-6 flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Disponibilidad</h1>
           <p className="text-sm text-slate-500 mt-0.5">Configurá qué días y horarios atendés</p>
