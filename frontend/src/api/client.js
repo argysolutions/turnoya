@@ -20,11 +20,53 @@ const processQueue = (error, token = null) => {
   failedQueue = []
 }
 
+// ── Mock mode: respuestas vacías para todas las rutas cuando hay token mock ──
+const MOCK_RESPONSES = {
+  '/services':             { data: [] },
+  '/clientes':             { data: [] },
+  '/availability':         { data: [] },
+  '/incidencias':          { data: [] },
+  '/notifications':        { data: [] },
+  '/staff':                { data: { staff: [] } },
+  '/settings':             { data: { cancellation_policy: '', anticipation_margin: 30, buffer_time: 10, whatsapp_enabled: false, commission_rate: 0, expense_categories: [] } },
+  '/admin/auth/google/status': { data: { linked: false, updated_at: null } },
+  '/appointments':         { data: [] },
+  '/appointments/blocked-dates': { data: [] },
+  '/sales':                { data: [] },
+  '/expenses':             { data: [] },
+  '/finances/summary':     { data: { total_income: 0, total_expenses: 0, net: 0, appointments_count: 0 } },
+  '/finances/session':     { data: { session: null } },
+  '/auth/profiles':        { data: [{ id: 'owner', name: 'Dueño (Mock)', role: 'owner' }] },
+}
+
+function getMockResponse(url) {
+  // Busca coincidencia exacta primero, luego por prefijo
+  if (MOCK_RESPONSES[url]) return MOCK_RESPONSES[url]
+  const match = Object.keys(MOCK_RESPONSES).find(k => url.startsWith(k))
+  return match ? MOCK_RESPONSES[match] : { data: [] }
+}
+
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
+
+  // En modo mock, cortocircuitar la petición y devolver datos vacíos directamente
+  if (token && token.startsWith('mock.')) {
+    const relativeUrl = config.url?.replace(config.baseURL || '', '') || config.url || ''
+    const mockData = getMockResponse(relativeUrl)
+    // Axios permite cancelar una request retornando un objeto con adapter custom
+    config.adapter = () => Promise.resolve({
+      data: mockData.data,
+      status: 200,
+      statusText: 'OK (Mock)',
+      headers: {},
+      config,
+    })
+  }
+
   return config
 })
+
 
 // Interceptor de respuesta para manejar 401 y refrescar token
 client.interceptors.response.use(
@@ -33,6 +75,12 @@ client.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // En modo mock, no intentar refrescar — simplemente rechazar sin tocar la sesión
+      const currentToken = localStorage.getItem('token')
+      if (currentToken && currentToken.startsWith('mock.')) {
+        return Promise.reject(error)
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -64,7 +112,6 @@ client.interceptors.response.use(
         processQueue(refreshError, null)
         isRefreshing = false
         
-        // Si el refresh falla, limpiar sesión
         localStorage.removeItem('token')
         localStorage.removeItem('business')
         

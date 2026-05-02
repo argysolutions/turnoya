@@ -48,6 +48,7 @@ export default function LoginPage() {
       setToken(data.token)
       // Save identity payload for next time
       localStorage.setItem('turno_ya_last_business', JSON.stringify({ email: form.email, name: data.business.name }))
+      localStorage.setItem('business', JSON.stringify(data.business)) // Persistir negocio para Layout/Dashboard
       setTimeout(() => {
         navigate('/dashboard')
       }, 800)
