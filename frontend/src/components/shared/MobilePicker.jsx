@@ -157,7 +157,7 @@ export const MobilePicker = ({
 /**
  * PickerButton: The trigger component for the MobilePicker.
  */
-export const PickerButton = ({ label, value, placeholder, onClick, className, icon: Icon }) => (
+export const PickerButton = ({ label, value, placeholder, onClick, className, icon: Icon, iconClassName }) => (
   <button
     type="button"
     onClick={onClick}
@@ -168,7 +168,14 @@ export const PickerButton = ({ label, value, placeholder, onClick, className, ic
     )}
   >
     <div className="flex items-center gap-3 truncate">
-      {Icon && <Icon className="w-5 h-5 text-blue-600 shrink-0" />}
+      {Icon && (
+        <div className={cn(
+          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+          iconClassName || "text-blue-600"
+        )}>
+          <Icon className={cn("w-5 h-5", iconClassName?.includes('bg-') ? "text-white" : "")} />
+        </div>
+      )}
       <span className="truncate">{value || placeholder}</span>
     </div>
     <ChevronDown className="w-5 h-5 text-slate-300 shrink-0 ml-2" />

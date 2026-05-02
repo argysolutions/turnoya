@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
-import { X, CheckCircle2, Clock } from 'lucide-react'
+import { X, CheckCircle2, Clock, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import client from '@/api/client'
 import { cn } from '@/lib/utils'
@@ -22,7 +22,7 @@ const defaultSlots = () => Object.fromEntries(
   DAYS.map(d => [d.value, { enabled: false, start: '09:00', end: '18:00' }])
 )
 
-export default function AvailabilityDrawer({ isOpen, onClose }) {
+export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
   const dragControls = useDragControls()
   const [slots, setSlots] = useState(defaultSlots())
   const [loading, setLoading] = useState(false)
@@ -31,6 +31,7 @@ export default function AvailabilityDrawer({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
+      document.body.style.overflow = 'hidden'
       const fetch = async () => {
         setFetching(true)
         try {
@@ -51,6 +52,11 @@ export default function AvailabilityDrawer({ isOpen, onClose }) {
         }
       }
       fetch()
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
     }
   }, [isOpen])
 
@@ -135,12 +141,24 @@ export default function AvailabilityDrawer({ isOpen, onClose }) {
             {/* Header Fijo */}
             <div className="pl-10 pr-6 py-6 bg-white flex items-center justify-between border-b border-slate-100 shrink-0 shadow-sm z-10 relative">
               <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Horarios</h3>
-              <button 
-                onClick={onClose}
-                className="w-12 h-12 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 active:scale-90 transition-transform shrink-0"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => {
+                    onClose();
+                    if (onBlockClick) onBlockClick();
+                  }}
+                  className="w-12 h-12 rounded-full bg-amber-50 hover:bg-amber-100 flex items-center justify-center text-amber-600 active:scale-90 transition-transform shrink-0"
+                  title="Bloquear Horario"
+                >
+                  <Lock className="w-6 h-6" />
+                </button>
+                <button 
+                  onClick={onClose}
+                  className="w-12 h-12 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 active:scale-90 transition-transform shrink-0"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             {/* Contenido (Scrollable) */}

@@ -37,8 +37,8 @@ function Calendar({
           buttonVariants({ variant: "ghost" }),
           "h-12 w-12 md:h-10 md:w-10 p-0 text-2xl md:text-xl font-black tracking-tighter transition-all cursor-pointer rounded-2xl flex items-center justify-center hover:bg-blue-50 hover:text-blue-700"
         ),
-        selected: "[&_button]:bg-blue-600 [&_button]:text-white [&_button]:font-black [&_button]:opacity-100 [&_button]:hover:bg-blue-700 [&_button]:hover:text-white [&_button]:transition-colors [&_button]:shadow-lg [&_button]:shadow-blue-200", 
-        today: "[&_button]:bg-slate-100 [&_button]:text-blue-600 [&_button]:font-black",
+        today: "[&_button]:bg-blue-600 [&_button]:text-white [&_button]:font-black",
+        selected: "[&_button]:bg-white [&_button]:!text-blue-600 [&_button]:font-black [&_button]:border-2 [&_button]:border-blue-600 [&_button]:shadow-sm [&_button]:opacity-100",
         outside: "day-outside text-slate-300 opacity-30",
         disabled: "text-slate-300 opacity-20",
         hidden: "invisible",

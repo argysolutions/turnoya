@@ -1,10 +1,7 @@
 import React, { useState } from 'react'
 import { 
   Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription
+  DialogContent
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -73,10 +70,10 @@ const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
       <div className="md:hidden w-12 h-1.5 bg-slate-200 rounded-full mx-auto my-4 shrink-0" />
       
       <div className="flex flex-col p-6 md:p-8 pt-2 md:pt-6">
-        <DialogHeader className="mb-6 pr-8">
-          <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">Bloquear Horario</DialogTitle>
-          <DialogDescription className="text-slate-500 font-medium mt-1">Reserva un espacio en la agenda para evitar citas.</DialogDescription>
-        </DialogHeader>
+        <div className="mb-6 pr-8">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Bloquear Horario</h2>
+          <p className="text-slate-500 font-medium mt-1">Reserva un espacio en la agenda para evitar citas.</p>
+        </div>
 
         <div className="mt-8 space-y-6">
           <div className="space-y-4">

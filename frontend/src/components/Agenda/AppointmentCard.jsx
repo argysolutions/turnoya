@@ -1,7 +1,43 @@
 import React from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, User, Scissors, Info as InfoIcon, Star, ChevronRight, MessageCircle, Phone, History } from 'lucide-react'
+import { 
+  Clock, 
+  User, 
+  Scissors, 
+  Info as InfoIcon, 
+  Star, 
+  ChevronRight, 
+  MessageCircle, 
+  Phone, 
+  History,
+  Wrench,
+  Sparkles,
+  Flower2,
+  Hammer,
+  Trash2,
+  Briefcase,
+  Stethoscope,
+  Scale,
+  Dumbbell,
+  Dog,
+  Utensils,
+  Camera,
+  Zap,
+  GraduationCap,
+  Calculator,
+  Gavel,
+  Droplets,
+  Waves,
+  HeartPulse,
+  Heart,
+  Palette,
+  Car,
+  Home,
+  Music,
+  ShoppingBag,
+  Bone
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const statusStyles = {
@@ -21,6 +57,68 @@ const statusLabels = {
   cancelled: 'Cancelado',
   cancelled_occupied: 'Bloqueo/Receso',
   pending_block: 'Esperando Aprobación'
+}
+
+const serviceIcons = {
+  // Belleza y Estética
+  scissors: Scissors,
+  hair: Scissors,
+  barber: Scissors,
+  nails: Flower2,
+  manicuria: Flower2,
+  estetica: Sparkles,
+  beauty: Sparkles,
+  makeup: Palette,
+  // Técnico y Reparaciones
+  wrench: Wrench,
+  reparacion: Wrench,
+  mantenimiento: Wrench,
+  hammer: Hammer,
+  construction: Hammer,
+  zap: Zap,
+  electricista: Zap,
+  plomeria: Droplets,
+  refrigeracion: Waves,
+  // Limpieza
+  cleaning: Trash2,
+  limpieza: Trash2,
+  trash: Trash2,
+  // Profesionales y Oficinas
+  briefcase: Briefcase,
+  office: Briefcase,
+  abogado: Gavel,
+  legal: Scale,
+  contabilidad: Calculator,
+  profesional: User,
+  consultoria: MessageCircle,
+  // Salud y Bienestar
+  doctor: Stethoscope,
+  salud: Stethoscope,
+  kinesiologia: HeartPulse,
+  masajes: Heart,
+  wellness: Sparkles,
+  gym: Dumbbell,
+  entrenamiento: Dumbbell,
+  // Educación y Arte
+  clase: GraduationCap,
+  education: GraduationCap,
+  musica: Music,
+  foto: Camera,
+  // Mascotas
+  pets: Dog,
+  veterinaria: Dog,
+  paseo: Bone,
+  // Otros
+  food: Utensils,
+  restaurante: Utensils,
+  car: Car,
+  home: Home,
+  shopping: ShoppingBag
+}
+
+const ServiceIcon = ({ name, className }) => {
+  const Icon = serviceIcons[name?.toLowerCase()] || Scissors
+  return <Icon className={className} />
 }
 
 const getCardColors = (status) => {
@@ -86,7 +184,18 @@ export const AppointmentCard = React.memo(({ appointment, onClick }) => {
 
           <div className="flex items-center gap-x-3 mt-1 md:mt-1 text-lg md:text-[11px] text-slate-500 font-bold overflow-hidden">
             <div className="flex items-center gap-1.5 min-w-0 max-w-[60%]">
-              <Scissors className="w-5 h-5 md:w-3 md:h-3 text-slate-400 shrink-0" /> 
+              <div className={cn(
+                "w-8 h-8 md:w-6 md:h-6 flex items-center justify-center rounded-lg shadow-sm shrink-0",
+                appointment.service_color || "bg-slate-100"
+              )}>
+                <ServiceIcon 
+                  name={appointment.service_icon || appointment.category} 
+                  className={cn(
+                    "w-5 h-5 md:w-3.5 md:h-3.5",
+                    appointment.service_color ? "text-white" : "text-slate-400"
+                  )} 
+                /> 
+              </div>
               <span className="truncate whitespace-nowrap">{service_name || 'Servicio'}</span>
             </div>
             {phone && (

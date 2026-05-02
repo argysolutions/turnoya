@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import { format, isSameDay, startOfToday, addDays, startOfWeek, endOfWeek, isWithinInterval, addMonths } from 'date-fns'
+import { format, isSameDay, startOfToday, addDays, startOfWeek, endOfWeek, isWithinInterval, addMonths, isSameMonth } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { 
   Plus, 
@@ -71,8 +71,9 @@ export default function AgendaPage() {
     const todayStr = new Date().toISOString().split('T')[0];
     const mockRescheduledOrigin = {
       id: 'mock-rescheduled-origin',
-      client_name: 'DEMO: Carlos (ORIGINAL)',
-      service_name: 'Barbería Premium + Barba',
+      client_name: 'Carlos (Original)',
+      service_name: 'Reparación de Aire',
+      service_icon: 'refrigeracion',
       start_at: `${todayStr}T09:00:00.000Z`,
       status: 'rescheduled_origin',
       phone: '1122334455',
@@ -81,8 +82,9 @@ export default function AgendaPage() {
     }
     const mockRescheduledNew = {
       id: 'mock-rescheduled-new',
-      client_name: 'DEMO: Carlos (NUEVO)',
-      service_name: 'Barbería Premium + Barba',
+      client_name: 'Carlos (Nuevo)',
+      service_name: 'Manicuría Completa',
+      service_icon: 'nails',
       start_at: `${todayStr}T11:30:00.000Z`,
       status: 'rescheduled',
       phone: '1122334455',
@@ -180,6 +182,18 @@ export default function AgendaPage() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Bloquear scroll del body cuando el calendario móvil está abierto
+  useEffect(() => {
+    if (isMobileCalendarOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileCalendarOpen])
 
   // Lógica de Swipe Sincronizado para Móvil (High Fidelity)
   const tabs = ['pendientes', 'confirmados', 'finalizados', 'cancelados']
@@ -515,13 +529,6 @@ export default function AgendaPage() {
               <CalendarDays className="w-4 h-4 text-blue-500" />
               Volver a hoy
             </button>
-            <button 
-              onClick={() => setShowBlockModal(true)}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors shadow-sm"
-            >
-              <Lock className="w-4 h-4 text-amber-500" />
-              Bloquear Horario
-            </button>
             <Button onClick={() => setShowDialog(true)} className="rounded-xl font-bold gap-2 bg-slate-900 hover:bg-blue-600 transition-all">
               <Plus className="w-4 h-4" /> Nuevo Turno
             </Button>
@@ -592,13 +599,6 @@ export default function AgendaPage() {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-0.5 min-w-[120px] justify-end">
-              <button 
-                onClick={() => setShowBlockModal(true)} 
-                className="w-12 h-12 flex items-center justify-center text-blue-600 active:scale-95 transition-transform"
-                title="Bloquear Horario"
-              >
-                <Lock className="w-7 h-7" />
-              </button>
               <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={cn("w-12 h-12 flex items-center justify-center transition-colors rounded-full", isSearchOpen ? "bg-black text-white" : "text-blue-600")}>
                 <Search className="w-7 h-7" />
               </button>
@@ -708,7 +708,7 @@ export default function AgendaPage() {
                         <div className="flex justify-start px-1 -mt-8 mb-0 overflow-visible relative z-[100]">
                           <button 
                             onClick={handleAcceptAllPending}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-amber-50 text-amber-700 border border-amber-200/50 rounded-full text-sm font-black uppercase tracking-tighter shadow-sm active:scale-95 transition-all"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-amber-50 text-amber-700 border border-amber-200/50 rounded-full text-sm font-black uppercase tracking-tighter shadow-sm active:scale-95 transition-all animate-orange-border"
                           >
                             <CheckCircle className="w-4 h-4" />
                             Aceptar Todos
@@ -980,7 +980,7 @@ export default function AgendaPage() {
                         <button 
                           type="button"
                           onClick={handleAcceptAllPending}
-                          className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95"
+                          className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-all shadow-sm active:scale-95 animate-orange-border"
                         >
                           <CheckCircle className="w-3.5 h-3.5" />
                           Aceptar Todos
@@ -1181,30 +1181,36 @@ export default function AgendaPage() {
                   />
                 </div>
 
-                <AnimatePresence mode="popLayout">
-                  {!isSameDay(date, new Date()) && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0, y: 20 }}
-                      animate={{ height: 'auto', opacity: 1, y: 0 }}
-                      exit={{ height: 0, opacity: 0, y: 20 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-8 pb-10 pt-4 bg-white border-t border-slate-50">
-                        <button 
-                          onClick={() => {
-                            const today = new Date();
-                            setDate(today);
-                            setCurrentMonth(today);
-                            setIsMobileCalendarOpen(false);
-                          }}
-                          className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-blue-100 active:scale-95 transition-all"
-                        >
-                          Volver a Hoy
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <div className="px-8 pb-10 pt-4 bg-white border-t border-slate-50 space-y-3">
+                  <AnimatePresence mode="popLayout">
+                    {(!isSameDay(date, new Date()) || !isSameMonth(currentMonth, new Date())) && (
+                      <motion.button 
+                        initial={{ height: 0, opacity: 0, y: 10 }}
+                        animate={{ height: 'auto', opacity: 1, y: 0 }}
+                        exit={{ height: 0, opacity: 0, y: 10 }}
+                        onClick={() => {
+                          const today = new Date();
+                          setDate(today);
+                          setCurrentMonth(today);
+                        }}
+                        className="w-full h-14 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-blue-100 active:scale-95 transition-all overflow-hidden mb-3"
+                      >
+                        Volver a Hoy
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+                  
+                  <button 
+                    onClick={() => {
+                      setIsMobileCalendarOpen(false);
+                      setShowBlockModal(true);
+                    }}
+                    className="w-full h-14 rounded-2xl bg-amber-500 text-white text-sm font-black uppercase tracking-tight shadow-xl shadow-amber-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Lock className="w-5 h-5" />
+                    Bloquear Fecha/Hora
+                  </button>
+                </div>
               </motion.div>
             </div>
           </>
@@ -1398,6 +1404,7 @@ export default function AgendaPage() {
       <AvailabilityDrawer 
         isOpen={isAvailabilityOpen} 
         onClose={() => setIsAvailabilityOpen(false)} 
+        onBlockClick={() => setShowBlockModal(true)}
       />
 
       <AppointmentDetailDialog

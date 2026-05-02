@@ -59,7 +59,7 @@ export const getAppointmentById = async (id, businessId) => {
   const result = await pool.query(
     `SELECT a.*, 
             b.name as business_name, b.address as business_address, b.phone as business_phone,
-            s.name as service_name, s.duration, s.price,
+            s.name as service_name, s.duration, s.price, s.service_icon, s.service_color,
             c.nombre as client_name, c.telefono as client_phone
      FROM appointments a
      JOIN businesses b ON a.business_id = b.id
@@ -73,7 +73,7 @@ export const getAppointmentById = async (id, businessId) => {
 
 export const getAppointmentsByBusiness = async (businessId, date) => {
   let query = `SELECT a.*,
-                      s.name as service_name, s.duration, s.price,
+                      s.name as service_name, s.duration, s.price, s.service_icon, s.service_color,
                       c.nombre as client_name, c.telefono as client_phone,
                       (SELECT CAST(COUNT(*) AS INTEGER) FROM appointments a2 WHERE a2.client_id = a.client_id AND a2.business_id = a.business_id AND a2.client_id IS NOT NULL) as client_history_count
                FROM appointments a
@@ -93,7 +93,7 @@ export const getAppointmentsByBusiness = async (businessId, date) => {
 
 export const getPendingBlocks = async (businessId) => {
   const result = await pool.query(
-    `SELECT a.*, s.name as service_name, c.nombre as client_name
+    `SELECT a.*, s.name as service_name, s.service_icon, s.service_color, c.nombre as client_name
      FROM appointments a
      LEFT JOIN services s ON a.service_id = s.id
      LEFT JOIN clientes c ON a.client_id = c.id

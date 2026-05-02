@@ -14,13 +14,60 @@ import { getClientes } from '@/api/clientes'
 import { getServices } from '@/api/services'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { User, Briefcase, Calendar as DateIcon, X, Clock } from 'lucide-react'
+import { User, Calendar as DateIcon, X, Clock } from 'lucide-react'
 import { MobilePicker, PickerButton } from '@/components/shared/MobilePicker'
 import { MobileTimePicker } from '@/components/shared/MobileTimePicker'
 import { MobileCalendarPicker } from '@/components/shared/MobileCalendarPicker'
 import WheelTimePicker from '@/components/ui/wheel-time-picker'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { 
+  Scissors, 
+  User as UserIcon, 
+  Sparkles, 
+  Flower2, 
+  Eye, 
+  Zap, 
+  Activity, 
+  Heart, 
+  Stethoscope, 
+  ShoppingBag, 
+  Hammer, 
+  Car, 
+  Palette, 
+  Droplets, 
+  Waves, 
+  GraduationCap, 
+  Calculator, 
+  Scale, 
+  Home, 
+  Bone,
+  Briefcase
+} from 'lucide-react'
+
+const iconMap = {
+  scissors: Scissors,
+  user: UserIcon,
+  sparkles: Sparkles,
+  flower2: Flower2,
+  eye: Eye,
+  zap: Zap,
+  activity: Activity,
+  heart: Heart,
+  stethoscope: Stethoscope,
+  shopping: ShoppingBag,
+  hammer: Hammer,
+  car: Car,
+  palette: Palette,
+  droplets: Droplets,
+  waves: Waves,
+  education: GraduationCap,
+  calculator: Calculator,
+  scale: Scale,
+  home: Home,
+  pet: Bone,
+  briefcase: Briefcase
+}
 
 const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const [loading, setLoading] = useState(false)
@@ -77,7 +124,9 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
   const serviceOptions = useMemo(() => (Array.isArray(servicios) ? servicios : []).map(s => ({
     id: s.id,
     label: s.name,
-    subtext: `${s.duration_min} min • $${s.price}`
+    subtext: `${s.duration} min • $${s.price}`,
+    service_icon: s.service_icon || 'scissors',
+    service_color: s.service_color || 'bg-blue-600'
   })), [servicios])
 
   const handleSubmit = async (e) => {
@@ -214,16 +263,23 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
               />
             </div>
 
-            {/* Servicio */}
             <div className="space-y-2">
               <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-tighter ml-1">Servicio</label>
-              <PickerButton
-                icon={Briefcase}
-                placeholder="¿Qué servicio realizará?"
-                value={serviceOptions.find(opt => opt.id.toString() === formData.service_id)?.label}
-                onClick={() => setActivePicker('servicio')}
-                className="h-14 text-lg font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
-              />
+              {(() => {
+                const selected = serviceOptions.find(opt => opt.id.toString() === formData.service_id);
+                const Icon = selected ? (iconMap[selected.service_icon] || Briefcase) : Briefcase;
+                
+                return (
+                  <PickerButton
+                    icon={Icon}
+                    placeholder="¿Qué servicio realizará?"
+                    value={selected?.label}
+                    onClick={() => setActivePicker('servicio')}
+                    className="h-14 text-lg font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+                    iconClassName={selected ? selected.service_color : "text-blue-600"}
+                  />
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-5 gap-3">
@@ -362,6 +418,17 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
         options={serviceOptions}
         value={parseInt(formData.service_id)}
         onSelect={(opt) => setFormData({ ...formData, service_id: opt.id.toString() })}
+        renderOption={(opt) => {
+          const Icon = iconMap[opt.service_icon] || Briefcase;
+          return (
+            <div className="flex items-center gap-3">
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0", opt.service_color)}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className="text-[15px] font-bold text-slate-800">{opt.label}</span>
+            </div>
+          );
+        }}
       />
 
       <MobileCalendarPicker

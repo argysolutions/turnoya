@@ -167,6 +167,18 @@ export default function Layout({
   const setIsMobileMenuOpen = mobileMenuState ? mobileMenuState[1] : setInternalMenuOpen
   const dragControls = useDragControls()
 
+  // Bloquear scroll del body cuando el menú móvil está abierto
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileMenuOpen])
+
   // Filtrar links para el menú móvil (misma lógica que NavScrollable)
   const visibleNavItems = navItems.filter(item => {
     if (isActuallyEmployee) {
@@ -238,7 +250,7 @@ export default function Layout({
                   setIsMobileMenuOpen(false)
                 }
               }}
-              className="lg:hidden fixed inset-y-0 left-0 w-[85%] max-w-sm bg-white z-[110] shadow-[8px_0_30px_rgba(0,0,0,0.12)] rounded-r-[32px] flex flex-col overflow-hidden"
+              className="lg:hidden fixed inset-y-0 left-0 w-[300px] bg-white z-[110] shadow-[10px_0_40px_rgba(0,0,0,0.15)] rounded-r-[32px] flex flex-col overflow-hidden border-r border-slate-100"
             >
               {/* Drag Handle Area (Right edge) */}
               <div 

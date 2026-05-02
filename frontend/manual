@@ -1,0 +1,48 @@
+MANUAL DE ESTILOS - TURNOYA DESIGN SYSTEM (2026)
+==============================================
+
+Este documento resume la identidad visual y el sistema de diseño implementado en la plataforma.
+
+1. TIPOGRAFÍA (SISTEMA MULTI-FAMILIA)
+--------------------------------------
+- NIVEL 1: Títulos Principales
+  Fuente: Inter Black
+  Uso: Cabeceras de página, énfasis máximo.
+  Clase: font-sans font-black tracking-tighter uppercase
+
+- NIVEL 2: UI e Interacción
+  Fuente: Outfit
+  Uso: Botones, etiquetas (labels), navegación, pestañas (tabs).
+  Clase: font-outfit font-black tracking-tight uppercase
+
+- NIVEL 3: Cuerpo y Lectura
+  Fuente: Plus Jakarta Sans
+  Uso: Contenido principal, párrafos, notas.
+  Clase: font-jakarta font-medium
+
+- NIVEL 4: Datos Técnicos y Moneda
+  Fuente: Roboto Mono
+  Uso: Horarios, precios, duraciones, números de teléfono, códigos PIN.
+  Clase: font-mono font-bold uppercase tracking-tighter
+
+2. PALETA DE COLORES
+---------------------
+- Slate 900 (#0f172a): Texto principal, Botones primarios.
+- Blue 600 (#2563eb): Acciones positivas, Enlaces, Énfasis de marca.
+- Amber 500 (#f59e0b): Bloqueos, Alertas, Advertencias.
+- Emerald 500 (#10b981): Éxito, Caja abierta, Turnos confirmados.
+- Red 500 (#ef4444): Cancelados, Faltantes, Eliminar.
+- Slate 400 (#94a3b8): Subtítulos, Texto secundario.
+
+3. COMPONENTES Y UX/UI MÓVIL
+-----------------------------
+- Radio de Borde Principal: rounded-[2.5rem] (Modales, Secciones grandes, Hojas inferiores).
+- Radio de Borde de Componente: rounded-2xl (Cards, Inputs, Botones).
+- Sombras: shadow-xl shadow-slate-200/50 (Efecto premium suave).
+- Altura de Toque (Mobile): h-14 o h-16 para botones e inputs.
+- Padding Mobile: px-5 (Equilibrio entre espacio físico y legibilidad).
+
+4. ICONOGRAFÍA
+---------------
+- Librería: Lucide React.
+- Estilo: Minimalista, peso estándar (w-5 h-5 en la mayoría de contextos).

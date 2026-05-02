@@ -95,3 +95,24 @@
 .mask-none {
   -webkit-text-security: none !important;
 }
+
+@keyframes orange-border-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    border-color: rgba(245, 158, 11, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+    border-color: rgba(245, 158, 11, 1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    border-color: rgba(245, 158, 11, 0.5);
+  }
+}
+
+.animate-orange-border {
+  animation: orange-border-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-width: 2px !important;
+  border-style: solid !important;
+}
