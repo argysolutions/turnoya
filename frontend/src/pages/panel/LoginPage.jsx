@@ -66,17 +66,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-svh bg-slate-50 flex items-center justify-center px-4 relative">
-      <div className="w-full max-w-[440px] relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-black text-slate-900 uppercase tracking-tighter transition-all leading-tight">TurnoYa</h1>
-          {savedAccount ? (
-            <p className="text-xl text-blue-600 mt-3 font-bold">Hola de nuevo, <span className="text-blue-700 uppercase tracking-tighter">{savedAccount.name}</span></p>
-          ) : (
-            <p className="text-lg text-slate-500 mt-3 font-bold">Gestioná tu negocio con facilidad</p>
-          )}
+      <div className="w-full max-w-[420px] relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-black text-slate-900 uppercase tracking-tight leading-tight">TurnoYa</h1>
+          <p className="text-2xl font-black text-slate-900 mt-4 leading-snug">Gestioná tu negocio con facilidad</p>
         </div>
 
-        <div className="bg-white border border-slate-100 rounded-[4rem] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative overflow-hidden">
+        <div className="bg-white border-2 border-slate-100 rounded-[3rem] p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] relative overflow-hidden">
           <AnimatePresence>
             {isSuccess && (
               <motion.div
@@ -100,7 +96,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-3">
               <div className="flex items-center justify-between ml-2">
-                <Label htmlFor="email" className="text-slate-500 font-black uppercase text-[11px] tracking-widest">Email</Label>
+                <Label htmlFor="email" className="text-slate-900 font-black uppercase text-sm tracking-widest">Email</Label>
                 {savedAccount && (
                   <button type="button" onClick={handleClearAccount} className="text-xs text-blue-600 font-black uppercase tracking-tighter hover:text-blue-800">Cambiar cuenta</button>
                 )}
@@ -115,12 +111,12 @@ export default function LoginPage() {
                 onChange={handleChange}
                 required
                 readOnly={!!savedAccount}
-                className={`h-16 rounded-2xl transition-all shadow-sm text-xl font-bold px-6 ${savedAccount ? 'bg-slate-50 text-slate-400 border-transparent focus:ring-0 cursor-not-allowed' : 'bg-slate-50/50 border-slate-100 focus:bg-white focus:ring-4 focus:ring-blue-50'}`}
+                className={`h-18 rounded-2xl transition-all shadow-sm text-xl font-medium px-6 tracking-tight ${savedAccount ? 'bg-slate-50 text-slate-400 border-transparent focus:ring-0 cursor-not-allowed' : 'bg-slate-50/50 border-slate-200 focus:bg-white focus:ring-4 focus:ring-blue-50'}`}
               />
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between ml-2">
-                <Label htmlFor="password" className="text-slate-500 font-black uppercase text-[11px] tracking-widest">Contraseña</Label>
+                <Label htmlFor="password" className="text-slate-900 font-black uppercase text-sm tracking-widest">Contraseña</Label>
                 <Link to="/recovery" className="text-xs text-blue-600 hover:text-blue-800 font-black uppercase tracking-tighter">¿Olvidaste tu clave?</Link>
               </div>
               <div className="relative group">
@@ -133,7 +129,7 @@ export default function LoginPage() {
                   value={form.password}
                   onChange={handleChange}
                   required
-                  className="bg-slate-50/50 border-slate-100 h-16 rounded-2xl focus:bg-white transition-all shadow-sm text-2xl font-black px-6 pr-14 focus:ring-4 focus:ring-blue-50"
+                  className="bg-slate-50/50 border-slate-200 h-18 rounded-2xl focus:bg-white transition-all shadow-sm text-xl font-medium px-6 pr-14 focus:ring-4 focus:ring-blue-50 tracking-tight"
                 />
                 <button
                   type="button"
@@ -146,7 +142,7 @@ export default function LoginPage() {
             </div>
             <Button
               type="submit"
-              className="w-full h-18 py-8 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest shadow-2xl shadow-blue-200 transition-all active:scale-[0.98] text-lg"
+              className="w-full h-16 bg-slate-900 hover:bg-black text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-slate-900/20 transition-all active:scale-[0.98] text-lg"
               disabled={loading}
             >
               {loading ? 'Ingresando...' : 'Iniciar Sesión'}
@@ -164,7 +160,7 @@ export default function LoginPage() {
         <p className="text-center mt-4">
           <Link
             to="/staff-login"
-            className="text-xs text-slate-400 hover:text-slate-600 font-semibold transition-colors"
+            className="text-sm text-blue-600 hover:text-blue-800 font-black uppercase tracking-widest transition-all"
           >
             Acceso de empleado →
           </Link>

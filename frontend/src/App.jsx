@@ -17,7 +17,6 @@ import AvailabilityPage from '@/pages/panel/AvailabilityPage'
 import SettingsPage from '@/pages/panel/SettingsPage'
 import CajaPage from '@/pages/panel/CajaPage'
 import ClientesPage from '@/pages/panel/ClientesPage'
-import IncidenciasPage from '@/pages/panel/IncidenciasPage'
 import AgendaPage from '@/pages/panel/AgendaPage'
 
 export default function App() {
@@ -62,9 +61,7 @@ export default function App() {
                 <ProtectedRoute><ClientesPage /></ProtectedRoute>
               } />
 
-              <Route path="incidencias" element={
-                <ProtectedRoute><IncidenciasPage /></ProtectedRoute>
-              } />
+
 
               <Route path="servicios" element={
                 <ProtectedRoute><ServicesPage /></ProtectedRoute>

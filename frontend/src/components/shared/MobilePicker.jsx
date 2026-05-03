@@ -23,8 +23,10 @@ export const MobilePicker = ({
 
   const filteredOptions = useMemo(() => {
     return options.filter(opt => {
-      const label = opt.label || opt.name || opt.text || ''
-      return label.toLowerCase().includes(search.toLowerCase())
+      const label = (opt.label || opt.name || opt.text || '').toLowerCase()
+      const subtext = (opt.subtext || '').toLowerCase()
+      const term = search.toLowerCase()
+      return label.includes(term) || subtext.includes(term)
     })
   }, [options, search])
 
@@ -66,7 +68,7 @@ export const MobilePicker = ({
                 onClose()
               }
             }}
-            className="fixed inset-x-0 bottom-0 z-[160] flex flex-col bg-white rounded-t-[32px] lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)] max-h-[85vh]"
+            className="fixed inset-x-0 bottom-0 z-[160] flex flex-col bg-white rounded-t-[32px] lg:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.12)] h-[85vh]"
           >
             {/* Handle bar area with drag listener */}
             <div 
@@ -87,8 +89,8 @@ export const MobilePicker = ({
               </button>
             </div>
 
-            {/* Search Bar (Conditional based on list size) */}
-            {options.length > 8 && (
+            {/* Search Bar */}
+            {(options.length > 8 || searchPlaceholder) && (
               <div className="px-6 py-4 shrink-0">
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -96,7 +98,7 @@ export const MobilePicker = ({
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder={searchPlaceholder}
+                    placeholder={searchPlaceholder || "Buscar..."}
                     className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-transparent rounded-2xl text-base focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                   />
                 </div>

@@ -1505,7 +1505,7 @@ export default function CajaPage() {
         </TooltipProvider>
       </div>
       {/* LockScreen solo para dueños — empleados ya están autenticados */}
-      {isOwner && !activeProfile && <LockScreen onUnlock={() => {}} />}
+      {isOwner && !activeProfile && <LockScreen onUnlock={(profile) => setActiveProfile(profile)} />}
     </Layout>
   )
 }

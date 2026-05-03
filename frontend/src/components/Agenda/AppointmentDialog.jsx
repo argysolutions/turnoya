@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { 
   Dialog, 
   DialogContent, 
@@ -14,16 +14,13 @@ import { getClientes } from '@/api/clientes'
 import { getServices } from '@/api/services'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { User, Calendar as DateIcon, X, Clock } from 'lucide-react'
-import { MobilePicker, PickerButton } from '@/components/shared/MobilePicker'
-import { MobileTimePicker } from '@/components/shared/MobileTimePicker'
-import { MobileCalendarPicker } from '@/components/shared/MobileCalendarPicker'
-import WheelTimePicker from '@/components/ui/wheel-time-picker'
-import { motion, AnimatePresence, useDragControls } from 'framer-motion'
-import { cn } from '@/lib/utils'
 import { 
+  User, 
+  Calendar as DateIcon, 
+  X, 
+  Clock, 
+  Briefcase,
   Scissors, 
-  User as UserIcon, 
   Sparkles, 
   Flower2, 
   Eye, 
@@ -42,8 +39,21 @@ import {
   Scale, 
   Home, 
   Bone,
-  Briefcase
+  Dumbbell,
+  Dog,
+  Utensils,
+  Camera,
+  Music
 } from 'lucide-react'
+import { MobilePicker, PickerButton } from '@/components/shared/MobilePicker'
+import { MobileTimePicker } from '@/components/shared/MobileTimePicker'
+import { MobileCalendarPicker } from '@/components/shared/MobileCalendarPicker'
+import WheelTimePicker from '@/components/ui/wheel-time-picker'
+import { motion, AnimatePresence, useDragControls } from 'framer-motion'
+import { cn } from '@/lib/utils'
+
+const UserIcon = User;
+
 
 const iconMap = {
   scissors: Scissors,
@@ -66,7 +76,12 @@ const iconMap = {
   scale: Scale,
   home: Home,
   pet: Bone,
-  briefcase: Briefcase
+  briefcase: Briefcase,
+  fitness: Dumbbell,
+  pets: Dog,
+  food: Utensils,
+  photo: Camera,
+  music: Music
 }
 
 const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
@@ -85,6 +100,7 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
   // Responsive state
   const [isMobile, setIsMobile] = useState(false)
+  const dragControls = useDragControls()
   
   // Picker internal state
   const [activePicker, setActivePicker] = useState(null) // 'cliente' | 'servicio' | 'hora' | 'fecha'
@@ -115,19 +131,30 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
     }
   }
 
-  const clientOptions = useMemo(() => (Array.isArray(clientes) ? clientes : []).map(c => ({
-    id: c.id,
-    label: c.name,
-    subtext: c.phone
-  })), [clientes])
+  const clientOptions = useMemo(() => (Array.isArray(clientes) ? clientes : [])
+    .map(c => ({
+      id: c.id,
+      label: c.nombre || c.name, // Fallback to name just in case
+      subtext: c.telefono || c.phone
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label)), [clientes])
 
   const serviceOptions = useMemo(() => (Array.isArray(servicios) ? servicios : []).map(s => ({
     id: s.id,
     label: s.name,
     subtext: `${s.duration} min • $${s.price}`,
     service_icon: s.service_icon || 'scissors',
-    service_color: s.service_color || 'bg-blue-600'
+    service_color: s.service_color || 'bg-blue-600',
+    duration: s.duration
   })), [servicios])
+
+  const calculateEndTime = (startTime, durationMinutes) => {
+    if (!startTime || !durationMinutes) return formData.end_time;
+    const [hours, minutes] = startTime.split(':').map(Number)
+    const date = new Date()
+    date.setHours(hours, minutes + durationMinutes, 0, 0)
+    return format(date, 'HH:mm')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -282,43 +309,39 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
               })()}
             </div>
 
-            <div className="grid grid-cols-5 gap-3">
-              {/* Fecha */}
-              <div className="col-span-2 space-y-2">
-                <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-tighter ml-1">Fecha</label>
-                <PickerButton 
-                  icon={DateIcon}
-                  placeholder="Seleccionar..."
-                  value={formData.date ? format(new Date(formData.date + 'T12:00:00'), 'dd/MM/yyyy') : ''}
-                  onClick={() => setActivePicker('fecha')}
-                  className="h-14 text-lg font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl"
+            {/* Fecha */}
+            <div className="space-y-2">
+              <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-tighter ml-1">Fecha</label>
+              <PickerButton 
+                placeholder="Seleccionar fecha..."
+                value={formData.date ? format(new Date(formData.date + 'T12:00:00'), 'dd/MM/yyyy') : ''}
+                onClick={() => setActivePicker('fecha')}
+                className="h-16 text-xl font-black text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-3xl"
+              />
+            </div>
+
+            {/* Horarios side by side */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Hora Inicio */}
+              <div className="space-y-2">
+                <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-tighter ml-1">INICIO</label>
+                <PickerButton
+                  placeholder="Inicio..."
+                  value={formData.start_time}
+                  onClick={() => setActivePicker('hora_inicio')}
+                  className="h-16 text-2xl font-black text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-3xl"
                 />
               </div>
 
-              <div className="col-span-3 grid grid-cols-2 gap-2">
-                {/* Hora Inicio */}
-                <div className="space-y-2">
-                  <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-tighter ml-1">INICIO</label>
-                  <PickerButton
-                    icon={Clock}
-                    placeholder="Inicio..."
-                    value={formData.start_time}
-                    onClick={() => setActivePicker('hora_inicio')}
-                    className="h-14 text-lg font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl px-2"
-                  />
-                </div>
-
-                {/* Hora Fin */}
-                <div className="space-y-2">
-                  <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-tighter ml-1">FIN</label>
-                  <PickerButton
-                    icon={Clock}
-                    placeholder="Fin..."
-                    value={formData.end_time}
-                    onClick={() => setActivePicker('hora_fin')}
-                    className="h-14 text-lg font-bold text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-2xl px-2"
-                  />
-                </div>
+              {/* Hora Fin */}
+              <div className="space-y-2">
+                <label className="text-xl md:text-base font-black text-slate-500 uppercase tracking-tighter ml-1">FIN</label>
+                <PickerButton
+                  placeholder="Fin..."
+                  value={formData.end_time}
+                  onClick={() => setActivePicker('hora_fin')}
+                  className="h-16 text-2xl font-black text-slate-900 bg-slate-50/80 border-transparent hover:bg-white hover:border-slate-200 transition-all rounded-3xl"
+                />
               </div>
             </div>
 
@@ -370,14 +393,14 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
       {/* MOBILE BOTTOM SHEET */}
       <AnimatePresence>
         {isOpen && isMobile && (
-          <div className="fixed inset-0 z-[100] flex items-end justify-center md:hidden">
+          <div className="fixed inset-0 z-[160] flex items-end justify-center md:hidden">
             {/* Backdrop con Blur */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
             
             {/* Sheet */}
@@ -385,14 +408,18 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
               drag="y"
+              dragControls={dragControls}
+              dragListener={false}
               dragConstraints={{ top: 0 }}
               dragElastic={0.1}
               onDragEnd={(e, info) => {
-                if (info.offset.y > 100) onClose()
+                if (info.offset.y > 100 || info.velocity.y > 300) {
+                  onClose()
+                }
               }}
-              className="relative w-full bg-white rounded-t-[2.5rem] shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto hide-scrollbar"
+              className="relative w-full bg-white rounded-t-[32px] shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto hide-scrollbar z-[170]"
             >
               {renderMobileContent()}
             </motion.div>
@@ -417,7 +444,14 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
         title="Seleccionar Servicio"
         options={serviceOptions}
         value={parseInt(formData.service_id)}
-        onSelect={(opt) => setFormData({ ...formData, service_id: opt.id.toString() })}
+        onSelect={(opt) => {
+          const newEndTime = calculateEndTime(formData.start_time, opt.duration);
+          setFormData({ 
+            ...formData, 
+            service_id: opt.id.toString(),
+            end_time: newEndTime 
+          });
+        }}
         renderOption={(opt) => {
           const Icon = iconMap[opt.service_icon] || Briefcase;
           return (
@@ -445,7 +479,16 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
         value={activePicker === 'hora_inicio' ? formData.start_time : formData.end_time}
         onChange={(time) => {
           if (activePicker === 'hora_inicio') {
-            setFormData({ ...formData, start_time: time });
+            const selectedService = servicios.find(s => s.id.toString() === formData.service_id);
+            const newEndTime = selectedService 
+              ? calculateEndTime(time, selectedService.duration)
+              : formData.end_time;
+            
+            setFormData({ 
+              ...formData, 
+              start_time: time,
+              end_time: newEndTime
+            });
           } else {
             setFormData({ ...formData, end_time: time });
           }
@@ -457,7 +500,16 @@ const AppointmentDialog = ({ isOpen, onClose, onConfirm, initialDate }) => {
             value={activePicker === 'hora_inicio' ? formData.start_time : formData.end_time}
             onChange={(time) => {
               if (activePicker === 'hora_inicio') {
-                setFormData({ ...formData, start_time: time });
+                const selectedService = servicios.find(s => s.id.toString() === formData.service_id);
+                const newEndTime = selectedService 
+                  ? calculateEndTime(time, selectedService.duration)
+                  : formData.end_time;
+                
+                setFormData({ 
+                  ...formData, 
+                  start_time: time,
+                  end_time: newEndTime
+                });
               } else {
                 setFormData({ ...formData, end_time: time });
               }

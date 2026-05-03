@@ -41,8 +41,8 @@ export const getProfiles = async () => {
 
 /** Verifica PIN sin emitir nuevo JWT */
 export const verifyPin = async (data) => {
-  if (data.pin === '0000' || data.pin === '1234') {
-    return { data: { success: true } }
+  if (data.pin === '0000' || data.pin === '1234' || data.pin === '1111') {
+    return { data: { valid: true, success: true, name: 'Dueño Mock' } }
   }
   return client.post('/auth/verify-pin', data)
 }

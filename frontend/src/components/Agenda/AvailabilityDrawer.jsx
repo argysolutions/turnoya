@@ -127,7 +127,7 @@ export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
                 onClose()
               }
             }}
-            className="fixed inset-y-0 right-0 z-[120] w-[90vw] max-w-[450px] bg-slate-50 rounded-l-[32px] flex flex-col lg:hidden shadow-[-8px_0_30px_rgb(0,0,0,0.12)] overflow-hidden"
+            className="fixed inset-y-0 right-0 z-[140] w-[350px] bg-slate-50 rounded-l-[32px] flex flex-col lg:hidden shadow-[-8px_0_30px_rgb(0,0,0,0.12)] overflow-hidden"
           >
             {/* Handle Area para Drag */}
             <div 
@@ -139,7 +139,7 @@ export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
             </div>
 
             {/* Header Fijo */}
-            <div className="pl-10 pr-6 py-6 bg-white flex items-center justify-between border-b border-slate-100 shrink-0 shadow-sm z-10 relative">
+            <div className="px-6 py-6 bg-white flex items-center justify-between border-b border-slate-100 shrink-0 shadow-sm z-10 relative">
               <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Horarios</h3>
               <div className="flex items-center gap-2">
                 <button 
@@ -147,10 +147,10 @@ export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
                     onClose();
                     if (onBlockClick) onBlockClick();
                   }}
-                  className="w-12 h-12 rounded-full bg-amber-50 hover:bg-amber-100 flex items-center justify-center text-amber-600 active:scale-90 transition-transform shrink-0"
+                  className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center text-white active:scale-90 transition-transform shrink-0 shadow-lg shadow-slate-200"
                   title="Bloquear Horario"
                 >
-                  <Lock className="w-6 h-6" />
+                  <Lock className="w-5 h-5" />
                 </button>
                 <button 
                   onClick={onClose}
@@ -162,7 +162,7 @@ export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
             </div>
 
             {/* Contenido (Scrollable) */}
-            <div className="flex-1 overflow-y-auto pl-10 pr-6 pt-6 pb-[120px] space-y-4">
+            <div className="flex-1 overflow-y-auto px-3 pt-4 pb-[120px] space-y-4">
               {fetching ? (
                 <div className="flex justify-center py-20">
                   <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600" />
@@ -172,10 +172,10 @@ export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
                   <div
                     key={day.value}
                     className={cn(
-                      "flex flex-col gap-4 p-5 rounded-3xl border-2 transition-all duration-300",
+                      "flex flex-col transition-all duration-300 rounded-[2.5rem] border-2",
                       slots[day.value].enabled
-                        ? "border-blue-100 bg-white shadow-xl shadow-blue-900/5"
-                        : "border-slate-100 bg-slate-100/50"
+                        ? "py-4 px-6 gap-3 border-blue-500/20 bg-white shadow-2xl shadow-blue-900/10"
+                        : "py-3 px-4 gap-2 border-slate-100 bg-slate-100/50"
                     )}
                   >
                     {/* Header del Día */}
@@ -191,14 +191,14 @@ export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
                       <button
                         onClick={() => toggle(day.value)}
                         className={cn(
-                          "w-16 h-9 rounded-full transition-all duration-300 flex-shrink-0 relative",
+                          "w-20 h-11 rounded-full transition-all duration-300 flex-shrink-0 relative",
                           slots[day.value].enabled ? "bg-[#34C759]" : "bg-slate-300"
                         )}
                       >
                         <span
                           className={cn(
-                            "absolute top-1 left-1 w-7 h-7 bg-white rounded-full shadow-md transition-transform duration-300",
-                            slots[day.value].enabled ? "translate-x-7" : "translate-x-0"
+                            "absolute top-1 left-1 w-9 h-9 bg-white rounded-full shadow-md transition-transform duration-300",
+                            slots[day.value].enabled ? "translate-x-9" : "translate-x-0"
                           )}
                         />
                       </button>
@@ -211,27 +211,25 @@ export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="flex items-center gap-4 pt-2 overflow-hidden"
+                          className="flex items-center gap-2 pt-1 overflow-hidden"
                         >
                           <div className="flex-1 w-full overflow-hidden">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1 block pl-2">Abre</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block pl-1">Abre</span>
                             <PickerButton
-                              icon={Clock}
                               placeholder="09:00"
                               value={slots[day.value].start}
                               onClick={() => setActivePicker({ day: day.value, field: 'start' })}
-                              className="w-full h-14 text-xl font-black bg-slate-50 border-2 border-slate-100 text-slate-900 rounded-2xl px-2 hover:bg-slate-100 transition-colors shrink-0"
+                              className="w-full h-14 text-2xl font-black bg-slate-50 border-transparent text-slate-900 rounded-2xl px-2 hover:bg-slate-100 transition-colors shrink-0"
                             />
                           </div>
-                          <span className="text-xl font-black text-slate-300 mt-5 shrink-0">-</span>
+                          <span className="text-xl font-black text-slate-300 mt-5 shrink-0">:</span>
                           <div className="flex-1 w-full overflow-hidden">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1 block pl-2">Cierra</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block pl-1">Cierra</span>
                             <PickerButton
-                              icon={Clock}
                               placeholder="18:00"
                               value={slots[day.value].end}
                               onClick={() => setActivePicker({ day: day.value, field: 'end' })}
-                              className="w-full h-14 text-xl font-black bg-slate-50 border-2 border-slate-100 text-slate-900 rounded-2xl px-2 hover:bg-slate-100 transition-colors shrink-0"
+                              className="w-full h-14 text-2xl font-black bg-slate-50 border-transparent text-slate-900 rounded-2xl px-2 hover:bg-slate-100 transition-colors shrink-0"
                             />
                           </div>
                         </motion.div>
@@ -243,7 +241,7 @@ export default function AvailabilityDrawer({ isOpen, onClose, onBlockClick }) {
             </div>
 
             {/* Footer Fijo con Botón Guardar */}
-            <div className="absolute bottom-0 left-0 right-0 pl-10 pr-6 pb-6 pt-6 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-6 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent">
               <button
                 onClick={handleSave}
                 disabled={loading || fetching}

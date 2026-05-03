@@ -75,17 +75,19 @@ export default function LockScreen({ onUnlock }) {
     setError('')
     try {
       const { data } = await verifyPin({ profile_id: 'owner', pin })
-      if (data.valid) {
+      if (data.valid || data.success) {
         const profile = {
           id: 'owner',
-          name: data.name,
+          name: data.name || 'Dueño',
           role: 'owner',
           staff_id: null,
-          professional_name: data.name,
+          professional_name: data.name || 'Dueño',
         }
         setActiveProfile(profile)
-
         onUnlock?.(profile)
+      } else {
+        // Si el servidor responde 200 pero valid=false
+        throw new Error('PIN incorrecto')
       }
     } catch (err) {
       const msg = err?.response?.data?.error || 'PIN incorrecto'
@@ -123,14 +125,14 @@ export default function LockScreen({ onUnlock }) {
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-        className="relative z-10 w-full max-w-[440px] bg-white rounded-[4rem] p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] border border-slate-100"
+        className="relative z-10 w-full max-w-[360px] bg-white rounded-[2.5rem] p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] border border-slate-100"
       >
-        <div className="text-center mb-12">
-          <div className="w-24 h-24 rounded-[2.5rem] bg-slate-900 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-slate-900/20">
-            <ShieldCheck className="w-12 h-12 text-white" />
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-slate-900/20">
+            <ShieldCheck className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter leading-tight">Acceso a Caja</h1>
-          <p className="text-lg font-bold text-slate-500 mt-3 leading-snug">Ingresá tu PIN de Dueño para desbloquear</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Acceso a Caja</h1>
+          <p className="text-lg font-bold text-slate-600 mt-2 leading-snug">Ingresá tu PIN para desbloquear</p>
         </div>
 
         {/* PIN Inputs */}
@@ -153,12 +155,12 @@ export default function LockScreen({ onUnlock }) {
                   disabled={verifying}
                   autoComplete="one-time-code"
                   className={cn(
-                    "w-20 h-24 sm:w-24 sm:h-28 text-center text-5xl font-black rounded-3xl border-2 transition-all outline-none",
+                    "w-16 h-20 sm:w-16 sm:h-20 text-center text-4xl font-black rounded-2xl border-2 transition-all outline-none tracking-tighter",
                     showPin ? "mask-none" : "mask-security",
                     error 
                         ? "border-rose-200 bg-rose-50 text-rose-600" 
                         : "border-slate-100 bg-slate-50 focus:border-slate-900 focus:bg-white text-slate-900",
-                    digit && !error ? "border-slate-900 bg-white" : ""
+                    digit && !error ? "border-slate-900 bg-white shadow-sm" : ""
                   )}
                 />
             ))}
@@ -166,7 +168,7 @@ export default function LockScreen({ onUnlock }) {
           <button
             type="button"
             onClick={() => setShowPin(s => !s)}
-            className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mx-auto mb-10 transition-colors"
+            className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mx-auto mb-8 transition-colors"
           >
             {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             {showPin ? 'Ocultar PIN' : 'Mostrar PIN'}
@@ -196,16 +198,12 @@ export default function LockScreen({ onUnlock }) {
             <button
               type="button"
               onClick={() => toast.info('Podés cambiar tu PIN en Configuración → Gestión de Staff.')}
-              className="text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-slate-600 transition-colors"
+              className="text-xs font-black uppercase tracking-widest text-slate-900 hover:text-blue-600 transition-colors"
             >
               ¿Olvidaste tu PIN?
             </button>
           </div>
         )}
-
-        <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-10">
-          TurnoYa Secure Access
-        </p>
       </motion.div>
     </div>
   )

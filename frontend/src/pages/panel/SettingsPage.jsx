@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Layout from '@/components/shared/Layout'
 import EmployeeProfile from '@/pages/panel/EmployeeProfile'
 import { useAuth } from '@/context/AuthContext'
@@ -63,6 +64,7 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
     commission_rate: 0,
     expense_categories: []
   })
+  const [initialSettings, setInitialSettings] = useState(null)
   const [newCategory, setNewCategory] = useState('')
   const [ownerPin, setOwnerPin] = useState('')
   const [updatingPin, setUpdatingPin] = useState(false)
@@ -93,14 +95,16 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
           listStaff().catch(() => ({ data: { staff: [] } })),
         ])
         
-        setSettings({
+        const newSettings = {
           cancellation_policy: settingsRes.data.cancellation_policy || '',
           anticipation_margin: settingsRes.data.anticipation_margin || 0,
           buffer_time: settingsRes.data.buffer_time || 0,
           whatsapp_enabled: settingsRes.data.whatsapp_enabled || false,
           commission_rate: settingsRes.data.commission_rate || 0,
           expense_categories: settingsRes.data.expense_categories || []
-        })
+        }
+        setSettings(newSettings)
+        setInitialSettings(newSettings)
         
         setGoogleStatus(googleRes.data)
         setStaffList(staffRes.data.staff || [])
@@ -112,6 +116,16 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
     }
     fetchData()
   }, [authLoading])
+
+  const hasMargenesChanges = initialSettings && (
+    settings.anticipation_margin !== initialSettings.anticipation_margin ||
+    settings.buffer_time !== initialSettings.buffer_time
+  )
+
+  const hasFinanzasChanges = initialSettings && (
+    settings.commission_rate !== initialSettings.commission_rate ||
+    JSON.stringify(settings.expense_categories) !== JSON.stringify(initialSettings.expense_categories)
+  )
 
   useEffect(() => {
     const handleFocus = async () => {
@@ -181,6 +195,7 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
     setSaving(true)
     try {
       await updateSettings(settings)
+      setInitialSettings(settings)
       toast.success('Configuración guardada')
     } catch {
       toast.error('Error al guardar')
@@ -286,14 +301,6 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
 
             {/* Right: Actions */}
             <div className="flex items-center min-w-[48px] justify-end">
-              <Button 
-                onClick={handleSave} 
-                disabled={saving} 
-                variant="ghost"
-                className="text-blue-600 font-bold"
-              >
-                {saving ? '...' : 'Guardar'}
-              </Button>
             </div>
           </div>
 
@@ -302,91 +309,106 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración</h1>
               <p className="text-sm text-slate-500 mt-0.5">Gestioná las reglas de tu negocio e integraciones.</p>
             </div>
-            <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto h-11 sm:h-10 shadow-md">
-              {saving ? 'Guardando...' : 'Guardar cambios'}
-            </Button>
           </div>
 
           <Tabs value={activeSettingsTab} onValueChange={setActiveSettingsTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 rounded-xl h-12">
-              <TabsTrigger value="reglas" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-active:bg-white data-active:shadow-sm">
-                <Settings2 className="w-4 h-4 mr-2" /> Reglas de Negocio
+            <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 rounded-2xl md:rounded-xl h-14 md:h-12">
+              <TabsTrigger value="reglas" className="rounded-xl md:rounded-lg text-lg md:text-sm font-black md:font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Settings2 className="w-5 h-5 md:w-4 md:h-4 mr-2" /> Reglas
               </TabsTrigger>
-              <TabsTrigger value="integraciones" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-active:bg-white data-active:shadow-sm">
-                <Share2 className="w-4 h-4 mr-2" /> Integraciones
+              <TabsTrigger value="integraciones" className="rounded-xl md:rounded-lg text-lg md:text-sm font-black md:font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Share2 className="w-5 h-5 md:w-4 md:h-4 mr-2" /> Google
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="reglas" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
               {/* ... (existing content) ... */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="shadow-sm border-slate-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Tiempos y Márgenes</CardTitle>
-                    <CardDescription>Controlá cuándo pueden reservar tus clientes.</CardDescription>
+                <Card className="shadow-sm border-slate-200 rounded-[2.5rem] md:rounded-xl">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-2xl md:text-lg font-black tracking-tighter text-slate-900">Tiempos y Márgenes</CardTitle>
+                    <CardDescription className="text-base md:text-sm font-bold md:font-normal text-slate-500">Controlá cuándo pueden reservar tus clientes.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Label className="text-slate-700">Margen de anticipación (minutos)</Label>
+                        <Label className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Anticipación</Label>
                         <Tooltip>
-                          <TooltipTrigger><Info className="h-4 w-4 text-slate-400" /></TooltipTrigger>
+                          <TooltipTrigger><Info className="h-5 w-5 md:h-4 md:w-4 text-slate-400" /></TooltipTrigger>
                           <TooltipContent>Mínimo tiempo antes del turno para reservar.</TooltipContent>
                         </Tooltip>
                       </div>
                       <input 
                         type="number" 
-                        value={settings.anticipation_margin}
+                        value={settings.anticipation_margin === 0 ? '' : settings.anticipation_margin}
                         onChange={(e) => setSettings({...settings, anticipation_margin: parseInt(e.target.value) || 0})}
-                        className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
+                        className="flex h-14 md:h-10 w-full rounded-2xl md:rounded-lg border border-slate-200 bg-white px-4 py-2 text-xl md:text-sm font-black md:font-normal focus:ring-2 focus:ring-slate-900 focus:outline-none" 
                       />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Label className="text-slate-700">Tiempo buffer (minutos)</Label>
+                        <Label className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Buffer</Label>
                         <Tooltip>
-                          <TooltipTrigger><Info className="h-4 w-4 text-slate-400" /></TooltipTrigger>
+                          <TooltipTrigger><Info className="h-5 w-5 md:h-4 md:w-4 text-slate-400" /></TooltipTrigger>
                           <TooltipContent>Descanso/limpieza entre turnos.</TooltipContent>
                         </Tooltip>
                       </div>
                       <input 
                         type="number" 
-                        value={settings.buffer_time}
+                        value={settings.buffer_time === 0 ? '' : settings.buffer_time}
                         onChange={(e) => setSettings({...settings, buffer_time: parseInt(e.target.value) || 0})}
-                        className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
+                        className="flex h-14 md:h-10 w-full rounded-2xl md:rounded-lg border border-slate-200 bg-white px-4 py-2 text-xl md:text-sm font-black md:font-normal focus:ring-2 focus:ring-slate-900 focus:outline-none" 
                       />
                     </div>
+
+                    <AnimatePresence>
+                      {hasMargenesChanges && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="pt-4"
+                        >
+                          <Button 
+                            onClick={handleSave} 
+                            disabled={saving}
+                            className="w-full h-14 md:h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl md:rounded-lg font-black md:font-bold uppercase tracking-widest text-lg md:text-sm"
+                          >
+                            {saving ? 'Guardando...' : 'Guardar cambios'}
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-sm border-slate-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Finanzas</CardTitle>
-                    <CardDescription>Configuración global del módulo de Caja y Comisiones.</CardDescription>
+                <Card className="shadow-sm border-slate-200 rounded-[2.5rem] md:rounded-xl">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-2xl md:text-lg font-black tracking-tighter text-slate-900">Finanzas</CardTitle>
+                    <CardDescription className="text-base md:text-sm font-bold md:font-normal text-slate-500">Configuración global de Caja y Gastos.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <Label className="text-slate-700">Tasa de Comisión General (%)</Label>
+                      <Label className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Comisión General</Label>
                       <input 
                         type="number" 
-                        value={settings.commission_rate}
+                        value={settings.commission_rate === 0 ? '' : settings.commission_rate}
                         onChange={(e) => setSettings({...settings, commission_rate: parseFloat(e.target.value) || 0})}
-                        className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
+                        className="flex h-14 md:h-10 w-full rounded-2xl md:rounded-lg border border-slate-200 bg-white px-4 py-2 text-xl md:text-sm font-black md:font-normal focus:ring-2 focus:ring-slate-900 focus:outline-none" 
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label className="text-slate-700">Categorías de Gastos</Label>
+                      <Label className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Categorías de Gastos</Label>
                       <div className="flex gap-2">
                         <input 
                           type="text" 
                           value={newCategory}
                           onChange={(e) => setNewCategory(e.target.value)}
                           placeholder="Nueva categoría..."
-                          className="flex h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none" 
+                          className="flex h-14 md:h-10 flex-1 rounded-2xl md:rounded-lg border border-slate-200 bg-white px-4 py-2 text-xl md:text-sm font-black md:font-normal focus:ring-2 focus:ring-slate-900 focus:outline-none" 
                         />
                         <Button 
                           type="button" 
-                          variant="outline"
                           onClick={() => {
                             if (newCategory.trim()) {
                               setSettings({
@@ -396,6 +418,7 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
                               setNewCategory('')
                             }
                           }}
+                          className="h-14 md:h-10 px-6 rounded-2xl md:rounded-lg text-lg md:text-sm font-black md:font-medium bg-slate-900 text-white"
                         >
                           Sumar
                         </Button>
@@ -419,24 +442,45 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
                         ))}
                       </div>
                     </div>
+
+                    <AnimatePresence>
+                      {hasFinanzasChanges && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="pt-4"
+                        >
+                          <Button 
+                            onClick={handleSave} 
+                            disabled={saving}
+                            className="w-full h-14 md:h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl md:rounded-lg font-black md:font-bold uppercase tracking-widest text-lg md:text-sm"
+                          >
+                            {saving ? 'Guardando...' : 'Guardar cambios'}
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-sm border-slate-200 md:col-span-2">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
+                <Card className="shadow-sm border-slate-200 md:col-span-2 rounded-[2.5rem] md:rounded-xl">
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
-                        <CardTitle className="text-lg flex items-center gap-2"><Users className="w-5 h-5 text-slate-500" /> Gestión de Staff</CardTitle>
-                        <CardDescription>Creá y administrá los perfiles de tu equipo para el Kiosco POS.</CardDescription>
+                        <CardTitle className="text-2xl md:text-lg font-black tracking-tighter text-slate-900 flex items-center gap-2">
+                          <Users className="w-6 h-6 md:w-5 md:h-5 text-slate-500" /> Gestión de Staff
+                        </CardTitle>
+                        <CardDescription className="text-base md:text-sm font-bold md:font-normal text-slate-500">Creá y administrá los perfiles de tu equipo.</CardDescription>
                       </div>
                       <Button 
                         type="button"
                         onClick={() => setShowAddForm(!showAddForm)}
-                        className="bg-slate-900 text-white gap-2"
+                        className="h-14 md:h-10 bg-slate-900 text-white gap-2 rounded-2xl md:rounded-lg text-xl md:text-sm font-black md:font-medium"
                         size="sm"
                       >
-                        <UserPlus className="w-4 h-4" />
-                        Agregar
+                        <UserPlus className="w-5 h-5 md:w-4 md:h-4" />
+                        Agregar Miembro
                       </Button>
                     </div>
                   </CardHeader>
@@ -452,16 +496,16 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
                       </div>
                     </div>
                     {/* Owner PIN inline */}
-                    <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-100 space-y-2">
+                    <div className="p-6 rounded-[2rem] bg-indigo-50/50 border border-indigo-100 space-y-4">
                       <div className="flex items-center gap-2">
-                        <Key className="w-4 h-4 text-indigo-500" />
-                        <Label className="text-slate-700 font-bold text-sm">Tu PIN de Dueño</Label>
+                        <Key className="w-5 h-5 text-indigo-500" />
+                        <Label className="text-xl md:text-sm font-black tracking-tighter text-slate-900 uppercase md:normal-case md:tracking-normal md:font-bold">Tu PIN de Dueño</Label>
                         <Tooltip>
-                          <TooltipTrigger><Info className="h-3.5 w-3.5 text-slate-400" /></TooltipTrigger>
-                          <TooltipContent>Tu PIN personal para acceder al Kiosco como Administrador.</TooltipContent>
+                          <TooltipTrigger><Info className="h-5 w-5 md:h-3.5 md:w-3.5 text-slate-400" /></TooltipTrigger>
+                          <TooltipContent>Tu PIN personal para acceder como Administrador.</TooltipContent>
                         </Tooltip>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-4">
                         <input 
                           type="password" 
                           inputMode="numeric"
@@ -469,16 +513,15 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
                           value={ownerPin}
                           onChange={(e) => setOwnerPin(e.target.value.replace(/\D/g, ''))}
                           placeholder="••••"
-                          className="flex h-9 w-24 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none text-center tracking-[0.3em] font-mono" 
+                          className="flex h-14 md:h-9 w-32 md:w-24 rounded-2xl md:rounded-lg border border-indigo-200 bg-white px-3 py-2 text-2xl md:text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none text-center tracking-[0.3em] font-mono font-black md:font-normal" 
                         />
                         <Button 
                           type="button" 
                           onClick={handleSaveOwnerPin}
                           disabled={updatingPin || ownerPin.length !== 4}
-                          size="sm"
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          className="h-14 md:h-9 flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl md:rounded-lg text-xl md:text-sm font-black md:font-medium"
                         >
-                          {updatingPin ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar'}
+                          {updatingPin ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Actualizar PIN'}
                         </Button>
                       </div>
                     </div>
@@ -637,8 +680,8 @@ function BusinessSettings({ isMenuOpen, setIsMenuOpen }) {
 
             <TabsContent value="integraciones" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
               <div className="max-w-2xl">
-                <Card className="shadow-sm border-slate-200 overflow-hidden">
-                  <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                <Card className="shadow-sm border-slate-200 overflow-hidden rounded-[2.5rem] md:rounded-xl">
+                  <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8 md:p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">

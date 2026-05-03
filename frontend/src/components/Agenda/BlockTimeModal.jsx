@@ -193,13 +193,13 @@ const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
 
       <AnimatePresence>
         {isOpen && isMobile && (
-          <div className="fixed inset-0 z-[100] flex items-end justify-center">
+          <div className="fixed inset-0 z-[160] flex items-end justify-center">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm z-[160]"
             />
             
             <motion.div
@@ -213,7 +213,7 @@ const BlockTimeModal = ({ isOpen, onClose, onConfirm, initialDate }) => {
               onDragEnd={(e, info) => {
                 if (info.offset.y > 100) onClose()
               }}
-              className="relative w-full bg-white rounded-t-[2.5rem] shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto hide-scrollbar"
+              className="relative w-full bg-white rounded-t-[2.5rem] shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto hide-scrollbar z-[170]"
             >
               {renderContent()}
             </motion.div>

@@ -100,9 +100,26 @@ export default function ServicesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    
+
+    const { name, duration } = form
+    if (!name?.trim()) {
+      toast.error('Por favor, ingresá un nombre para el servicio')
+      setLoading(false)
+      return
+    }
+    if (!duration || Number(duration) <= 0) {
+      toast.error('Por favor, ingresá una duración válida')
+      setLoading(false)
+      return
+    }
+    if (form.price === '' || form.price === undefined) {
+      toast.error('Por favor, ingresá un precio para el servicio')
+      setLoading(false)
+      return
+    }
+
     // Convert duration to minutes if unit is 'hs'
-    const finalDuration = durationUnit === 'hs' ? Number(form.duration) * 60 : Number(form.duration)
+    const finalDuration = durationUnit === 'hs' ? Number(duration) * 60 : Number(duration)
     const finalForm = { ...form, duration: finalDuration }
 
     try {
@@ -114,7 +131,7 @@ export default function ServicesPage() {
         await createService(finalForm)
         toast.success('Servicio creado')
       }
-      setForm(emptyForm)
+      setForm({ ...emptyForm, service_icon: form.service_icon, service_color: form.service_color })
       setDurationUnit('min')
       fetchServices()
     } catch (err) {
@@ -207,7 +224,7 @@ export default function ServicesPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4 md:space-y-3">
                 <div className="space-y-1.5 md:space-y-1.5">
-                  <Label htmlFor="name" className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Nombre *</Label>
+                  <Label htmlFor="name" className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Nombre</Label>
                   <Input id="name" name="name" placeholder="" value={form.name} onChange={handleChange} required className="h-14 md:h-10 text-lg md:text-sm rounded-2xl md:rounded-md font-bold md:font-normal px-4 md:px-3" />
                 </div>
 
@@ -297,9 +314,9 @@ export default function ServicesPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5 relative">
-                    <Label htmlFor="duration" className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Duración *</Label>
+                    <Label htmlFor="duration" className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Duración</Label>
                     <div className="relative">
-                      <Input id="duration" name="duration" type="number" placeholder="" value={form.duration} onChange={handleChange} required className="h-14 md:h-10 text-lg md:text-sm rounded-2xl md:rounded-md font-bold md:font-normal px-4 md:px-3 pr-24 md:pr-20" />
+                      <Input id="duration" name="duration" type="number" placeholder="" value={form.duration} onChange={handleChange} required className="h-14 md:h-10 text-lg md:text-sm rounded-2xl md:rounded-md font-bold md:font-normal pl-4 md:pl-3 pr-24 md:pr-20" />
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 bg-white md:bg-slate-50 p-1 rounded-xl md:rounded-lg border border-slate-100">
                         {['min', 'hs'].map(u => (
                           <button
@@ -321,7 +338,7 @@ export default function ServicesPage() {
                     <Label htmlFor="price" className="text-xl md:text-sm font-black tracking-tighter text-slate-500 uppercase md:normal-case md:tracking-normal md:font-medium">Precio</Label>
                     <div className="relative">
                       <span className="absolute left-5 md:left-4 top-1/2 -translate-y-1/2 text-lg md:text-sm font-bold text-slate-400">$</span>
-                      <Input id="price" name="price" type="number" placeholder="" value={form.price} onChange={handleChange} className="h-14 md:h-10 text-lg md:text-sm rounded-2xl md:rounded-md font-bold md:font-normal pl-10 md:pl-9 px-4 md:px-3" />
+                      <Input id="price" name="price" type="number" placeholder="" value={form.price} onChange={handleChange} required className="h-14 md:h-10 text-lg md:text-sm rounded-2xl md:rounded-md font-bold md:font-normal pl-12 md:pl-10 pr-4 md:pr-3" />
                     </div>
                   </div>
                 </div>

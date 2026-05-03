@@ -34,6 +34,9 @@ import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import AvailabilityDrawer from '@/components/Agenda/AvailabilityDrawer'
+import BlockTimeModal from '@/components/Agenda/BlockTimeModal'
+import { blockTime } from '@/api/appointments'
+import { toast } from 'sonner'
 
 const navItems = [
   { label: 'Agenda', path: '/dashboard/agenda', icon: ClipboardList },
@@ -41,7 +44,6 @@ const navItems = [
   { label: 'Disponibilidad', path: '/dashboard/disponibilidad', icon: Clock },
   { label: 'Caja', path: '/dashboard/caja', icon: Wallet },
   { label: 'Clientes', path: '/dashboard/clientes', icon: Users },
-  { label: 'Incidencias', path: '/dashboard/incidencias', icon: Flag },
   { label: 'Configuración', path: '/dashboard/configuracion', icon: Settings }
 ]
 
@@ -53,8 +55,8 @@ function NavScrollable() {
   const visibleNavItems = navItems.filter(item => {
     const isActuallyEmployee = role === 'employee' || isEmployee
     if (isActuallyEmployee) {
-      // Empleados solo ven Agenda, Caja, Clientes e Incidencias (solo reporte) y Configuración (su perfil)
-      return ['Agenda', 'Caja', 'Clientes', 'Incidencias', 'Configuración'].includes(item.label)
+      // Empleados solo ven Agenda, Caja, Clientes y Configuración (su perfil)
+      return ['Agenda', 'Caja', 'Clientes', 'Configuración'].includes(item.label)
     }
     return true // Dueño ve todo
   })
@@ -163,6 +165,19 @@ export default function Layout({
   
   const [internalMenuOpen, setInternalMenuOpen] = useState(false)
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false)
+  const [showBlockModal, setShowBlockModal] = useState(false)
+  
+  const handleConfirmBlock = async (data) => {
+    try {
+      await blockTime(data)
+      toast.success('Horario bloqueado')
+      setShowBlockModal(false)
+      // If we are in AgendaPage, it might need a refresh, but AgendaPage handles its own modal.
+      // This is for when opened from other pages.
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al bloquear horario')
+    }
+  }
   const isMobileMenuOpen = mobileMenuState ? mobileMenuState[0] : internalMenuOpen
   const setIsMobileMenuOpen = mobileMenuState ? mobileMenuState[1] : setInternalMenuOpen
   const dragControls = useDragControls()
@@ -182,7 +197,7 @@ export default function Layout({
   // Filtrar links para el menú móvil (misma lógica que NavScrollable)
   const visibleNavItems = navItems.filter(item => {
     if (isActuallyEmployee) {
-      return ['Agenda', 'Caja', 'Clientes', 'Incidencias', 'Configuración'].includes(item.label)
+      return ['Agenda', 'Caja', 'Clientes', 'Configuración'].includes(item.label)
     }
     return true
   })
@@ -299,11 +314,15 @@ export default function Layout({
                       </NavLink>
                     )}
 
-                    {item.label === 'Agenda' && onCalendarClick && (
+                    {item.label === 'Agenda' && (
                       <button
                         onClick={() => {
                           setIsMobileMenuOpen(false);
-                          onCalendarClick();
+                          if (onCalendarClick) {
+                            onCalendarClick();
+                          } else {
+                            navigate('/dashboard/agenda');
+                          }
                         }}
                         className="flex items-center gap-5 px-2 py-2 transition-all text-black active:scale-[0.98] rounded-2xl text-left"
                       >
@@ -321,11 +340,8 @@ export default function Layout({
                     <User className="w-5 h-5 text-black" />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-black text-black truncate">
-                      {activeProfile ? activeProfile.name : (business.name || 'Mi Negocio')}
-                    </span>
-                    <span className="text-[10px] font-bold text-black uppercase tracking-widest">
-                      {isActuallyEmployee ? 'Staff Mode' : 'Administrador'}
+                    <span className="text-lg font-black text-black truncate">
+                      {isActuallyEmployee ? (activeProfile?.name || 'Staff') : 'Admin'}
                     </span>
                   </div>
                 </div>
@@ -354,6 +370,14 @@ export default function Layout({
       <AvailabilityDrawer 
         isOpen={isAvailabilityOpen} 
         onClose={() => setIsAvailabilityOpen(false)} 
+        onBlockClick={() => setShowBlockModal(true)}
+      />
+
+      <BlockTimeModal 
+        isOpen={showBlockModal} 
+        onClose={() => setShowBlockModal(false)} 
+        onConfirm={handleConfirmBlock}
+        initialDate={new Date()}
       />
     </div>
   )
@@ -381,11 +405,8 @@ function AccountMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 mt-1 shadow-sm rounded-xl">
         <div className="flex flex-col space-y-1 p-2">
-          <p className="text-sm font-bold leading-none text-slate-900 truncate max-w-full">
-            {activeProfile ? activeProfile.name : (business.name || 'Mi Negocio')}
-          </p>
-          <p className="text-[10px] leading-none text-slate-500 font-medium uppercase tracking-wider mt-1">
-            {activeProfile ? (activeProfile.role === 'owner' ? 'Administrador' : 'Staff') : 'Terminal'}
+          <p className="text-base font-black leading-none text-slate-900 truncate max-w-full">
+            {isActuallyEmployee ? (activeProfile?.name || 'Staff') : 'Admin'}
           </p>
         </div>
         <DropdownMenuSeparator />

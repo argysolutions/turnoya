@@ -12,7 +12,7 @@ export const listServices = async (req, reply) => {
 }
 
 export const createServiceHandler = async (req, reply) => {
-  const { name, duration, price, description } = req.body
+  const { name, duration, price, description, service_icon, service_color } = req.body
 
   if (!name || !duration) {
     return reply.status(400).send({ error: 'Nombre y duración son obligatorios' })
@@ -23,7 +23,9 @@ export const createServiceHandler = async (req, reply) => {
     name,
     duration,
     price,
-    description
+    description,
+    service_icon,
+    service_color
   })
 
   reply.status(201).send(service)
